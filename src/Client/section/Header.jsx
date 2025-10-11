@@ -1,4 +1,5 @@
 import React from 'react'
+import { Button } from '../../components/ui/button'
 
 const Header = ({ setShowBot, setShowAdmin }) => {
   return (
@@ -19,24 +20,16 @@ const Header = ({ setShowBot, setShowAdmin }) => {
           <a href="#contact" className="hidden md:inline-flex items-center gap-2 rounded-md bg-gradient-to-tr from-purple-500 to-purple-700 px-4 py-2 text-sm font-medium hover:brightness-110 shadow-lg shadow-purple-500/25">
             Get in Touch
           </a>
-          <button 
-            onClick={() => setShowAdmin(true)}
-            className="hidden md:inline-flex items-center gap-2 rounded-md border border-purple-400/20 px-3 py-1.5 text-sm hover:bg-purple-500/10 transition-colors"
-            title="Admin Dashboard"
-          >
-            <span>🔧</span>
-            <span className="hidden lg:inline">Admin</span>
-          </button>
-          <button 
+
+          <button
             onClick={() => setShowAdmin(true)}
             className="md:hidden inline-flex items-center gap-2 rounded-md border border-purple-400/20 px-3 py-1.5 text-sm hover:bg-purple-500/10 transition-colors"
             title="Admin Dashboard"
           >
             <span>🔧</span>
           </button>
-          <button onClick={() => setShowBot(true)} className="inline-flex items-center gap-2 rounded-md border border-purple-400/20 px-3 py-1.5 text-sm hover:bg-purple-500/10 transition-colors">
-            <span>Chat</span>
-          </button>
+          <Button onClick={() => setShowBot(true)} >Chat</Button>
+
         </div>
       </div>
     </header>

@@ -1,22 +1,19 @@
 import React, { useState } from 'react'
-
-// Import all components
-import Header from './components/Header'
-import Hero from './components/Hero'
-import About from './components/About'
-import TrainingServices from './components/TrainingServices'
-import BusinessOutsourcing from './components/BusinessOutsourcing'
-import Careers from './components/Careers'
-import Opportunities from './components/Opportunities'
-import ServiceProvider from './components/ServiceProvider'
-import Testimonials from './components/Testimonials'
-import Contact from './components/Contact'
-import Footer from './components/Footer'
-import AdminDashboard from './components/AdminDashboard'
-import ChatBot from './components/ChatBot'
+import Header from './Client/section/Header'
+import Hero from './Client/section/Hero'
+import About from './Client/section/About'
+import TrainingServices from './Client/section/TrainingServices'
+import BusinessOutsourcing from './Client/section/BusinessOutsourcing'
+import Careers from './Client/section/Careers'
+import Opportunities from './Client/section/Opportunities'
+import ServiceProvider from './Client/section/ServiceProvider'
+import Testimonials from './Client/section/Testimonials'
+import Contact from './Client/section/Contact'
+import Footer from './Client/section/Footer'
+import AdminDashboard from './Client/section/AdminDashboard'
+import ChatBot from './Client/section/ChatBot'
 
 const App = () => {
-  // State management
   const [showBot, setShowBot] = useState(false)
   const [showAdmin, setShowAdmin] = useState(false)
   const [cvData, setCvData] = useState([
@@ -41,16 +38,13 @@ const App = () => {
         <Testimonials />
         <Contact />
       </main>
-
       <Footer />
-
-      <AdminDashboard 
-        showAdmin={showAdmin} 
-        setShowAdmin={setShowAdmin} 
-        cvData={cvData} 
-        setCvData={setCvData} 
+      <AdminDashboard
+        showAdmin={showAdmin}
+        setShowAdmin={setShowAdmin}
+        cvData={cvData}
+        setCvData={setCvData}
       />
-
       <ChatBot showBot={showBot} setShowBot={setShowBot} />
     </div>
   )

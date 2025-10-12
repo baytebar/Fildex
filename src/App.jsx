@@ -2,12 +2,9 @@ import React, { useState } from 'react'
 import Header from './Client/section/Header'
 import Hero from './Client/section/Hero'
 import About from './Client/section/About'
-import TrainingServices from './Client/section/TrainingServices'
 import BusinessOutsourcing from './Client/section/BusinessOutsourcing'
 import Careers from './Client/section/Careers'
 import Opportunities from './Client/section/Opportunities'
-import ServiceProvider from './Client/section/ServiceProvider'
-import Testimonials from './Client/section/Testimonials'
 import Contact from './Client/section/Contact'
 import Footer from './Client/section/Footer'
 import AdminDashboard from './Client/section/AdminDashboard'
@@ -23,19 +20,50 @@ const App = () => {
     { id: 4, name: 'Emma Wilson', email: 'emma@example.com', phone: '+353 1 234 5681', role: 'software-developer', uploadedDate: '2023-12-20', status: 'expired', retentionDate: '2024-12-20' }
   ])
 
+  // State for job postings
+  const [jobPostings, setJobPostings] = useState([
+    { 
+      id: 1, 
+      title: 'Senior Cloud Engineer', 
+      department: 'Engineering', 
+      location: 'Remote', 
+      type: 'Full-time', 
+      salary: '€70,000 - €90,000', 
+      description: 'We are looking for an experienced Cloud Engineer to join our team.', 
+      requirements: ['AWS Certification', '5+ years experience'], 
+      postedDate: '2024-01-10', 
+      expiryDate: '2024-03-10',
+      status: 'active',
+      applicants: 12
+    },
+    { 
+      id: 2, 
+      title: 'DevOps Specialist', 
+      department: 'Operations', 
+      location: 'Dublin', 
+      type: 'Full-time', 
+      salary: '€60,000 - €80,000', 
+      description: 'Join our DevOps team to streamline our deployment processes.', 
+      requirements: ['Docker', 'Kubernetes', 'CI/CD pipelines'], 
+      postedDate: '2024-01-15', 
+      expiryDate: '2024-03-15',
+      status: 'active',
+      applicants: 8
+    }
+  ])
+
   return (
-    <div className="min-h-dvh bg-gradient-to-b from-purple-950 via-black to-purple-950 text-white">
+    // Changed background to a simpler white background that works with the new theme
+    <div className="min-h-dvh bg-background text-foreground">
       <Header setShowBot={setShowBot} setShowAdmin={setShowAdmin} />
 
-      <main className="mx-auto max-w-7xl px-4 py-8 space-y-12">
+      <main >
         <Hero />
         <About />
-        <TrainingServices />
+        
         <BusinessOutsourcing />
         <Careers setCvData={setCvData} />
-        <Opportunities />
-        <ServiceProvider />
-        <Testimonials />
+        <Opportunities jobPostings={jobPostings} />
         <Contact />
       </main>
       <Footer />
@@ -44,6 +72,8 @@ const App = () => {
         setShowAdmin={setShowAdmin}
         cvData={cvData}
         setCvData={setCvData}
+        jobPostings={jobPostings}
+        setJobPostings={setJobPostings}
       />
       <ChatBot showBot={showBot} setShowBot={setShowBot} />
     </div>

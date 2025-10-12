@@ -76,7 +76,7 @@ const ChatBot = ({ showBot, setShowBot }) => {
       {/* Floating Chat Bot Button */}
       <button
         onClick={() => setShowBot(true)}
-        className="fixed bottom-5 right-5 size-14 rounded-full bg-gradient-to-tr from-purple-500 to-purple-700 shadow-xl shadow-purple-500/30 grid place-items-center text-2xl hover:brightness-110"
+        className="fixed bottom-5 right-5 size-14 rounded-full bg-primary shadow-xl grid place-items-center text-2xl hover:bg-primary/90"
         aria-label="Open chat bot"
       >
         💬
@@ -85,21 +85,23 @@ const ChatBot = ({ showBot, setShowBot }) => {
       {/* Chat Bot Modal */}
       <div className="fixed inset-0 z-20 flex items-end md:items-center justify-end">
         <div className="absolute inset-0 bg-black/50" onClick={() => setShowBot(false)} />
-        <div className="relative z-30 w-full max-w-md m-4 rounded-2xl border border-purple-400/20 bg-purple-950/90 backdrop-blur-lg h-[80vh] flex flex-col shadow-xl shadow-purple-500/20">
-          <div className="px-4 py-3 border-b border-purple-400/20 flex items-center justify-between">
+        {/* Updated modal to use theme variables */}
+        <div className="relative z-30 w-full max-w-md m-4 rounded-2xl border border-border bg-card backdrop-blur-lg h-[80vh] flex flex-col shadow-xl">
+          <div className="px-4 py-3 border-b border-border flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-xl">🤖</span>
-              <h4 className="font-semibold">Resume Assistant</h4>
+              <h4 className="font-semibold text-foreground">Resume Assistant</h4>
             </div>
-            <button className="text-purple-300 hover:text-white" onClick={() => setShowBot(false)}>✕</button>
+            <button className="text-muted-foreground hover:text-foreground" onClick={() => setShowBot(false)}>✕</button>
           </div>
           <div className="flex-1 overflow-auto px-4 py-3 space-y-3 text-sm">
             {messages.map(m => (
               <div key={m.id} className={m.role === 'bot' ? 'flex items-start gap-2' : 'flex items-start gap-2 justify-end'}>
                 {m.role === 'bot' && <span className="mt-0.5">🤖</span>}
-                <div className={`rounded-lg px-3 py-2 ${m.role === 'bot' ? 'bg-purple-500/10 border border-purple-400/20' : 'bg-purple-500/20 border border-purple-400/30'}`}>
-                  {m.text}
-                  {isTyping && m.id === typingMessageId.current && <span className="inline-block w-2 h-4 bg-purple-200/70 ml-1 align-middle animate-pulse" />}
+                {/* Updated message bubbles to use theme variables */}
+                <div className={`rounded-lg px-3 py-2 ${m.role === 'bot' ? 'bg-muted border border-border' : 'bg-accent border border-border'}`}>
+                  <span className="text-foreground">{m.text}</span>
+                  {isTyping && m.id === typingMessageId.current && <span className="inline-block w-2 h-4 bg-foreground/70 ml-1 align-middle animate-pulse" />}
                 </div>
                 {m.role === 'user' && <span className="mt-0.5">🧑</span>}
               </div>
@@ -108,21 +110,23 @@ const ChatBot = ({ showBot, setShowBot }) => {
               <div className="flex items-start gap-2">
                 <span className="mt-0.5">📄</span>
                 <div className="flex-1">
-                  <div className="text-xs text-purple-300 mb-1">Uploaded preview</div>
-                  <pre className="max-h-40 overflow-auto whitespace-pre-wrap text-xs text-purple-200 bg-white/5 border border-white/10 rounded p-2">{resumeText}</pre>
+                  <div className="text-xs text-muted-foreground mb-1">Uploaded preview</div>
+                  {/* Updated preview text to use theme variables */}
+                  <pre className="max-h-40 overflow-auto whitespace-pre-wrap text-xs text-foreground bg-card border border-border rounded p-2">{resumeText}</pre>
                 </div>
               </div>
             )}
             <div ref={chatEndRef} />
           </div>
-          <div className="px-4 py-3 border-t border-purple-400/20 bg-purple-950/40">
+          {/* Updated input area to use theme variables */}
+          <div className="px-4 py-3 border-t border-border bg-card">
             <div className="flex items-center gap-2">
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-white/10 px-3 py-1.5 hover:bg-white/15">
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-muted px-3 py-1.5 hover:bg-accent">
                 <input type="file" accept=".txt,.md,.pdf" className="hidden" onChange={onBrowse} />
-                <span>Upload</span>
+                <span className="text-foreground">Upload</span>
               </label>
               <input
-                className="flex-1 rounded-md bg-white/5 border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                className="flex-1 rounded-md bg-card border border-input px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring text-foreground"
                 placeholder="Ask for keyword coverage, bullet rewrites, or summary tips..."
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && e.currentTarget.value.trim()) {
@@ -135,10 +139,10 @@ const ChatBot = ({ showBot, setShowBot }) => {
                   }
                 }}
               />
-              <button className="rounded-md bg-gradient-to-tr from-purple-500 to-purple-700 px-4 py-2 text-sm font-medium hover:brightness-110 shadow-lg shadow-purple-500/25">Send</button>
+              <button className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 shadow-sm">Send</button>
             </div>
             {uploadedFile && (
-              <div className="mt-2 text-xs text-purple-300">Selected: {uploadedFile.name}</div>
+              <div className="mt-2 text-xs text-muted-foreground">Selected: {uploadedFile.name}</div>
             )}
           </div>
         </div>

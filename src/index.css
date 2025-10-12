@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+html {
+  scroll-behavior: smooth;
+}
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -70,7 +73,9 @@
   --sidebar: oklch(98% 0 0); /* Light sidebar */
   --sidebar-foreground: oklch(20% 0 0); /* Dark text in sidebar */
   --sidebar-primary: oklch(50% 0.2 290); /* Purple sidebar primary */
-  --sidebar-primary-foreground: oklch(100% 0 0); /* White text on sidebar primary */
+  --sidebar-primary-foreground: oklch(
+    100% 0 0
+  ); /* White text on sidebar primary */
   --sidebar-accent: oklch(90% 0 0); /* Light sidebar accent */
   --sidebar-accent-foreground: oklch(20% 0 0); /* Dark text on sidebar accent */
   --sidebar-border: oklch(90% 0 0); /* Sidebar border */
@@ -104,9 +109,13 @@
   --sidebar: oklch(20% 0 0); /* Dark sidebar */
   --sidebar-foreground: oklch(95% 0 0); /* Light text in sidebar */
   --sidebar-primary: oklch(70% 0.2 290); /* Lighter purple sidebar primary */
-  --sidebar-primary-foreground: oklch(15% 0 0); /* Dark text on sidebar primary */
+  --sidebar-primary-foreground: oklch(
+    15% 0 0
+  ); /* Dark text on sidebar primary */
   --sidebar-accent: oklch(30% 0 0); /* Dark sidebar accent */
-  --sidebar-accent-foreground: oklch(95% 0 0); /* Light text on sidebar accent */
+  --sidebar-accent-foreground: oklch(
+    95% 0 0
+  ); /* Light text on sidebar accent */
   --sidebar-border: oklch(25% 0 0); /* Sidebar border */
   --sidebar-ring: oklch(70% 0.2 290); /* Lighter purple sidebar ring */
 }

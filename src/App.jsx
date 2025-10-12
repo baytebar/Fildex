@@ -9,6 +9,10 @@ import Contact from './Client/section/Contact'
 import Footer from './Client/section/Footer'
 import AdminDashboard from './Client/section/AdminDashboard'
 import ChatBot from './Client/section/ChatBot'
+import { Route, Routes } from 'react-router-dom'
+import JobListing from './Client/section/JobListing'
+import Login from './Client/pages/Login'
+import Signup from './Client/pages/Signup'
 
 const App = () => {
   const [showBot, setShowBot] = useState(false)
@@ -22,61 +26,80 @@ const App = () => {
 
   // State for job postings
   const [jobPostings, setJobPostings] = useState([
-    { 
-      id: 1, 
-      title: 'Senior Cloud Engineer', 
-      department: 'Engineering', 
-      location: 'Remote', 
-      type: 'Full-time', 
-      salary: '€70,000 - €90,000', 
-      description: 'We are looking for an experienced Cloud Engineer to join our team.', 
-      requirements: ['AWS Certification', '5+ years experience'], 
-      postedDate: '2024-01-10', 
+    {
+      id: 1,
+      title: 'Senior Cloud Engineer',
+      department: 'Engineering',
+      location: 'Remote',
+      type: 'Full-time',
+      salary: '€70,000 - €90,000',
+      description: 'We are looking for an experienced Cloud Engineer to join our team.',
+      requirements: ['AWS Certification', '5+ years experience'],
+      postedDate: '2024-01-10',
       expiryDate: '2024-03-10',
       status: 'active',
       applicants: 12
     },
-    { 
-      id: 2, 
-      title: 'DevOps Specialist', 
-      department: 'Operations', 
-      location: 'Dublin', 
-      type: 'Full-time', 
-      salary: '€60,000 - €80,000', 
-      description: 'Join our DevOps team to streamline our deployment processes.', 
-      requirements: ['Docker', 'Kubernetes', 'CI/CD pipelines'], 
-      postedDate: '2024-01-15', 
+    {
+      id: 2,
+      title: 'DevOps Specialist',
+      department: 'Operations',
+      location: 'Dublin',
+      type: 'Full-time',
+      salary: '€60,000 - €80,000',
+      description: 'Join our DevOps team to streamline our deployment processes.',
+      requirements: ['Docker', 'Kubernetes', 'CI/CD pipelines'],
+      postedDate: '2024-01-15',
       expiryDate: '2024-03-15',
       status: 'active',
       applicants: 8
+    },
+    {
+      id: 3,
+      title: 'AI/ML Developer',
+      department: 'Research',
+      location: 'Cork',
+      type: 'Full-time',
+      salary: '€80,000 - €100,000',
+      description: 'Work on cutting-edge AI/ML projects with our research team.',
+      requirements: ['Python', 'TensorFlow', 'Machine Learning'],
+      postedDate: '2024-01-20',
+      expiryDate: '2024-03-20',
+      status: 'active',
+      applicants: 5
     }
   ])
 
   return (
-    // Changed background to a simpler white background that works with the new theme
-    <div className="min-h-dvh bg-background text-foreground">
-      <Header setShowBot={setShowBot} setShowAdmin={setShowAdmin} />
+    <Routes>
+      <Route path="/" element={
+        <div className="min-h-dvh bg-background text-foreground">
+          <Header setShowBot={setShowBot} />
+          <main>
+            <Hero />
+            <About />
+            <BusinessOutsourcing />
 
-      <main >
-        <Hero />
-        <About />
-        
-        <BusinessOutsourcing />
-        <Careers setCvData={setCvData} />
-        <Opportunities jobPostings={jobPostings} />
-        <Contact />
-      </main>
-      <Footer />
-      <AdminDashboard
-        showAdmin={showAdmin}
-        setShowAdmin={setShowAdmin}
-        cvData={cvData}
-        setCvData={setCvData}
-        jobPostings={jobPostings}
-        setJobPostings={setJobPostings}
-      />
-      <ChatBot showBot={showBot} setShowBot={setShowBot} />
-    </div>
+            <Opportunities jobPostings={jobPostings} />
+            <Contact />
+          </main>
+          <Footer />
+          <AdminDashboard
+            showAdmin={showAdmin}
+            setShowAdmin={setShowAdmin}
+            cvData={cvData}
+            setCvData={setCvData}
+            jobPostings={jobPostings}
+            setJobPostings={setJobPostings}
+          />
+          <ChatBot showBot={showBot} setShowBot={setShowBot} />
+        </div>
+      } />
+      <Route path="/jobs" element={<JobListing />} />
+      <Route path="/careers" element={<Careers setCvData={setCvData} jobPostings={jobPostings} />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+    </Routes>
   )
 }
 

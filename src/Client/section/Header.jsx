@@ -39,20 +39,6 @@ const Header = ({ setShowBot }) => {
           </Link>
         </div>
 
-        {/* Mobile menu button */}
-        <button
-          className="md:hidden inline-flex items-center justify-center rounded-md p-2 text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          aria-expanded={isMenuOpen}
-          aria-label="Toggle navigation menu"
-        >
-          {isMenuOpen ? (
-            <X className="block h-6 w-6" />
-          ) : (
-            <Menu className="block h-6 w-6" />
-          )}
-        </button>
-
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6 text-base text-muted-foreground">
           <a className="hover:text-primary transition-colors" href="#about">About</a>
@@ -85,6 +71,19 @@ const Header = ({ setShowBot }) => {
             )}
           </button>
 
+          {/* Mobile menu button - moved to the right side */}
+          <button
+            className="md:hidden inline-flex items-center justify-center rounded-md p-2 text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-expanded={isMenuOpen}
+            aria-label="Toggle navigation menu"
+          >
+            {isMenuOpen ? (
+              <X className="block h-6 w-6" />
+            ) : (
+              <Menu className="block h-6 w-6" />
+            )}
+          </button>
         </div>
       </div>
 

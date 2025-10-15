@@ -1,8 +1,138 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Authentication page specific styles */
+.auth-page {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Flip card styles for forms only */
+.flip-card-container {
+  perspective: 1500px;
+  width: 100%;
+  max-width: 480px;
+  height: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flip-card {
+  width: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform-origin: center;
+}
+
+.flip-card.flipped {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front, .flip-card-back {
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.flip-card-back {
+  transform: rotateY(180deg);
+}
+
+/* Enhanced transition styles */
+.page-transition-enter {
+  opacity: 0;
+  transform: translateX(20px) translateY(10px) scale(0.98);
+  filter: blur(1px);
+}
+
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateX(0) translateY(0) scale(1);
+  filter: blur(0);
+  transition: 
+    opacity 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    filter 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.page-transition-exit {
+  opacity: 1;
+  transform: translateX(0) translateY(0) scale(1);
+  filter: blur(0);
+}
+
+.page-transition-exit-active {
+  opacity: 0;
+  transform: translateX(-20px) translateY(-10px) scale(0.98);
+  filter: blur(1px);
+  transition: 
+    opacity 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    filter 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Additional smooth transitions for form elements */
+.auth-form-container {
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.auth-form-container:hover {
+  box-shadow: 0 25px 30px -10px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transform: translateY(-2px);
+}
+
+/* Smooth transitions for buttons */
+.btn-transition {
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-transition:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Smooth transitions for input fields */
+.input-transition {
+  transition: all 0.2s ease-in-out;
+}
+
+.input-transition:focus {
+  transform: scale(1.01);
+}
+
 html {
   scroll-behavior: smooth;
+}
+
+/* Custom bounce-in animation for chatbot messages */
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translateY(-20px);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05) translateY(0);
+  }
+  70% {
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 @custom-variant dark (&:is(.dark *));
 
@@ -73,9 +203,7 @@ html {
   --sidebar: oklch(98% 0 0); /* Light sidebar */
   --sidebar-foreground: oklch(20% 0 0); /* Dark text in sidebar */
   --sidebar-primary: oklch(50% 0.2 290); /* Purple sidebar primary */
-  --sidebar-primary-foreground: oklch(
-    100% 0 0
-  ); /* White text on sidebar primary */
+  --sidebar-primary-foreground: oklch(100% 0 0); /* White text on sidebar primary */
   --sidebar-accent: oklch(90% 0 0); /* Light sidebar accent */
   --sidebar-accent-foreground: oklch(20% 0 0); /* Dark text on sidebar accent */
   --sidebar-border: oklch(90% 0 0); /* Sidebar border */
@@ -109,13 +237,9 @@ html {
   --sidebar: oklch(20% 0 0); /* Dark sidebar */
   --sidebar-foreground: oklch(95% 0 0); /* Light text in sidebar */
   --sidebar-primary: oklch(70% 0.2 290); /* Lighter purple sidebar primary */
-  --sidebar-primary-foreground: oklch(
-    15% 0 0
-  ); /* Dark text on sidebar primary */
+  --sidebar-primary-foreground: oklch(15% 0 0); /* Dark text on sidebar primary */
   --sidebar-accent: oklch(30% 0 0); /* Dark sidebar accent */
-  --sidebar-accent-foreground: oklch(
-    95% 0 0
-  ); /* Light text on sidebar accent */
+  --sidebar-accent-foreground: oklch(95% 0 0); /* Light text on sidebar accent */
   --sidebar-border: oklch(25% 0 0); /* Sidebar border */
   --sidebar-ring: oklch(70% 0.2 290); /* Lighter purple sidebar ring */
 }

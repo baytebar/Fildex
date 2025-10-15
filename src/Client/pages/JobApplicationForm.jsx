@@ -37,10 +37,8 @@ const JobApplicationForm = ({ job, onApply, onCancel }) => {
     }
     setApplicationStatus('uploading')
     
-    // Simulate application submission
     setTimeout(() => {
       setApplicationStatus('success')
-      // In a real app, you would send the application data to a server here
       onApply({
         jobId: job.id,
         jobTitle: job.title,

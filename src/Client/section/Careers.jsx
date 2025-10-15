@@ -3,8 +3,9 @@ import { Rocket, FileText, AlertTriangle, Check, Star, Flame, Briefcase, MapPin,
 import FildexLogo from '../../images/FILDEX_SOLUTIONS.png'
 import FildexText from '../../images/FILDEX_SOLUTIONS_TEXT.png'
 import { Link } from 'react-router-dom'
+import CareersHeader from './CareersHeader'
 
-const Careers = ({ setCvData, jobPostings }) => {
+const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
   const [careerForm, setCareerForm] = useState({ name: '', email: '', phone: '', roleInterest: '', cvFile: null, consent: false })
   const [careerStatus, setCareerStatus] = useState('') // '', 'uploading', 'success', 'error'
   const [dragOver, setDragOver] = useState(false)
@@ -59,23 +60,10 @@ const Careers = ({ setCvData, jobPostings }) => {
   }
 
   return (
-    <section id="careers" className="min-h-dvh space-y-8 px-4 sm:px-6 lg:px-8 py-12 bg-background">
-      <div className="max-w-7xl mx-auto">
-        {/* Logo */}
-        <div className="flex justify-start mb-8">
-          <Link to={'/'} className="flex items-center gap-2 md:gap-3" onClick={() => window.scrollTo(0, 0)}>
-            <img
-              src={FildexLogo}
-              alt="Fildex Logo"
-              className="h-6 md:h-8 lg:h-10 w-auto"
-            />
-            <img
-              src={FildexText}
-              alt="Fildex Solutions"
-              className="h-4 md:h-6 lg:h-7 w-auto hidden sm:block"
-            />
-          </Link>
-        </div>
+    <div className="min-h-dvh bg-background">
+      <CareersHeader isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+      <section id="careers" className="space-y-8 px-4 sm:px-6 lg:px-8 py-12">
+        <div className="max-w-7xl mx-auto">
 
         {/* Section header with improved typography */}
         <div className="text-center mb-12">
@@ -101,7 +89,7 @@ const Careers = ({ setCvData, jobPostings }) => {
               </div>
 
               <p className="text-foreground mb-6 text-lg">
-                Join our talent pool and be considered for exciting opportunities in training, outsourcing, and business solutions.
+                Join our talent pool and be considered for exciting opportunities in training and business solutions.
               </p>
 
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -286,17 +274,9 @@ const Careers = ({ setCvData, jobPostings }) => {
                         {job.description}
                       </p>
 
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Calendar className="w-4 h-4" />
-                          <span>Posted {job.postedDate}</span>
-                        </div>
-                        <button
-                          onClick={() => setSelectedJob(job)}
-                          className="text-base text-primary font-semibold hover:underline flex items-center gap-1"
-                        >
-                          Apply <ArrowRight className="w-4 h-4" />
-                        </button>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Calendar className="w-4 h-4" />
+                        <span>Posted {job.postedDate}</span>
                       </div>
                     </div>
                   ))}
@@ -316,7 +296,8 @@ const Careers = ({ setCvData, jobPostings }) => {
           </div>
         </div>
       </div>
-    </section>
+      </section>
+    </div>
   )
 }
 

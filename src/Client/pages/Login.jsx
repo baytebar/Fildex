@@ -14,15 +14,25 @@ const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    // In a real app, you would implement actual login logic here
     console.log('Login attempted with:', { email, password, rememberMe })
-    // Redirect to home page after login
-    navigate('/')
+    
+    // Simulate successful login
+    // In a real app, you would validate credentials with a backend
+    if (email && password) {
+      // Store login state in localStorage for persistence
+      localStorage.setItem('isLoggedIn', 'true')
+      localStorage.setItem('userEmail', email)
+      navigate('/')
+    }
+  }
+
+  const handleNavigateToSignup = (e) => {
+    e.preventDefault()
+    navigate('/signup')
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Background pattern */}
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8 relative overflow-hidden auth-page">
       <div
         className="absolute inset-0 z-0"
         style={{
@@ -36,23 +46,21 @@ const Login = () => {
         }}
       />
       
-      {/* Top left logo and company name */}
       <div className="absolute top-6 left-6 z-20">
-        <Link to={'/'} className="flex items-center gap-2">
+        <a href="/" className="flex items-center gap-2">
           <img
-            src={FildexLogo}
+            src="/src/images/FILDEX_SOLUTIONS.png"
             alt="Fildex Logo"
             className="h-8 md:h-10 w-auto"
           />
           <img
-            src={FildexText}
+            src="/src/images/FILDEX_SOLUTIONS_TEXT.png"
             alt="Fildex Solutions"
             className="h-5 md:h-6 w-auto hidden sm:block"
           />
-        </Link>
+        </a>
       </div>
 
-      {/* Floating shape decorations */}
       <div className="absolute top-1/4 right-10 w-24 h-24 rounded-full bg-primary/10 blur-xl hidden lg:block"></div>
       <div className="absolute bottom-1/4 left-10 w-32 h-32 rounded-full bg-secondary/10 blur-xl hidden lg:block"></div>
 
@@ -64,8 +72,17 @@ const Login = () => {
           <p className="mt-2 text-center text-sm text-muted-foreground">
             Sign in to your account to continue
           </p>
+          <div className="flex items-center justify-center text-sm text-muted-foreground mt-4">
+            <span>Don't have an account?</span>
+            <button 
+              onClick={handleNavigateToSignup}
+              className="ml-1 font-medium text-primary hover:text-primary/90 bg-transparent border-none cursor-pointer"
+            >
+              Create account
+            </button>
+          </div>
         </div>
-        <div className="mt-8 bg-card shadow-lg rounded-xl p-6 sm:p-8 border border-border backdrop-blur-sm bg-background/80">
+        <div className="mt-8 shadow-lg rounded-xl p-6 sm:p-8 border border-border backdrop-blur-sm bg-background/80 auth-form-container">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="email-address" className="block text-sm font-medium text-foreground mb-2">
@@ -83,7 +100,7 @@ const Login = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-3 sm:py-4 border border-input rounded-lg bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base"
+                  className="block w-full pl-10 pr-3 py-3 sm:py-4 border border-input rounded-lg bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base input-transition"
                   placeholder="you@example.com"
                 />
               </div>
@@ -105,7 +122,7 @@ const Login = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-10 pr-10 py-3 sm:py-4 border border-input rounded-lg bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base"
+                  className="block w-full pl-10 pr-10 py-3 sm:py-4 border border-input rounded-lg bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base input-transition"
                   placeholder="••••••••"
                 />
                 <button
@@ -147,19 +164,13 @@ const Login = () => {
             <div>
               <Button
                 type="submit"
-                className="w-full py-3 sm:py-4"
+                className="w-full py-3 sm:py-4 btn-transition"
                 size="lg"
               >
                 Sign in
               </Button>
             </div>
           </form>
-        </div>
-        <div className="flex items-center justify-center text-sm text-muted-foreground">
-          <span>Don't have an account?</span>
-          <Link to="/signup" className="ml-1 font-medium text-primary hover:text-primary/90">
-            Create account
-          </Link>
         </div>
       </div>
     </div>

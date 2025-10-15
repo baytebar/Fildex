@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import JobApplicationForm from './JobApplicationForm'
 import { Target, GraduationCap, Users, Sparkles, Megaphone, Mailbox, Check, Circle } from 'lucide-react'
-import Header from './Header'
+import Header from '../../client/section/Header.jsx'
+
 
 const JobListing = ({ jobPostings }) => {
     // Filter active job postings

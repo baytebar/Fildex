@@ -1,4 +1,10 @@
 import React, { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Select } from '@/components/ui/select'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { X, Briefcase, MapPin, DollarSign, Calendar, FileText } from 'lucide-react'
 
 const JobPostingForm = ({ onAddJob, onCancel }) => {
   const [jobData, setJobData] = useState({
@@ -19,7 +25,6 @@ const JobPostingForm = ({ onAddJob, onCancel }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    // Create job object with required fields
     const newJob = {
       id: Date.now(),
       ...jobData,
@@ -29,7 +34,6 @@ const JobPostingForm = ({ onAddJob, onCancel }) => {
       applicants: 0
     }
     onAddJob(newJob)
-    // Reset form
     setJobData({
       title: '',
       department: '',
@@ -43,141 +47,176 @@ const JobPostingForm = ({ onAddJob, onCancel }) => {
   }
 
   return (
-    // Updated card to use theme variables
-    <div className="rounded-xl border border-border bg-muted p-6 backdrop-blur-sm">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
-          <span>📝</span>
-          <span>Post New Job</span>
-        </h3>
-        <button 
-          onClick={onCancel}
-          className="w-8 h-8 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-        >
-          ✕
-        </button>
-      </div>
-      
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div>
-            <label className="block text-xs text-muted-foreground mb-2">Job Title *</label>
-            <input 
-              name="title"
-              value={jobData.title}
-              onChange={handleChange}
-              required
-              className="w-full rounded-lg bg-card border border-input px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" 
-              placeholder="e.g., Senior Cloud Engineer"
-            />
+    <Card className="border-0 shadow-lg">
+      <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+              <Briefcase className="w-6 h-6" />
+            </div>
+            <div>
+              <CardTitle className="text-xl">Post New Job</CardTitle>
+              <CardDescription className="text-blue-100">
+                Create a new job posting for your organization
+              </CardDescription>
+            </div>
           </div>
-          <div>
-            <label className="block text-xs text-muted-foreground mb-2">Department *</label>
-            <input 
-              name="department"
-              value={jobData.department}
-              onChange={handleChange}
-              required
-              className="w-full rounded-lg bg-card border border-input px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" 
-              placeholder="e.g., Engineering"
-            />
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div>
-            <label className="block text-xs text-muted-foreground mb-2">Location *</label>
-            <input 
-              name="location"
-              value={jobData.location}
-              onChange={handleChange}
-              required
-              className="w-full rounded-lg bg-card border border-input px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" 
-              placeholder="e.g., Remote, Dublin"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-muted-foreground mb-2">Employment Type *</label>
-            <select 
-              name="type"
-              value={jobData.type}
-              onChange={handleChange}
-              className="w-full rounded-lg bg-card border border-input px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              <option value="Full-time">Full-time</option>
-              <option value="Part-time">Part-time</option>
-              <option value="Contract">Contract</option>
-              <option value="Internship">Internship</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs text-muted-foreground mb-2">Salary Range</label>
-            <input 
-              name="salary"
-              value={jobData.salary}
-              onChange={handleChange}
-              className="w-full rounded-lg bg-card border border-input px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" 
-              placeholder="e.g., €50,000 - €70,000"
-            />
-          </div>
-        </div>
-        
-        <div>
-          <label className="block text-xs text-muted-foreground mb-2">Job Description *</label>
-          <textarea 
-            name="description"
-            value={jobData.description}
-            onChange={handleChange}
-            required
-            rows={5}
-            className="w-full rounded-lg bg-card border border-input px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" 
-            placeholder="Describe the role, responsibilities, and expectations..."
-          />
-        </div>
-        
-        <div>
-          <label className="block text-xs text-muted-foreground mb-2">Requirements (one per line)</label>
-          <textarea 
-            name="requirements"
-            value={jobData.requirements}
-            onChange={handleChange}
-            rows={5}
-            className="w-full rounded-lg bg-card border border-input px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" 
-            placeholder="List key requirements, one per line&#10;e.g.,&#10;Bachelor's degree in Computer Science&#10;5+ years experience in cloud technologies&#10;AWS Certification"
-          />
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div>
-            <label className="block text-xs text-muted-foreground mb-2">Expiry Date *</label>
-            <input 
-              name="expiryDate"
-              type="date"
-              value={jobData.expiryDate}
-              onChange={handleChange}
-              required
-              className="w-full rounded-lg bg-card border border-input px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" 
-            />
-          </div>
-        </div>
-        
-        <div className="flex items-center justify-end gap-4 pt-4">
-          <button
-            type="button"
+          <Button 
             onClick={onCancel}
-            className="rounded-lg border border-border px-5 py-2.5 text-sm hover:bg-accent transition-colors text-foreground"
+            variant="ghost"
+            size="icon"
+            className="text-white hover:bg-white/20"
           >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 shadow-sm transition-all duration-300"
-          >
-            Post Job
-          </button>
+            <X className="w-5 h-5" />
+          </Button>
         </div>
-      </form>
-    </div>
+      </CardHeader>
+      
+      <CardContent className="p-8">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <Briefcase className="w-4 h-4" />
+                Job Title *
+              </label>
+              <Input 
+                name="title"
+                value={jobData.title}
+                onChange={handleChange}
+                required
+                placeholder="e.g., Senior Cloud Engineer"
+                className="h-11"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                Department *
+              </label>
+              <Input 
+                name="department"
+                value={jobData.department}
+                onChange={handleChange}
+                required
+                placeholder="e.g., Engineering"
+                className="h-11"
+              />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <MapPin className="w-4 h-4" />
+                Location *
+              </label>
+              <Input 
+                name="location"
+                value={jobData.location}
+                onChange={handleChange}
+                required
+                placeholder="e.g., Remote, Dublin"
+                className="h-11"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Employment Type *
+              </label>
+              <Select 
+                name="type"
+                value={jobData.type}
+                onChange={handleChange}
+                className="h-11"
+              >
+                <option value="Full-time">Full-time</option>
+                <option value="Part-time">Part-time</option>
+                <option value="Contract">Contract</option>
+                <option value="Internship">Internship</option>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <DollarSign className="w-4 h-4" />
+                Salary Range
+              </label>
+              <Input 
+                name="salary"
+                value={jobData.salary}
+                onChange={handleChange}
+                placeholder="e.g., €50,000 - €70,000"
+                className="h-11"
+              />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Job Description *
+            </label>
+            <Textarea 
+              name="description"
+              value={jobData.description}
+              onChange={handleChange}
+              required
+              rows={5}
+              placeholder="Describe the role, responsibilities, and expectations..."
+              className="resize-none"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Requirements (one per line)
+            </label>
+            <Textarea 
+              name="requirements"
+              value={jobData.requirements}
+              onChange={handleChange}
+              rows={5}
+              placeholder="List key requirements, one per line&#10;e.g.,&#10;Bachelor's degree in Computer Science&#10;5+ years experience in cloud technologies&#10;AWS Certification"
+              className="resize-none"
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                Expiry Date *
+              </label>
+              <Input 
+                name="expiryDate"
+                type="date"
+                value={jobData.expiryDate}
+                onChange={handleChange}
+                required
+                className="h-11"
+              />
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-end gap-4 pt-6 border-t border-slate-200 dark:border-slate-700">
+            <Button
+              type="button"
+              onClick={onCancel}
+              variant="outline"
+              className="h-11 px-8"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              className="h-11 px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            >
+              <Briefcase className="w-4 h-4 mr-2" />
+              Post Job
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   )
 }
 

@@ -27,7 +27,7 @@ const Contact = () => {
           </h2>
           <div className="w-20 h-1 bg-primary mx-auto rounded-full"></div>
           <p className="text-lg text-muted-foreground mt-4 max-w-2xl mx-auto">
-            Have questions about our training, outsourcing services, or career opportunities? We're here to help.
+            Have questions about our training services or career opportunities? We're here to help.
           </p>
         </div>
         
@@ -88,7 +88,7 @@ const Contact = () => {
             <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
               <h3 className="font-bold text-xl text-foreground mb-4">Get in touch</h3>
               <p className="text-foreground mb-6">
-                Have questions about our training, outsourcing services, or career opportunities? We're here to help.
+                Have questions about our training services or career opportunities? We're here to help.
               </p>
               
               <div className="space-y-5">

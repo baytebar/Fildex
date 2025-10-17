@@ -32,6 +32,7 @@ export const successResponseMessage = {
   userfetched: "Users fetched successfully",
   loginSuccess: 'login successfull',
   profileUpdated: 'Profile updated successfully',
+  profileFetched: 'Profile fetched successfully',
 
   //admin
   adminCreated: 'Admin created',

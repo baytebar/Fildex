@@ -21,6 +21,8 @@ const AdminOverview = () => {
   const newUsers = users?.filter(user => user.status === 'new').length || 0
   const reviewedUsers = users?.filter(user => user.status === 'reviewed').length || 0
   const shortlistedUsers = users?.filter(user => user.status === 'shortlisted').length || 0
+  const usersWithCv = users?.filter(user => user.cv?.url).length || 0
+  const usersWithoutCv = totalUsers - usersWithCv
 
   return (
     <div className="space-y-6">
@@ -51,14 +53,14 @@ const AdminOverview = () => {
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-100 text-sm font-medium">Reviewed Users</p>
-                <p className="text-3xl font-bold">{isLoading ? '...' : reviewedUsers}</p>
+                <p className="text-green-100 text-sm font-medium">CVs Uploaded</p>
+                <p className="text-3xl font-bold">{isLoading ? '...' : usersWithCv}</p>
               </div>
               <FileText className="w-8 h-8 text-green-200" />
             </div>
             <div className="mt-4 flex items-center text-green-100 text-sm">
               <TrendingUp className="w-4 h-4 mr-1" />
-              {Math.round((reviewedUsers / totalUsers) * 100) || 0}% of total
+              {Math.round((usersWithCv / totalUsers) * 100) || 0}% of users
             </div>
           </CardContent>
         </Card>
@@ -67,14 +69,14 @@ const AdminOverview = () => {
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-100 text-sm font-medium">New Applications</p>
-                <p className="text-3xl font-bold">{isLoading ? '...' : newUsers}</p>
+                <p className="text-purple-100 text-sm font-medium">Reviewed Users</p>
+                <p className="text-3xl font-bold">{isLoading ? '...' : reviewedUsers}</p>
               </div>
               <Users className="w-8 h-8 text-purple-200" />
             </div>
             <div className="mt-4 flex items-center text-purple-100 text-sm">
               <TrendingUp className="w-4 h-4 mr-1" />
-              Pending review
+              {Math.round((reviewedUsers / totalUsers) * 100) || 0}% of total
             </div>
           </CardContent>
         </Card>
@@ -133,6 +135,20 @@ const AdminOverview = () => {
                     <div className="flex-1">
                       <p className="font-medium text-slate-900 dark:text-white">{user.name || 'Unknown User'}</p>
                       <p className="text-sm text-slate-600 dark:text-slate-400">{user.email}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        {user.cv?.url ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                            CV Available
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
+                            No CV
+                          </span>
+                        )}
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+                          {user.status || 'new'}
+                        </span>
+                      </div>
                     </div>
                     <span className="text-xs text-slate-500 dark:text-slate-400">
                       {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}

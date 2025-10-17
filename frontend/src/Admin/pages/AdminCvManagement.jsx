@@ -16,9 +16,13 @@ import {
   Phone,
   MapPin,
   Edit3,
-  Loader2
+  Loader2,
+  Eye,
+  CheckCircle,
+  XCircle
 } from 'lucide-react'
 import { getAllUsers, updateUserStatus } from '../../features/admin/adminSlice'
+import CvViewer from '../components/CvViewer'
 
 const AdminCvManagement = () => {
   const dispatch = useDispatch()
@@ -32,6 +36,8 @@ const AdminCvManagement = () => {
   const [showStatusDialog, setShowStatusDialog] = useState(false)
   const [selectedCvForStatus, setSelectedCvForStatus] = useState(null)
   const [tempStatus, setTempStatus] = useState('')
+  const [showCvViewer, setShowCvViewer] = useState(false)
+  const [selectedUserForView, setSelectedUserForView] = useState(null)
 
   // Fetch users data on component mount
   useEffect(() => {
@@ -62,8 +68,10 @@ const AdminCvManagement = () => {
 
   const downloadCv = useCallback((user) => {
     if (user.cv?.url) {
-      // If CV URL exists, open it in a new tab
-      window.open(user.cv.url, '_blank')
+      // Construct the full URL for the CV
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1'
+      const cvUrl = `${baseUrl}/${user.cv.url}`
+      window.open(cvUrl, '_blank')
     } else {
       // Create a mock CV file content
       const cvContent = `
@@ -98,6 +106,16 @@ Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A
     document.body.removeChild(link)
     window.URL.revokeObjectURL(url)
     }
+  }, [])
+
+  const openCvViewer = useCallback((user) => {
+    setSelectedUserForView(user)
+    setShowCvViewer(true)
+  }, [])
+
+  const closeCvViewer = useCallback(() => {
+    setShowCvViewer(false)
+    setSelectedUserForView(null)
   }, [])
 
   const updateCvStatus = useCallback((userId, newStatus) => {
@@ -276,6 +294,19 @@ Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A
                           <div>
                             <p className="font-medium text-slate-900 dark:text-white">{user.name || 'Unknown User'}</p>
                             <p className="text-sm text-slate-600 dark:text-slate-400">{user.contact?.number || 'N/A'}</p>
+                            <div className="flex items-center gap-1 mt-1">
+                              {user.cv?.url ? (
+                                <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                                  <CheckCircle className="w-3 h-3" />
+                                  <span className="text-xs">CV Available</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-1 text-red-600 dark:text-red-400">
+                                  <XCircle className="w-3 h-3" />
+                                  <span className="text-xs">No CV</span>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </TableCell>
@@ -289,9 +320,26 @@ Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">
-                          {user.role || 'N/A'}
-                        </Badge>
+                        <div className="space-y-1">
+                          {user.intrestRoles && user.intrestRoles.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {user.intrestRoles.slice(0, 2).map((role, index) => (
+                                <Badge key={index} variant="outline" className="text-xs">
+                                  {typeof role === 'object' ? role.name : role}
+                                </Badge>
+                              ))}
+                              {user.intrestRoles.length > 2 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{user.intrestRoles.length - 2} more
+                                </Badge>
+                              )}
+                            </div>
+                          ) : (
+                            <Badge variant="outline" className="text-xs">
+                              No roles
+                            </Badge>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1 text-slate-600 dark:text-slate-400">
@@ -325,9 +373,19 @@ Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A
                           <Button
                             variant="ghost"
                             size="sm"
+                            onClick={() => openCvViewer(user)}
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            title="View Details"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => downloadCv(user)}
                             className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
                             title="Download CV"
+                            disabled={!user.cv?.url}
                           >
                             <Download className="w-4 h-4" />
                           </Button>
@@ -461,6 +519,15 @@ Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A
             )}
           </div>
         </div>
+      )}
+
+      {/* CV Viewer Modal */}
+      {showCvViewer && selectedUserForView && (
+        <CvViewer
+          user={selectedUserForView}
+          onClose={closeCvViewer}
+          onStatusUpdate={updateCvStatus}
+        />
       )}
 
     </div>

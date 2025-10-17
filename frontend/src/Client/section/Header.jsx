@@ -14,7 +14,7 @@ const Header = ({ setShowBot }) => {
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const userMenuRef = useRef(null)
-  
+
   const { isAuthenticated, user } = useSelector((state) => state.auth)
 
   // Close user menu when clicking outside
@@ -58,7 +58,7 @@ const Header = ({ setShowBot }) => {
   }
 
   const getUserInitials = (name) => {
-    if (!name) return 'U'
+    if (!name) return ''
     return name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2)
   }
 
@@ -69,29 +69,31 @@ const Header = ({ setShowBot }) => {
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-border shadow-sm">
-      <div className="mx-auto max-w-7xl px-4 py-2 flex items-center justify-between">
+      <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-3 flex items-center justify-between">
         <div className="flex items-center justify-center">
-          <Link to={'/'} className="flex items-center gap-2 md:gap-3" onClick={() => window.scrollTo(0, 0)}>
-            <div className='flex flex-col justify-center items-center'>
+          <Link to={'/'} className="flex items-center gap-1 sm:gap-2 md:gap-3" onClick={() => window.scrollTo(0, 0)}>
+            <div className='flex justify-center gap-1 sm:gap-2 items-center'>
               <img
                 src={FildexLogo}
                 alt="Fildex Logo"
-                className="h-6 md:h-8 lg:h-10 w-10"
+                className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 lg:h-10 lg:w-10 xl:h-12 xl:w-12 2xl:h-10 2xl:w-10 flex-shrink-0"
               />
-              <h1 className='text-3xl font-semibold text-blue-950'>FILDEX</h1>
-              <h4 className=' text-blue-950 text-bold'>Solutions</h4>
+              <div className='flex flex-col'>
+                <h1 className='text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-3xl 2xl:text-2xl font-semibold text-blue-950 leading-tight'>FILDEX</h1>
+                <h4 className='text-xs sm:text-sm md:text-base lg:text-lg xl:text-lg 2xl:text-base text-blue-950 font-bold leading-tight'>SOLUTIONS</h4>
+              </div>
             </div>
           </Link>
         </div>
 
-        <nav className="hidden md:flex items-center gap-6 text-base text-muted-foreground">
+        <nav className="hidden md:flex items-center gap-4 lg:gap-6 text-sm lg:text-base text-muted-foreground">
           <a className="hover:text-primary transition-colors" href="#about">About</a>
           <Link to={"/careers"}>Careers</Link>
           <a className="hover:text-primary transition-colors" href="#training">Training</a>
         </nav>
 
-        <div className="flex items-center gap-3">
-          <a href="#contact" className="hidden md:inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-base font-medium text-primary-foreground hover:bg-primary/90 shadow-sm">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <a href="#contact" className="hidden md:inline-flex items-center gap-2 rounded-md bg-primary px-3 lg:px-4 py-2 text-sm lg:text-base font-medium text-primary-foreground hover:bg-primary/90 shadow-sm">
             Get in Touch
           </a>
 
@@ -99,12 +101,12 @@ const Header = ({ setShowBot }) => {
             <div className="relative" ref={userMenuRef}>
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="hidden md:flex items-center gap-2 rounded-full bg-background border border-border p-2 text-base font-medium text-foreground hover:bg-accent hover:text-accent-foreground shadow-sm transition-colors"
+                className="hidden md:flex items-center gap-1 lg:gap-2 rounded-full bg-background border border-border p-1.5 lg:p-2 text-sm lg:text-base font-medium text-foreground hover:bg-accent hover:text-accent-foreground shadow-sm transition-colors"
               >
                 <Avatar variant="gradient" size="sm">
                   <AvatarImage src={user?.avatar} alt={user?.name} />
                   <AvatarFallback variant="gradient">
-                    {getUserInitials(user?.name)}
+                    {user?.name ? getUserInitials(user.name) : <span className="opacity-50">U</span>}
                   </AvatarFallback>
                 </Avatar>
                 <ChevronDown className="w-4 h-4" />
@@ -118,7 +120,7 @@ const Header = ({ setShowBot }) => {
                         <Avatar variant="gradient" size="sm">
                           <AvatarImage src={user?.avatar} alt={user?.name} />
                           <AvatarFallback variant="gradient">
-                            {getUserInitials(user?.name)}
+                            {user?.name ? getUserInitials(user.name) : <span className="opacity-50">U</span>}
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0 flex-1">
@@ -141,7 +143,7 @@ const Header = ({ setShowBot }) => {
           ) : (
             <button
               onClick={handleLogin}
-              className="hidden md:inline-flex items-center gap-2 rounded-md bg-secondary px-4 py-2 text-base font-medium text-secondary-foreground hover:bg-secondary/90 shadow-sm transition-colors"
+              className="hidden md:inline-flex items-center gap-2 rounded-md bg-secondary px-3 lg:px-4 py-2 text-sm lg:text-base font-medium text-secondary-foreground hover:bg-secondary/90 shadow-sm transition-colors"
             >
               <LogIn className="w-4 h-4" />
               Login
@@ -149,22 +151,22 @@ const Header = ({ setShowBot }) => {
           )}
 
           <button
-            className="md:hidden inline-flex items-center justify-center rounded-md p-2 text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+            className="md:hidden inline-flex items-center justify-center rounded-md p-1.5 sm:p-2 text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-expanded={isMenuOpen}
             aria-label="Toggle navigation menu"
           >
             {isMenuOpen ? (
-              <X className="block h-6 w-6" />
+              <X className="block h-5 w-5 sm:h-6 sm:w-6" />
             ) : (
-              <Menu className="block h-6 w-6" />
+              <Menu className="block h-5 w-5 sm:h-6 sm:w-6" />
             )}
           </button>
         </div>
       </div>
 
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-t border-border py-4 px-4 absolute top-full left-0 right-0 shadow-lg z-50">
+        <div className="md:hidden bg-white border-t border-border py-4 px-3 sm:px-4 absolute top-full left-0 right-0 shadow-lg z-50">
           <nav className="flex flex-col gap-4 text-base text-muted-foreground">
             <a
               className="hover:text-primary transition-colors py-2"
@@ -200,7 +202,7 @@ const Header = ({ setShowBot }) => {
                   <Avatar variant="gradient" size="lg">
                     <AvatarImage src={user?.avatar} alt={user?.name} />
                     <AvatarFallback variant="gradient">
-                      {getUserInitials(user?.name)}
+                      {user?.name ? getUserInitials(user.name) : <span className="opacity-50">U</span>}
                     </AvatarFallback>
                   </Avatar>
                   <div className="text-center min-w-0 flex-1">

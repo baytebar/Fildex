@@ -187,3 +187,7 @@ const JobPreview = ({ job, onClose }) => {
 
 export default JobPreview;
 
+
+
+
+

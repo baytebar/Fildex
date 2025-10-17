@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Provider } from 'react-redux'
+import { Provider, useDispatch, useSelector } from 'react-redux'
 import { store } from './app/store'
 
 import Hero from './Client/section/Hero'
@@ -32,26 +32,85 @@ import PublicRoute from './components/PublicRoute'
 import UserOnlyRoute from './components/UserOnlyRoute'
 import AccessDenied from './components/AccessDenied'
 import AuthChecker from './components/AuthChecker'
+
+// Redux actions
+import { getUserProfile, logout } from './features/auth/authSlice'
+
+// Create a component to handle authentication initialization
+const AuthInitializer = ({ children }) => {
+  const dispatch = useDispatch()
+  const { isAuthenticated, user, token } = useSelector((state) => state.auth)
+  const [isInitialized, setIsInitialized] = useState(false)
+
+  useEffect(() => {
+    const initializeAuth = async () => {
+      // Check if user is authenticated but we don't have user data
+      if (isAuthenticated && token && !user) {
+        try {
+          // Fetch user profile
+          await dispatch(getUserProfile()).unwrap()
+        } catch (error) {
+          console.error('Failed to fetch user profile:', error)
+          // If profile fetch fails, logout user
+          dispatch(logout())
+        }
+      }
+      setIsInitialized(true)
+    }
+
+    initializeAuth()
+  }, [isAuthenticated, user, token, dispatch])
+
+  // Show loading state while initializing
+  if (!isInitialized) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>
+  }
+
+  return children
+}
+
 const App = () => {
   const [showBot, setShowBot] = useState(false)
   const [showAdmin, setShowAdmin] = useState(false)
   const [showCvPopup, setShowCvPopup] = useState(false)
 
-  // Show CV upload popup on initial load
+  // Show CV upload popup when user scrolls down the page
   useEffect(() => {
+    // Check if popup has been disabled by user
     const hasSeenCvPopup = localStorage.getItem('hasSeenCvPopup')
-    if (!hasSeenCvPopup) {
-      // Delay the popup slightly to ensure the page has loaded
-      const timer = setTimeout(() => {
-        setShowCvPopup(true)
-      }, 2000)
-      return () => clearTimeout(timer)
+    
+    // If user has disabled the popup, don't show it
+    if (hasSeenCvPopup === 'disabled') {
+      return
     }
-  }, [])
+
+    const handleScroll = () => {
+      // Check if user has scrolled down at least 30% of the viewport height
+      const scrollPosition = window.scrollY
+      const viewportHeight = window.innerHeight
+      const scrollThreshold = viewportHeight * 0.3
+
+      // Show popup if user has scrolled past threshold and popup isn't already shown
+      if (scrollPosition > scrollThreshold && !showCvPopup) {
+        setShowCvPopup(true)
+        // Remove event listener after showing popup to prevent multiple triggers
+        window.removeEventListener('scroll', handleScroll)
+      }
+    }
+
+    // Add scroll event listener
+    window.addEventListener('scroll', handleScroll)
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [showCvPopup])
 
   const handleCloseCvPopup = () => {
     setShowCvPopup(false)
-    localStorage.setItem('hasSeenCvPopup', 'true')
+    // Set localStorage item to prevent future popups if the user explicitly closed it
+    localStorage.setItem('hasSeenCvPopup', 'disabled')
   }
 
   const [cvData, setCvData] = useState([])
@@ -60,62 +119,64 @@ const App = () => {
 
   return (
     <Provider store={store}>
-      <ScrollToTop />
-      <CvUploadPopup isOpen={showCvPopup} onClose={handleCloseCvPopup} />
-      <AuthChecker>
-        <Routes>
-        <Route path="/" element={
-          <UserOnlyRoute>
-            <div className="min-h-dvh bg-background text-foreground">
-              <Header setShowBot={setShowBot} />
-              <main>
-                <Hero />
-                <About />
-                <Training />
-                <Contact />
-              </main>
-              <Footer />
-              <ChatBot showBot={showBot} setShowBot={setShowBot} cvData={cvData} setCvData={setCvData} />
-            </div>
-          </UserOnlyRoute>
-        } />
-        <Route path="/jobs" element={
-          <UserOnlyRoute>
-            <JobListing />
-          </UserOnlyRoute>
-        } />
-        <Route path="/careers" element={
-          <UserOnlyRoute>
-            <Careers setCvData={setCvData} jobPostings={jobPostings} />
-          </UserOnlyRoute>
-        } />
-        <Route path="/login" element={
-          <PublicRoute>
-            <Login />
-          </PublicRoute>
-        } />
-        <Route path="/signup" element={
-          <PublicRoute>
-            <Signup />
-          </PublicRoute>
-        } />
-        <Route path="/admin" element={
-          <AdminRoute>
-            <AdminLayout />
-          </AdminRoute>
-        }>
-          <Route index element={<AdminOverview />} />
-          <Route path="cv-management" element={<AdminCvManagement />} />
-          <Route path="job-postings" element={<AdminJobPostings />} />
-          <Route path="job-form" element={<AdminJobForm />} />
-          <Route path="job-form/:id" element={<AdminJobForm />} />
-          <Route path="role-management" element={<AdminRoleManagement />} />
-        </Route>
-        
-        {/* Access Denied Route */}
-        <Route path="/access-denied" element={<AccessDenied />} />
-        </Routes>
-      </AuthChecker>
+      <AuthInitializer>
+        <ScrollToTop />
+        <CvUploadPopup isOpen={showCvPopup} onClose={handleCloseCvPopup} />
+        <AuthChecker>
+          <Routes>
+          <Route path="/" element={
+            <UserOnlyRoute>
+              <div className="min-h-dvh bg-background text-foreground">
+                <Header setShowBot={setShowBot} />
+                <main>
+                  <Hero />
+                  <About />
+                  <Training />
+                  <Contact />
+                </main>
+                <Footer />
+                <ChatBot showBot={showBot} setShowBot={setShowBot} cvData={cvData} setCvData={setCvData} />
+              </div>
+            </UserOnlyRoute>
+          } />
+          <Route path="/jobs" element={
+            <UserOnlyRoute>
+              <JobListing />
+            </UserOnlyRoute>
+          } />
+          <Route path="/careers" element={
+            <UserOnlyRoute>
+              <Careers setCvData={setCvData} jobPostings={jobPostings} />
+            </UserOnlyRoute>
+          } />
+          <Route path="/login" element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          } />
+          <Route path="/signup" element={
+            <PublicRoute>
+              <Signup />
+            </PublicRoute>
+          } />
+          <Route path="/admin" element={
+            <AdminRoute>
+              <AdminLayout />
+            </AdminRoute>
+          }>
+            <Route index element={<AdminOverview />} />
+            <Route path="cv-management" element={<AdminCvManagement />} />
+            <Route path="job-postings" element={<AdminJobPostings />} />
+            <Route path="job-form" element={<AdminJobForm />} />
+            <Route path="job-form/:id" element={<AdminJobForm />} />
+            <Route path="role-management" element={<AdminRoleManagement />} />
+          </Route>
+          
+          {/* Access Denied Route */}
+          <Route path="/access-denied" element={<AccessDenied />} />
+          </Routes>
+        </AuthChecker>
+      </AuthInitializer>
     </Provider>
   )
 }

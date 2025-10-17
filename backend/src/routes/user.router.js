@@ -1,13 +1,14 @@
 import express from 'express';
 import multer from 'multer';
-import { updateProfile} from '../controller/user.controller.js';
+import { updateProfile, getProfile } from '../controller/user.controller.js';
 import { userLogin, userRegistration } from '../controller/userAuth.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 import upload from '../config/multer.config.js';
 
 const userRouter = express.Router();
 
-// userRouter.route('/profile/profile-update').post(authenticate , upload.single('cv') , updateProfile);
+// Get user profile
+userRouter.get('/profile', authenticate, getProfile);
 
 // Single CV upload route
 userRouter.post(

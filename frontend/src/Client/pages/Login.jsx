@@ -5,8 +5,7 @@ import { Eye, EyeOff, Lock, Mail } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux'
 import { loginUser, clearError } from '../../features/auth/authSlice'
 import { adminLogin, clearError as clearAdminError } from '../../features/admin/adminSlice'
-import FildexLogo from '../../images/FILDEX_SOLUTIONS.png'
-import FildexText from '../../images/FILDEX_SOLUTIONS_TEXT.png'
+import AuthHeader from '../section/AuthHeader'
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -86,7 +85,7 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8 relative overflow-hidden auth-page">
+    <div className="min-h-screen bg-background relative overflow-hidden auth-page">
       <div
         className="absolute inset-0 z-0"
         style={{
@@ -100,25 +99,13 @@ const Login = () => {
         }}
       />
       
-      <div className="absolute top-6 left-6 z-20">
-        <a href="/" className="flex items-center gap-2">
-          <img
-            src="/src/images/FILDEX_SOLUTIONS.png"
-            alt="Fildex Logo"
-            className="h-8 md:h-10 w-auto"
-          />
-          <img
-            src="/src/images/FILDEX_SOLUTIONS_TEXT.png"
-            alt="Fildex Solutions"
-            className="h-5 md:h-6 w-auto hidden sm:block"
-          />
-        </a>
-      </div>
+      <AuthHeader />
 
       <div className="absolute top-1/4 right-10 w-24 h-24 rounded-full bg-primary/10 blur-xl hidden lg:block"></div>
       <div className="absolute bottom-1/4 left-10 w-32 h-32 rounded-full bg-secondary/10 blur-xl hidden lg:block"></div>
 
-      <div className="max-w-md w-full space-y-8 relative z-10">
+      <div className="flex items-center justify-center min-h-screen px-4 py-12 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8 relative z-10">
         <div className="text-center">
           <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-foreground">
             Welcome back
@@ -256,6 +243,7 @@ const Login = () => {
               This login works for both regular users and administrators
             </p>
           </div>
+        </div>
         </div>
       </div>
     </div>

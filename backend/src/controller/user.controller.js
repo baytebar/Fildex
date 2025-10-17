@@ -11,6 +11,32 @@ import { rejectResponseMessage, successResponseMessage } from "../constants/resp
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Get user profile
+export const getProfile = async (req, res, next) => {
+  try {
+    // Get user ID from authentication middleware
+    const userId = req.auth?.id;
+    if (!userId)
+      return handleResponse(res, HttpStatusCodes.UNAUTHORIZED, rejectResponseMessage.unauthorized);
+
+    // Find user by ID and populate interest roles
+    const user = await User.findById(userId).select("-password").populate("intrestRoles");
+    
+    if (!user)
+      return handleResponse(res, HttpStatusCodes.NOT_FOUND, rejectResponseMessage.userNotFound);
+
+    // Respond with user data
+    return handleResponse(
+      res,
+      HttpStatusCodes.OK,
+      successResponseMessage.profileFetched,
+      user
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const updateProfile = async (req, res, next) => {
   try {
     // Get user ID from authentication middleware

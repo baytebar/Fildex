@@ -6,7 +6,7 @@ import { getAllUsers } from '../../features/admin/adminSlice'
 
 const AdminOverview = () => {
   const dispatch = useDispatch()
-  const { users, isLoading, error, totalUsers } = useSelector((state) => state.admin.users)
+  const { data: users, isLoading, error, totalUsers } = useSelector((state) => state.admin.users)
   const { isAuthenticated } = useSelector((state) => state.admin)
   
   // Fetch users data on component mount

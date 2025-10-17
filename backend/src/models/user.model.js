@@ -35,6 +35,12 @@ const userSchema = mongoose.Schema({
     url: { type: String, trim: true, },
     new: { type: Boolean, default: true },
   },
+  status: {
+    type: String,
+    enum: ['new', 'under_review', 'shortlisted', 'interview_scheduled', 'hired', 'rejected', 'on_hold'],
+    default: 'new',
+    required: false
+  },
   password: { type: String, required: true },
   resetPasswordToken: { type: String },
   resetPasswordExpires: { type: Date },

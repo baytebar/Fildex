@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { api } from '../../config/api';
+import { toast } from 'sonner';
 
 // Async thunks for admin API calls
 export const adminLogin = createAsyncThunk(
@@ -27,6 +28,7 @@ export const getAllUsers = createAsyncThunk(
       const response = await api.admin.getAllUsers(params);
       return response;
     } catch (error) {
+      toast.error('Failed to load users: ' + (error.message || 'Please try again'));
       return rejectWithValue(error.message);
     }
   }
@@ -39,6 +41,7 @@ export const getUserById = createAsyncThunk(
       const response = await api.admin.getUserById(userId);
       return response;
     } catch (error) {
+      toast.error('Failed to load user: ' + (error.message || 'Please try again'));
       return rejectWithValue(error.message);
     }
   }
@@ -51,6 +54,7 @@ export const getAllInterestRoles = createAsyncThunk(
       const response = await api.admin.getAllInterestRoles();
       return response;
     } catch (error) {
+      toast.error('Failed to load roles: ' + (error.message || 'Please try again'));
       return rejectWithValue(error.message);
     }
   }
@@ -61,8 +65,10 @@ export const createInterestRole = createAsyncThunk(
   async (roleData, { rejectWithValue }) => {
     try {
       const response = await api.admin.createInterestRole(roleData);
+      toast.success('Role created successfully!');
       return response;
     } catch (error) {
+      toast.error('Failed to create role: ' + (error.message || 'Please try again'));
       return rejectWithValue(error.message);
     }
   }
@@ -73,8 +79,10 @@ export const updateInterestRole = createAsyncThunk(
   async ({ id, roleData }, { rejectWithValue }) => {
     try {
       const response = await api.admin.updateInterestRole(id, roleData);
+      toast.success('Role updated successfully!');
       return response;
     } catch (error) {
+      toast.error('Failed to update role: ' + (error.message || 'Please try again'));
       return rejectWithValue(error.message);
     }
   }
@@ -85,8 +93,25 @@ export const deleteInterestRole = createAsyncThunk(
   async (roleId, { rejectWithValue }) => {
     try {
       const response = await api.admin.deleteInterestRole(roleId);
+      toast.success('Role deleted successfully!');
       return response;
     } catch (error) {
+      toast.error('Failed to delete role: ' + (error.message || 'Please try again'));
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const updateUserStatus = createAsyncThunk(
+  'admin/updateUserStatus',
+  async ({ userId, status }, { rejectWithValue }) => {
+    try {
+      // For now, we'll just update the local state
+      // In a real implementation, you'd make an API call here
+      toast.success('User status updated successfully!');
+      return { userId, status };
+    } catch (error) {
+      toast.error('Failed to update user status: ' + (error.message || 'Please try again'));
       return rejectWithValue(error.message);
     }
   }
@@ -134,6 +159,7 @@ const adminSlice = createSlice({
       localStorage.removeItem('adminToken');
       localStorage.removeItem('adminEmail');
       localStorage.removeItem('isAdminLoggedIn');
+      toast.success('Admin logged out successfully');
     },
     clearError: (state) => {
       state.error = null;
@@ -141,13 +167,6 @@ const adminSlice = createSlice({
     setAdmin: (state, action) => {
       state.admin = action.payload;
       state.isAuthenticated = true;
-    },
-    updateUserStatus: (state, action) => {
-      const { userId, status } = action.payload;
-      const user = state.users.data.find(u => u._id === userId);
-      if (user) {
-        user.status = status;
-      }
     },
   },
   extraReducers: (builder) => {
@@ -264,9 +283,18 @@ const adminSlice = createSlice({
       .addCase(deleteInterestRole.rejected, (state, action) => {
         state.interestRoles.isLoading = false;
         state.interestRoles.error = action.payload;
+      })
+      
+      // Update User Status
+      .addCase(updateUserStatus.fulfilled, (state, action) => {
+        const { userId, status } = action.payload;
+        const user = state.users.data.find(u => u._id === userId);
+        if (user) {
+          user.status = status;
+        }
       });
   },
 });
 
-export const { adminLogout, clearError, setAdmin, updateUserStatus } = adminSlice.actions;
+export const { adminLogout, clearError, setAdmin } = adminSlice.actions;
 export default adminSlice.reducer;

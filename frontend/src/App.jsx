@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Provider, useDispatch, useSelector } from 'react-redux'
 import { store } from './app/store'
+import { Toaster } from 'sonner'
+import { useLocation } from 'react-router-dom'
 
 import Hero from './Client/section/Hero'
 import About from './Client/section/About'
@@ -70,17 +72,19 @@ const AuthInitializer = ({ children }) => {
 }
 
 const App = () => {
+  const location = useLocation()
   const [showBot, setShowBot] = useState(false)
   const [showAdmin, setShowAdmin] = useState(false)
   const [showCvPopup, setShowCvPopup] = useState(false)
+  const [hasClosedCvPopup, setHasClosedCvPopup] = useState(false)
 
-  // Show CV upload popup when user scrolls down the page
+  // Check if we're on an admin page
+  const isAdminPage = location.pathname.startsWith('/admin')
+
+  // Show CV upload popup when user scrolls down the page (only on non-admin pages)
   useEffect(() => {
-    // Check if popup has been disabled by user
-    const hasSeenCvPopup = localStorage.getItem('hasSeenCvPopup')
-    
-    // If user has disabled the popup, don't show it
-    if (hasSeenCvPopup === 'disabled') {
+    // Don't show if user has already closed it in this session or if we're on an admin page
+    if (hasClosedCvPopup || isAdminPage) {
       return
     }
 
@@ -105,12 +109,11 @@ const App = () => {
     return () => {
       window.removeEventListener('scroll', handleScroll)
     }
-  }, [showCvPopup])
+  }, [showCvPopup, hasClosedCvPopup, isAdminPage])
 
   const handleCloseCvPopup = () => {
     setShowCvPopup(false)
-    // Set localStorage item to prevent future popups if the user explicitly closed it
-    localStorage.setItem('hasSeenCvPopup', 'disabled')
+    setHasClosedCvPopup(true)
   }
 
   const [cvData, setCvData] = useState([])
@@ -120,8 +123,10 @@ const App = () => {
   return (
     <Provider store={store}>
       <AuthInitializer>
+        <Toaster position="top-right" richColors />
         <ScrollToTop />
-        <CvUploadPopup isOpen={showCvPopup} onClose={handleCloseCvPopup} />
+        {/* Only show CV popup on non-admin pages */}
+        {!isAdminPage && <CvUploadPopup isOpen={showCvPopup} onClose={handleCloseCvPopup} />}
         <AuthChecker>
           <Routes>
           <Route path="/" element={

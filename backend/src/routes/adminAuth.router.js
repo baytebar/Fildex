@@ -1,7 +1,7 @@
 import express from 'express';
 import { adminLogin, adminRegistration } from '../admin/controller/auth.controller.js';
 import { authenticate, authorizeRoles } from '../middleware/auth.middleware.js';
-import { getAllUser, getUserById } from '../admin/controller/dashboard.controller.js';
+import { getAllUser, getUserById, updateUserStatus } from '../admin/controller/dashboard.controller.js';
 import { createInterestRole, deleteInterestRole, getAllInterestRoles, getInterestRoleById, updateInterestRole } from '../admin/controller/userRole.controller.js';
 
 const adminAuthRouter = express.Router();

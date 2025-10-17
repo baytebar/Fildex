@@ -5,6 +5,7 @@ import { Eye, EyeOff, Lock, Mail, User } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux'
 import { registerUser, clearError } from '../../features/auth/authSlice'
 import AuthHeader from '../section/AuthHeader'
+import { toast } from 'sonner'
 
 const Signup = () => {
   const [name, setName] = useState('')
@@ -27,20 +28,23 @@ const Signup = () => {
     e.preventDefault()
     
     if (password !== confirmPassword) {
-      alert('Passwords do not match')
+      toast.error('Passwords do not match')
       return
     }
     
     if (!name || !email || !password) {
+      toast.error('Please fill in all required fields')
       return
     }
 
     try {
       await dispatch(registerUser({ name, email, password, confirm_password: confirmPassword })).unwrap()
+      // Removed the toast message as requested
       navigate('/login')
     } catch (error) {
       // Error is handled by Redux state
       console.error('Registration failed:', error)
+      toast.error('Registration failed. Please try again.')
     }
   }
 
@@ -205,8 +209,16 @@ const Signup = () => {
                 type="submit"
                 className="w-full py-2.5 text-sm btn-transition"
                 size="default"
+                disabled={isLoading}
               >
-                Create Account
+                {isLoading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Creating Account...
+                  </div>
+                ) : (
+                  'Create Account'
+                )}
               </Button>
             </div>
           </form>

@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { loginUser, clearError } from '../../features/auth/authSlice'
 import { adminLogin, clearError as clearAdminError } from '../../features/admin/adminSlice'
 import AuthHeader from '../section/AuthHeader'
+import { toast } from 'sonner'
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -26,6 +27,8 @@ const Login = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
+      // Show success toast for user login
+      toast.success('Login successful! Welcome back.')
       // Redirect to intended destination or home page
       navigate(from, { replace: true })
     }
@@ -33,6 +36,8 @@ const Login = () => {
 
   useEffect(() => {
     if (adminIsAuthenticated) {
+      // Show success toast for admin login
+      toast.success('Admin login successful! Welcome to the dashboard.')
       // Always redirect admins to admin dashboard
       navigate('/admin', { replace: true })
     }
@@ -49,31 +54,43 @@ const Login = () => {
     e.preventDefault()
     
     if (!email || !password) {
-      setLoginError('Please enter both email and password')
+      toast.error('Please enter both email and password')
       return
     }
 
     setIsLoading(true)
     setLoginError('')
 
+    let userLoginSuccess = false
+    let adminLoginSuccess = false
+
     try {
+      // Try user login first
       try {
         await dispatch(loginUser({ email, password })).unwrap()
+        userLoginSuccess = true
         return
       } catch (userError) {
-        // Try admin login if user login fails
-        const adminLoginData = {
-          identifier: email,
-          password: password
-        };
-        await dispatch(adminLogin(adminLoginData)).unwrap()
-        return
+        console.log('User login failed, trying admin login...')
+        // User login failed, try admin login
+        try {
+          const adminLoginData = {
+            identifier: email,
+            password: password
+          };
+          await dispatch(adminLogin(adminLoginData)).unwrap()
+          adminLoginSuccess = true
+          return
+        } catch (adminError) {
+          console.log('Admin login also failed')
+          // Both logins failed
+          throw new Error('Invalid credentials')
+        }
       }
-
-      setLoginError('Invalid email/username or password. Please check your credentials and try again.')
-      
     } catch (error) {
-      setLoginError('Login failed. Please try again.')
+      console.error('Login error:', error)
+      toast.error('Invalid email/username or password. Please check your credentials and try again.')
+      setLoginError('Invalid email/username or password. Please check your credentials and try again.')
     } finally {
       setIsLoading(false)
     }
@@ -238,11 +255,7 @@ const Login = () => {
           </form>
           
           {/* Info note */}
-          <div className="mt-4 text-center">
-            <p className="text-xs text-muted-foreground">
-              This login works for both regular users and administrators
-            </p>
-          </div>
+          {/* Removed as per requirements: "This login works for both regular users and administrators" */}
         </div>
         </div>
       </div>

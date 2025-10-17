@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { api } from '../../config/api';
+import { toast } from 'sonner';
 
 // Async thunks for API calls
 export const loginUser = createAsyncThunk(
@@ -13,8 +14,10 @@ export const loginUser = createAsyncThunk(
         localStorage.setItem('userEmail', credentials.email);
         localStorage.setItem('isLoggedIn', 'true');
       }
+      toast.success('Login successful!');
       return response;
     } catch (error) {
+      toast.error('Login failed: ' + (error.message || 'Invalid credentials'));
       return rejectWithValue(error.message);
     }
   }
@@ -25,8 +28,10 @@ export const registerUser = createAsyncThunk(
   async (userData, { rejectWithValue }) => {
     try {
       const response = await api.user.register(userData);
+      // Removed the toast message as requested
       return response;
     } catch (error) {
+      toast.error('Registration failed: ' + (error.message || 'Please try again'));
       return rejectWithValue(error.message);
     }
   }
@@ -39,6 +44,7 @@ export const getUserProfile = createAsyncThunk(
       const response = await api.user.getProfile();
       return response;
     } catch (error) {
+      toast.error('Failed to load profile: ' + (error.message || 'Please try again'));
       return rejectWithValue(error.message);
     }
   }
@@ -66,6 +72,7 @@ const authSlice = createSlice({
       localStorage.removeItem('authToken');
       localStorage.removeItem('userEmail');
       localStorage.removeItem('isLoggedIn');
+      toast.success('You have been logged out successfully');
     },
     clearError: (state) => {
       state.error = null;

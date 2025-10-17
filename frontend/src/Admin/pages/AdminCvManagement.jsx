@@ -23,10 +23,11 @@ import {
 } from 'lucide-react'
 import { getAllUsers, updateUserStatus } from '../../features/admin/adminSlice'
 import CvViewer from '../components/CvViewer'
+import { toast } from 'sonner'
 
 const AdminCvManagement = () => {
   const dispatch = useDispatch()
-  const { users, isLoading, error, totalUsers, currentPage, totalPages } = useSelector((state) => state.admin.users)
+  const { data: users, isLoading, error, totalUsers, currentPage, totalPages } = useSelector((state) => state.admin.users)
   const { isAuthenticated } = useSelector((state) => state.admin)
   const [adminFilters, setAdminFilters] = useState({
     search: '',
@@ -43,15 +44,21 @@ const AdminCvManagement = () => {
   useEffect(() => {
     if (isAuthenticated) {
       dispatch(getAllUsers({ page: 1, limit: 10 }))
+        .unwrap()
+        .catch((error) => {
+          toast.error('Failed to load CV data: ' + error.message)
+        })
     }
   }, [dispatch, isAuthenticated])
 
   // Function to handle page changes
   const handlePageChange = (newPage) => {
     dispatch(getAllUsers({ page: newPage, limit: 10 }))
+      .unwrap()
+      .catch((error) => {
+        toast.error('Failed to load page: ' + error.message)
+      })
   }
-
-
 
   const exportCvData = useCallback(() => {
     const csvContent = "data:text/csv;charset=utf-8," + 
@@ -64,6 +71,7 @@ const AdminCvManagement = () => {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+    toast.success('CV data exported successfully')
   }, [users])
 
   const downloadCv = useCallback((user) => {
@@ -72,6 +80,7 @@ const AdminCvManagement = () => {
       const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1'
       const cvUrl = `${baseUrl}/${user.cv.url}`
       window.open(cvUrl, '_blank')
+      toast.success(`CV for ${user.name} downloaded successfully`)
     } else {
       // Create a mock CV file content
       const cvContent = `
@@ -105,6 +114,7 @@ Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A
     link.click()
     document.body.removeChild(link)
     window.URL.revokeObjectURL(url)
+    toast.success(`CV for ${user.name} generated and downloaded successfully`)
     }
   }, [])
 
@@ -120,6 +130,13 @@ Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A
 
   const updateCvStatus = useCallback((userId, newStatus) => {
     dispatch(updateUserStatus({ userId, status: newStatus }))
+      .unwrap()
+      .then(() => {
+        toast.success('CV status updated successfully')
+      })
+      .catch((error) => {
+        toast.error('Failed to update CV status: ' + error.message)
+      })
   }, [dispatch])
 
   const openStatusDialog = useCallback((user) => {
@@ -163,7 +180,6 @@ Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A
     return filtered
   }, [users, adminFilters])
 
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -172,14 +188,7 @@ Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A
           <p className="text-slate-600 dark:text-slate-400">Manage uploaded resumes and applicant data</p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          <Button variant="outline" onClick={exportCvData} className="w-full sm:w-auto">
-            <Download className="w-4 h-4 mr-2" />
-            Export CSV
-          </Button>
-          <Button className="w-full sm:w-auto">
-            <Plus className="w-4 h-4 mr-2" />
-            Add CV
-          </Button>
+          {/* Export CSV and Add CV buttons removed as per requirements */}
         </div>
       </div>
 

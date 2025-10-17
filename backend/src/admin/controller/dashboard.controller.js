@@ -14,8 +14,11 @@ export const getAllUser = async (req, res, next) => {
     // Calculate skip value
     const skip = (page - 1) * limit;
 
-    // Fetch paginated users
-    const users = await User.find().skip(skip).limit(limit);
+    // Fetch paginated users with populated fields
+    const users = await User.find()
+      .populate('intrestRoles', 'name')
+      .skip(skip)
+      .limit(limit);
 
     // Count total documents
     const totalUsers = await User.countDocuments();
@@ -42,10 +45,42 @@ export const getUserById = async (req, res, next) => {
     // Validate MongoDB ObjectId
     if (!mongoose.Types.ObjectId.isValid(id)) return handleResponse(res, HttpStatusCodes.BAD_REQUEST, rejectResponseMessage.invalidIdFormat);
 
-    const user = await User.findById(id);
+    const user = await User.findById(id).populate('intrestRoles', 'name');
     if (!user) return handleResponse(res, HttpStatusCodes.NOT_FOUND, rejectResponseMessage.noUserFound)
 
     return handleResponse(res, HttpStatusCodes.OK, successResponseMessage.userfetched, user)
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const updateUserStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!id) return handleResponse(res, HttpStatusCodes.BAD_REQUEST, rejectResponseMessage.idRequired)
+    if (!status) return handleResponse(res, HttpStatusCodes.BAD_REQUEST, 'Status is required')
+
+    // Validate MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) return handleResponse(res, HttpStatusCodes.BAD_REQUEST, rejectResponseMessage.invalidIdFormat);
+
+    // Validate status value
+    const validStatuses = ['new', 'under_review', 'shortlisted', 'interview_scheduled', 'hired', 'rejected', 'on_hold'];
+    if (!validStatuses.includes(status)) {
+      return handleResponse(res, HttpStatusCodes.BAD_REQUEST, `Invalid status. Must be one of: ${validStatuses.join(', ')}`)
+    }
+
+    // Update user status
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { $set: { status } },
+      { new: true, runValidators: true, select: '-password' }
+    ).populate('intrestRoles', 'name');
+
+    if (!updatedUser) return handleResponse(res, HttpStatusCodes.NOT_FOUND, rejectResponseMessage.noUserFound)
+
+    return handleResponse(res, HttpStatusCodes.OK, 'User status updated successfully', updatedUser)
   } catch (error) {
     next(error)
   }

@@ -17,6 +17,7 @@ import {
   Users,
   X
 } from 'lucide-react'
+import FildexLogo from '../../images/FILDEX_SOLUTIONS.png'
 
 const AdminLayout = () => {
   const navigate = useNavigate()
@@ -27,7 +28,7 @@ const AdminLayout = () => {
   const [showSettingsDialog, setShowSettingsDialog] = useState(false)
   
   // Get data from Redux
-  const { users, totalUsers } = useSelector((state) => state.admin.users)
+  const { data: users, totalUsers } = useSelector((state) => state.admin.users)
   const { isAuthenticated } = useSelector((state) => state.admin)
 
   // Fetch users data when admin is authenticated
@@ -144,15 +145,21 @@ const AdminLayout = () => {
               >
                 <LayoutDashboard className="w-5 h-5" />
               </Button>
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <LayoutDashboard className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-              </div>
-              <div className="hidden sm:block">
-                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Admin Dashboard</h1>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Manage CVs and job postings</p>
-              </div>
-              <div className="sm:hidden">
-                <h1 className="text-lg font-bold text-slate-900 dark:text-white">Admin</h1>
+              <div className="flex justify-center gap-1 sm:gap-2 items-center">
+                <img
+                  src={FildexLogo}
+                  alt="Fildex Logo"
+                  className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 lg:h-10 lg:w-10 xl:h-12 xl:w-12 2xl:h-10 2xl:w-10 flex-shrink-0 cursor-pointer"
+                  onClick={() => navigate('/admin')}
+                />
+                <div className='flex flex-col'>
+                  <h1 className='text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-3xl 2xl:text-2xl font-semibold text-blue-950 leading-tight cursor-pointer' onClick={() => navigate('/admin')}>
+                    FILDEX
+                  </h1>
+                  <h4 className='text-xs sm:text-sm md:text-base lg:text-lg xl:text-lg 2xl:text-base text-blue-950 font-bold leading-tight cursor-pointer' onClick={() => navigate('/admin')}>
+                    SOLUTIONS
+                  </h4>
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-4">

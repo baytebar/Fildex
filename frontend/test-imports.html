@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import Test</title>
+</head>
+<body>
+    <h1>Testing ES6 Module Imports</h1>
+    <div id="output"></div>
+    
+    <script type="module">
+        const output = document.getElementById('output');
+        
+        try {
+            // Test if we can import from the API config
+            const { API_ENDPOINTS } = await import('./src/config/api.js');
+            output.innerHTML += '<p style="color: green;">✅ API config import successful</p>';
+            console.log('API_ENDPOINTS:', API_ENDPOINTS);
+        } catch (error) {
+            output.innerHTML += `<p style="color: red;">❌ API config import failed: ${error.message}</p>`;
+            console.error('API config import error:', error);
+        }
+        
+        try {
+            // Test if we can import from the auth slice
+            const { loginUser } = await import('./src/features/auth/authSlice.js');
+            output.innerHTML += '<p style="color: green;">✅ Auth slice import successful</p>';
+        } catch (error) {
+            output.innerHTML += `<p style="color: red;">❌ Auth slice import failed: ${error.message}</p>`;
+            console.error('Auth slice import error:', error);
+        }
+        
+        try {
+            // Test if we can import from the store
+            const { store } = await import('./src/app/store.js');
+            output.innerHTML += '<p style="color: green;">✅ Store import successful</p>';
+        } catch (error) {
+            output.innerHTML += `<p style="color: red;">❌ Store import failed: ${error.message}</p>`;
+            console.error('Store import error:', error);
+        }
+    </script>
+</body>
+</html>
+

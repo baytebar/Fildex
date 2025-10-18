@@ -6,13 +6,8 @@ const UserOnlyRoute = ({ children }) => {
   const { isAuthenticated: userAuthenticated } = useSelector((state) => state.auth);
   const { isAuthenticated: adminAuthenticated } = useSelector((state) => state.admin);
 
-  // If admin is authenticated, redirect to admin dashboard
-  if (adminAuthenticated) {
-    return <Navigate to="/admin" replace />;
-  }
-
-  // If not authenticated as user, allow access (public pages)
-  // If authenticated as user, allow access
+  // Allow both users and admins to access the home page
+  // Admins can access the home page when clicking the logo
   return children;
 };
 

@@ -4,7 +4,6 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux'
 import { loginUser, clearError } from '../../features/auth/authSlice'
-import { adminLogin, clearError as clearAdminError } from '../../features/admin/adminSlice'
 import AuthHeader from '../section/AuthHeader'
 import { toast } from 'sonner'
 
@@ -23,7 +22,6 @@ const Login = () => {
   const from = location.state?.from?.pathname || '/'
   
   const { isAuthenticated } = useSelector((state) => state.auth)
-  const { isAuthenticated: adminIsAuthenticated } = useSelector((state) => state.admin)
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -35,18 +33,8 @@ const Login = () => {
   }, [isAuthenticated, navigate, from])
 
   useEffect(() => {
-    if (adminIsAuthenticated) {
-      // Show success toast for admin login
-      toast.success('Admin login successful! Welcome to the dashboard.')
-      // Always redirect admins to admin dashboard
-      navigate('/admin', { replace: true })
-    }
-  }, [adminIsAuthenticated, navigate])
-
-  useEffect(() => {
     // Clear any previous errors when component mounts
     dispatch(clearError())
-    dispatch(clearAdminError())
     setLoginError('')
   }, [dispatch])
 
@@ -61,36 +49,13 @@ const Login = () => {
     setIsLoading(true)
     setLoginError('')
 
-    let userLoginSuccess = false
-    let adminLoginSuccess = false
-
     try {
-      // Try user login first
-      try {
-        await dispatch(loginUser({ email, password })).unwrap()
-        userLoginSuccess = true
-        return
-      } catch (userError) {
-        console.log('User login failed, trying admin login...')
-        // User login failed, try admin login
-        try {
-          const adminLoginData = {
-            identifier: email,
-            password: password
-          };
-          await dispatch(adminLogin(adminLoginData)).unwrap()
-          adminLoginSuccess = true
-          return
-        } catch (adminError) {
-          console.log('Admin login also failed')
-          // Both logins failed
-          throw new Error('Invalid credentials')
-        }
-      }
+      await dispatch(loginUser({ email, password })).unwrap()
+      // Navigation will be handled by useEffect
     } catch (error) {
       console.error('Login error:', error)
-      toast.error('Invalid email/username or password. Please check your credentials and try again.')
-      setLoginError('Invalid email/username or password. Please check your credentials and try again.')
+      toast.error('Invalid email or password. Please check your credentials and try again.')
+      setLoginError('Invalid email or password. Please check your credentials and try again.')
     } finally {
       setIsLoading(false)
     }

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { AlertTriangle, Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import AuthHeader from '../../Client/section/AuthHeader';
 
 const AdminLogin = () => {
   const [formData, setFormData] = useState({
@@ -59,16 +60,18 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <Card className="shadow-xl border-0">
-          <CardHeader className="text-center pb-8">
-            <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mb-4">
-              <Lock className="w-8 h-8 text-white" />
-            </div>
-            <CardTitle className="text-2xl font-bold text-gray-900">Admin Login</CardTitle>
-            <p className="text-gray-600 mt-2">Sign in to access the admin dashboard</p>
-          </CardHeader>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <AuthHeader />
+      <div className="flex items-center justify-center p-4 pt-20">
+        <div className="w-full max-w-md">
+          <Card className="shadow-xl border-0">
+            <CardHeader className="text-center pb-8">
+              <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mb-4">
+                <Lock className="w-8 h-8 text-white" />
+              </div>
+              <CardTitle className="text-2xl font-bold text-gray-900">Admin Login</CardTitle>
+              <p className="text-gray-600 mt-2">Sign in to access the admin dashboard</p>
+            </CardHeader>
           
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -152,6 +155,7 @@ const AdminLogin = () => {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );

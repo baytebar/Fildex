@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { MessageCircle, X, Bot, User, Upload, Check } from 'lucide-react'
+import { MessageCircle, X, Bot, User, Upload, Check, Lock } from 'lucide-react'
 import { useSelector, useDispatch } from 'react-redux'
 import { uploadCV } from '../../features/cvForm/cvFormSlice'
+import { extractUserInfo, formatPhoneNumber } from '../../utils/cvTextExtractor'
 
 const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
   const { isAuthenticated } = useSelector((state) => state.auth)
@@ -18,6 +19,15 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
   const handleFiles = useCallback(async (files) => {
     const file = files?.[0]
     if (!file) return
+    
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      setMessages(ms => ([
+        ...ms,
+        { id: Date.now(), role: 'bot', text: 'Please login to upload your resume. Click the login button in the header to get started!' }
+      ]))
+      return
+    }
     
     // Validate file type
     const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
@@ -43,24 +53,49 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
     setIsUploading(true)
     
     try {
-      // Upload to backend
+      // Extract text from file for analysis
+      let extractedText = ''
+      try {
+        extractedText = await file.text()
+        setResumeText(extractedText)
+      } catch (textError) {
+        console.log('Could not extract text from file for analysis')
+      }
+
+      // Extract user information from CV text
+      const userInfo = extractUserInfo(extractedText)
+      const formattedPhone = formatPhoneNumber(userInfo.phone)
+      
+      // Upload to backend with user information
       const formData = new FormData()
       formData.append('cv', file)
       
+      // Add contact information if available
+      if (userInfo.phone) {
+        formData.append('contact', JSON.stringify({
+          number: userInfo.phone.replace(/\D/g, ''), // Remove non-digits
+          country_code: formattedPhone.startsWith('+353') ? '+353' : 
+                       formattedPhone.startsWith('+1') ? '+1' : 
+                       formattedPhone.startsWith('+44') ? '+44' : '+353'
+        }))
+      }
+      
       const result = await dispatch(uploadCV(formData)).unwrap()
+      
+      // Create success message with extracted info
+      let successMessage = 'Resume uploaded successfully! Our team will review it and get back to you if there are any matching opportunities.'
+      
+      if (userInfo.name || userInfo.email || userInfo.phone) {
+        successMessage += '\n\nI found the following information in your resume:'
+        if (userInfo.name) successMessage += `\n• Name: ${userInfo.name}`
+        if (userInfo.email) successMessage += `\n• Email: ${userInfo.email}`
+        if (userInfo.phone) successMessage += `\n• Phone: ${formattedPhone}`
+      }
       
       setMessages(ms => ([
         ...ms,
-        { id: Date.now(), role: 'bot', text: 'Resume uploaded successfully! Our team will review it and get back to you if there are any matching opportunities.' }
+        { id: Date.now(), role: 'bot', text: successMessage }
       ]))
-      
-      // For demo purposes, still extract text for local analysis
-      try {
-        const text = await file.text()
-        setResumeText(text)
-      } catch (textError) {
-        console.log('Could not extract text from file for demo purposes')
-      }
       
     } catch (error) {
       setMessages(ms => ([
@@ -70,7 +105,7 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
     } finally {
       setIsUploading(false)
     }
-  }, [dispatch])
+  }, [dispatch, isAuthenticated])
 
   const onBrowse = useCallback((e) => {
     const files = e.target.files
@@ -101,68 +136,6 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
     }, 300)
   }, [setShowBot])
 
-  const handleSendMessage = useCallback((messageText) => {
-    if (!isAuthenticated) {
-      // Show login prompt message
-      setMessages(ms => [...ms, { 
-        id: Date.now(), 
-        role: 'bot', 
-        text: 'Please login to submit your resume to our talent pool. Click the login button in the header to get started!' 
-      }])
-      return
-    }
-
-    if (uploadedFile && resumeText) {
-      // User is logged in and has uploaded a resume - submit to admin
-      const userEmail = localStorage.getItem('userEmail') || 'user@example.com'
-      const newCvEntry = {
-        id: Date.now(),
-        name: userEmail.split('@')[0], // Use email prefix as name
-        email: userEmail,
-        phone: 'Not provided',
-        role: 'general',
-        uploadedDate: new Date().toISOString().split('T')[0],
-        status: 'new',
-        retentionDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 1 year from now
-        userRole: null,
-        location: 'Not specified',
-        experience: 'See resume for details',
-        skills: keywordStats.map(k => k.keyword),
-        education: 'See resume for details',
-        summary: resumeText.substring(0, 200) + '...',
-        resumeContent: resumeText,
-        message: messageText
-      }
-
-      setCvData(prev => [...prev, newCvEntry])
-      
-      setMessages(ms => [...ms, { 
-        id: Date.now(), 
-        role: 'bot', 
-        text: 'Thank you! Your resume has been successfully submitted to our talent pool. Our team will review it and get back to you if there are any matching opportunities.' 
-      }])
-    } else {
-      // User is logged in but hasn't uploaded a resume
-      setMessages(ms => [...ms, { 
-        id: Date.now(), 
-        role: 'bot', 
-        text: 'Please upload your resume first before sending a message. Use the upload section above to add your resume file.' 
-      }])
-    }
-  }, [isAuthenticated, uploadedFile, resumeText, keywordStats, setCvData])
-
-  const suggestions = React.useMemo(() => {
-    if (!resumeText) return []
-    const ideas = []
-    if (!/summary|objective/i.test(resumeText)) ideas.push('Add a concise 2-3 sentence Professional Summary at the top.')
-    if (resumeText.length < 1200) ideas.push('Expand impact with quantified results (numbers, % improvement, scale).')
-    if (!/experience/i.test(resumeText)) ideas.push('Include a Work Experience section with role, company, dates, and achievements.')
-    if (!/skills/i.test(resumeText)) ideas.push('Add a Skills section grouped by category (Languages, Frameworks, Tools).')
-    if (!/education/i.test(resumeText)) ideas.push('Include Education with degree, institution, and graduation year.')
-    if (keywordStats.length < 5) ideas.push('Incorporate more role-relevant keywords naturally to pass ATS scans.')
-    return ideas
-  }, [resumeText, keywordStats])
-
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, showBot])
@@ -173,7 +146,9 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
     // Initialize animation state when opening
     setIsAnimating(true)
     
-    const greeting = 'Hello! I\'m your Resume Assistant. Upload your resume and I\'ll help optimize it for better job opportunities!'
+    const greeting = isAuthenticated 
+      ? 'Hello! I\'m your Resume Assistant. Upload your resume and I\'ll help optimize it for better job opportunities!'
+      : 'Hello! I\'m your Resume Assistant. Please login to upload your resume and get personalized optimization tips!'
     const id = Date.now()
     typingMessageId.current = id
     
@@ -260,21 +235,38 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
           <div className="px-6 py-4 border-t border-gray-100 bg-white rounded-b-3xl">
             {/* Resume Upload Section */}
             <div className="mb-4">
-              <label className="inline-flex cursor-pointer items-center gap-3 rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-dashed border-blue-200 px-4 py-3 hover:from-blue-100 hover:to-purple-100 hover:border-blue-300 transition-all duration-200 w-full group">
-                <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={onBrowse} />
-                <div className="size-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Upload size={20} className="text-white" />
+              {!isAuthenticated ? (
+                <div className="inline-flex items-center gap-3 rounded-xl bg-gray-100 border-2 border-dashed border-gray-300 px-4 py-3 w-full opacity-60">
+                  <div className="size-10 rounded-full bg-gray-400 flex items-center justify-center">
+                    <Lock size={20} className="text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-semibold text-gray-600 block truncate">
+                      Login Required
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      Please login to upload your resume
+                    </span>
+                  </div>
+                  <span className="text-xs font-medium text-gray-500 bg-gray-200 px-2 py-1 rounded-full">Locked</span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <span className="text-sm font-semibold text-gray-800 block truncate">
-                    {uploadedFile ? uploadedFile.name : 'Upload Resume'}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    {uploadedFile ? 'Click to change file' : 'Supports .pdf, .doc, .docx'}
-                  </span>
-                </div>
-                <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded-full">Choose</span>
-              </label>
+              ) : (
+                <label className="inline-flex cursor-pointer items-center gap-3 rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-dashed border-blue-200 px-4 py-3 hover:from-blue-100 hover:to-purple-100 hover:border-blue-300 transition-all duration-200 w-full group">
+                  <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={onBrowse} />
+                  <div className="size-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Upload size={20} className="text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-semibold text-gray-800 block truncate">
+                      {uploadedFile ? uploadedFile.name : 'Upload Resume'}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {uploadedFile ? 'Click to change file' : 'Supports .pdf, .doc, .docx'}
+                    </span>
+                  </div>
+                  <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded-full">Choose</span>
+                </label>
+              )}
               {isUploading && (
                 <div className="mt-3 flex items-center gap-2 text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
                   <div className="size-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin flex-shrink-0" />
@@ -289,36 +281,6 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
                   <span className="truncate">Resume uploaded successfully! ({Math.round(uploadedFile.size / 1024)}KB)</span>
                 </div>
               )}
-            </div>
-            
-            {/* Chat Input Section */}
-            <div className="flex items-center gap-3">
-              <input
-                className="flex-1 rounded-xl bg-gray-50 border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 placeholder-gray-500 transition-all duration-200"
-                placeholder="Ask for keyword coverage, bullet rewrites, or summary tips..."
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && e.currentTarget.value.trim()) {
-                    const text = e.currentTarget.value.trim()
-                    setMessages(ms => [...ms, { id: Date.now(), role: 'user', text }])
-                    handleSendMessage(text)
-                    e.currentTarget.value = ''
-                  }
-                }}
-              />
-              <button 
-                onClick={(e) => {
-                  const input = e.target.parentElement.querySelector('input')
-                  if (input && input.value.trim()) {
-                    const text = input.value.trim()
-                    setMessages(ms => [...ms, { id: Date.now(), role: 'user', text }])
-                    handleSendMessage(text)
-                    input.value = ''
-                  }
-                }}
-                className="rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-3 text-sm font-semibold text-white hover:from-blue-600 hover:to-purple-700 shadow-lg transition-all duration-200 transform hover:scale-105"
-              >
-                Send
-              </button>
             </div>
           </div>
         </div>

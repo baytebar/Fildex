@@ -14,8 +14,8 @@ const AuthChecker = ({ children }) => {
     // Check if trying to access admin routes
     if (currentPath.startsWith('/admin')) {
       if (!adminAuthenticated) {
-        // If not admin, redirect to login
-        navigate('/login', { 
+        // If not admin, redirect to admin login
+        navigate('/admin-login', { 
           state: { from: location },
           replace: true 
         });
@@ -24,8 +24,9 @@ const AuthChecker = ({ children }) => {
     }
     
     // Check if admin is trying to access user-facing pages
+    // Allow admin to access home page but redirect from other user pages
     if (adminAuthenticated && !userAuthenticated) {
-      if (currentPath === '/' || currentPath === '/jobs' || currentPath === '/careers') {
+      if (currentPath === '/jobs' || currentPath === '/careers') {
         navigate('/admin', { replace: true });
         return;
       }

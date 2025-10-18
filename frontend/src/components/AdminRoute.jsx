@@ -12,9 +12,9 @@ const AdminRoute = ({ children }) => {
     return <Navigate to="/" replace />;
   }
 
-  // If not authenticated as admin, redirect to login
+  // If not authenticated as admin, redirect to admin login
   if (!adminAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/admin-login" state={{ from: location }} replace />;
   }
 
   // If authenticated as admin, render the component

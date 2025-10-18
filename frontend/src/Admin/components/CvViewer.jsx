@@ -7,12 +7,11 @@ import {
   FileText, 
   Download, 
   Eye, 
-  Mail, 
-  Phone, 
+  Mail,
+  Phone,
   Calendar,
   User,
   MapPin,
-  ExternalLink,
   X,
   Loader2
 } from 'lucide-react'
@@ -250,50 +249,6 @@ const CvViewer = ({ user, onClose, onStatusUpdate }) => {
                 </CardContent>
               </Card>
 
-              {/* Quick Actions */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Quick Actions</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => window.open(`mailto:${user.email}`, '_blank')}
-                    disabled={!user.email}
-                  >
-                    <Mail className="w-4 h-4 mr-2" />
-                    Send Email
-                  </Button>
-                  
-                  {user.contact?.number && (
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={() => window.open(`tel:${user.contact.country_code}${user.contact.number}`, '_blank')}
-                    >
-                      <Phone className="w-4 h-4 mr-2" />
-                      Call User
-                    </Button>
-                  )}
-                  
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => {
-                      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1'
-                      const cvUrl = `${baseUrl}/${user.cv?.url}`
-                      if (user.cv?.url) {
-                        window.open(cvUrl, '_blank')
-                      }
-                    }}
-                    disabled={!user.cv?.url}
-                  >
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Open CV in New Tab
-                  </Button>
-                </CardContent>
-              </Card>
             </div>
           </div>
         </div>

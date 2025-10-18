@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 
 const Footer = () => {
   return (
@@ -35,19 +36,18 @@ const Footer = () => {
           <div>
             <h4 className="font-bold text-foreground mb-4 text-lg">Services</h4>
             <ul className="space-y-3">
-              <li><a href="#training" className="text-muted-foreground hover:text-foreground transition-colors text-base">Training Programs</a></li>
-              <li><a href="#careers" className="text-muted-foreground hover:text-foreground transition-colors text-base">Career Services</a></li>
-              <li><a href="#opportunities" className="text-muted-foreground hover:text-foreground transition-colors text-base">Internships</a></li>
+              <li><Link to="#training" className="text-muted-foreground hover:text-foreground transition-colors text-base">Training Programs</Link></li>
+              <li><Link to="/careers" className="text-muted-foreground hover:text-foreground transition-colors text-base">Career Services</Link></li>
             </ul>
           </div>
           
           <div>
             <h4 className="font-bold text-foreground mb-4 text-lg">Company</h4>
             <ul className="space-y-3">
-              <li><a href="#about" className="text-muted-foreground hover:text-foreground transition-colors text-base">About Us</a></li>
-              <li><a href="#contact" className="text-muted-foreground hover:text-foreground transition-colors text-base">Contact</a></li>
-              <li><a href="#opportunities" className="text-muted-foreground hover:text-foreground transition-colors text-base">Join Our Team</a></li>
-              <li><a href="#privacy" className="text-muted-foreground hover:text-foreground transition-colors text-base">Privacy Policy</a></li>
+              <li><Link to="#about" className="text-muted-foreground hover:text-foreground transition-colors text-base">About Us</Link></li>
+              <li><Link to="#contact" className="text-muted-foreground hover:text-foreground transition-colors text-base">Contact</Link></li>
+              <li><Link to="#privacy" className="text-muted-foreground hover:text-foreground transition-colors text-base">Privacy Policy</Link></li>
+              <li><Link to="/admin-login" className="text-muted-foreground hover:text-foreground transition-colors text-base">Admin Login</Link></li>
             </ul>
           </div>
           
@@ -57,7 +57,7 @@ const Footer = () => {
               <li><a href="mailto:careers@fildex.ie" className="text-muted-foreground hover:text-foreground transition-colors text-base">careers@fildex.ie</a></li>
               <li><a href="tel:+35312345678" className="text-muted-foreground hover:text-foreground transition-colors text-base">+353 1 234 5678</a></li>
               <li><a href="https://wa.me/353123456789" className="text-muted-foreground hover:text-foreground transition-colors text-base">WhatsApp Support</a></li>
-              <li><a href="#contact" className="text-muted-foreground hover:text-foreground transition-colors text-base">Contact Form</a></li>
+              <li><Link to="#contact" className="text-muted-foreground hover:text-foreground transition-colors text-base">Contact Form</Link></li>
             </ul>
           </div>
         </div>

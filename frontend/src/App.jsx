@@ -3,6 +3,7 @@ import { Provider, useDispatch, useSelector } from 'react-redux'
 import { store } from './app/store'
 import { Toaster } from 'sonner'
 import { useLocation } from 'react-router-dom'
+import Loader from './components/Loader'
 
 import Hero from './Client/section/Hero'
 import About from './Client/section/About'
@@ -18,6 +19,7 @@ import JobListing from './Client/pages/JobListing'
 import ScrollToTop from './Client/components/ScrollToTop'
 import Login from './Client/pages/Login'
 import Signup from './Client/pages/Signup'
+import AdminLogin from './Admin/components/AdminLogin'
 import Footer from './Client/section/Footer'
 import AdminOverview from './Admin/pages/AdminOverview'
 import AdminCvManagement from './Admin/pages/AdminCvManagement'
@@ -42,7 +44,6 @@ import { getUserProfile, logout } from './features/auth/authSlice'
 const AuthInitializer = ({ children }) => {
   const dispatch = useDispatch()
   const { isAuthenticated, user, token } = useSelector((state) => state.auth)
-  const [isInitialized, setIsInitialized] = useState(false)
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -57,17 +58,12 @@ const AuthInitializer = ({ children }) => {
           dispatch(logout())
         }
       }
-      setIsInitialized(true)
     }
 
     initializeAuth()
   }, [isAuthenticated, user, token, dispatch])
 
-  // Show loading state while initializing
-  if (!isInitialized) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>
-  }
-
+  // Don't block UI rendering - let the app render while auth initializes
   return children
 }
 
@@ -77,9 +73,19 @@ const App = () => {
   const [showAdmin, setShowAdmin] = useState(false)
   const [showCvPopup, setShowCvPopup] = useState(false)
   const [hasClosedCvPopup, setHasClosedCvPopup] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   // Check if we're on an admin page
   const isAdminPage = location.pathname.startsWith('/admin')
+
+  // Initialize loader
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+    }, 3000) // Show loader for 3 seconds
+
+    return () => clearTimeout(timer)
+  }, [])
 
   // Show CV upload popup when user scrolls down the page (only on non-admin pages)
   useEffect(() => {
@@ -123,12 +129,15 @@ const App = () => {
   return (
     <Provider store={store}>
       <AuthInitializer>
-        <Toaster position="top-right" richColors />
-        <ScrollToTop />
-        {/* Only show CV popup on non-admin pages */}
-        {!isAdminPage && <CvUploadPopup isOpen={showCvPopup} onClose={handleCloseCvPopup} />}
-        <AuthChecker>
-          <Routes>
+        <Loader isLoading={isLoading} onComplete={() => setIsLoading(false)} />
+        {!isLoading && (
+          <>
+            <Toaster position="top-right" richColors />
+            <ScrollToTop />
+            {/* Only show CV popup on non-admin pages */}
+            {!isAdminPage && <CvUploadPopup isOpen={showCvPopup} onClose={handleCloseCvPopup} />}
+            <AuthChecker>
+              <Routes>
           <Route path="/" element={
             <UserOnlyRoute>
               <div className="min-h-dvh bg-background text-foreground">
@@ -164,6 +173,11 @@ const App = () => {
               <Signup />
             </PublicRoute>
           } />
+          <Route path="/admin-login" element={
+            <PublicRoute>
+              <AdminLogin />
+            </PublicRoute>
+          } />
           <Route path="/admin" element={
             <AdminRoute>
               <AdminLayout />
@@ -181,6 +195,8 @@ const App = () => {
           <Route path="/access-denied" element={<AccessDenied />} />
           </Routes>
         </AuthChecker>
+          </>
+        )}
       </AuthInitializer>
     </Provider>
   )

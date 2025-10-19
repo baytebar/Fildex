@@ -7,6 +7,9 @@ export const rejectResponseMessage = {
   invalidToken: "Invalid token",
   invalidTokenOrUserNotFound: "Invalid token or account not found",
   accessDenied: "Access denied",
+  invalidId: 'Invalid ID provided.',
+  missingFeilds: "Required fields are missing.",
+  departmentAlreadyExist: "Department with this name already exists.",
 
   //user controller
   userAlreadyExist: 'User already exist',
@@ -24,6 +27,8 @@ export const rejectResponseMessage = {
   roleNameRequired: 'Role name is required',
   roleAlreadyExist: 'Role already exists',
   noRolesFound: 'No role found',
+  departmentNotFound: "Department not found.",
+  dataNotFound: 'Data not found',
 }
 
 export const successResponseMessage = {
@@ -32,11 +37,15 @@ export const successResponseMessage = {
   userfetched: "Users fetched successfully",
   loginSuccess: 'login successfull',
   profileUpdated: 'Profile updated successfully',
+  updated: "Updated successfully.",
+  deleted: 'data delated',
 
   //admin
   adminCreated: 'Admin created',
   instrestRoleCreated: 'Role created successfully',
   roleFetched: 'Role fetched',
   roleUpdated: 'Role updated',
-  roleDeleted: 'Role deleted'
+  roleDeleted: 'Role deleted',
+  dataFetched: "Data fetched successfully."
+  
 }

@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 import dotenv from 'dotenv';
 import helmet from "helmet";
 import connectDB from "./src/config/mongoose.config.js";
-import indexRouter from "./src/routes/index.router.js";
+import indexRouter from "./src/routes/index.route.js";
 
 dotenv.config();
 const app = express();

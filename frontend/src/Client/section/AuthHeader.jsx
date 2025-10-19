@@ -1,17 +1,22 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import FildexLogo from '../../images/FILDEX_SOLUTIONS.png'
 
 const AuthHeader = () => {
-  const handleLogoClick = () => {
+  const navigate = useNavigate();
+
+  const handleLogoClick = (e) => {
+    e.preventDefault();
     window.scrollTo(0, 0);
+    // Force navigation to home page
+    navigate('/', { replace: false });
   }
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-border shadow-sm">
       <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-3 flex items-center justify-between">
         <div className="flex items-center justify-center">
-          <Link to={'/'} className="flex items-center gap-1 sm:gap-2 md:gap-3" onClick={handleLogoClick}>
+          <Link to={'/'} className="flex items-center gap-1 sm:gap-2 md:gap-3" onClick={() => window.scrollTo(0, 0)}>
             <div className='flex justify-center gap-1 sm:gap-2 items-center'>
               <img
                 src={FildexLogo}

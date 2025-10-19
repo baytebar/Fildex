@@ -2,13 +2,11 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { api } from '../../config/api';
 import { toast } from 'sonner';
 
-// Async thunks for API calls
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await api.user.login(credentials);
-      // Store token in localStorage
       if (response.data?.token) {
         localStorage.setItem('authToken', response.data.token);
         localStorage.setItem('userEmail', credentials.email);
@@ -28,7 +26,6 @@ export const registerUser = createAsyncThunk(
   async (userData, { rejectWithValue }) => {
     try {
       const response = await api.user.register(userData);
-      // Removed the toast message as requested
       return response;
     } catch (error) {
       toast.error('Registration failed: ' + (error.message || 'Please try again'));

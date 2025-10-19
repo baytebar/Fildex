@@ -7,7 +7,6 @@ import { rejectResponseMessage } from "../constants/response.constants.js";
 
 export const authenticate = async (req, res, next) => {
   try {
-    // Extract token
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return handleResponse(res, HttpStatusCodes.UNAUTHORIZED, "Authorization token missing");
@@ -15,7 +14,6 @@ export const authenticate = async (req, res, next) => {
 
     const token = authHeader.split(" ")[1];
 
-    // Verify token
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -26,7 +24,6 @@ export const authenticate = async (req, res, next) => {
       return handleResponse(res, HttpStatusCodes.UNAUTHORIZED, rejectResponseMessage.invalidToken);
     }
 
-    // Identify role and fetch user/admin
     let authUser = null;
     let role = "user"; // default
 
@@ -41,7 +38,6 @@ export const authenticate = async (req, res, next) => {
       return handleResponse(res, HttpStatusCodes.UNAUTHORIZED, rejectResponseMessage.invalidTokenOrUserNotFound);
     }
 
-    // Attach to request
     req.auth = {
       id: authUser._id,
       role,
@@ -54,7 +50,6 @@ export const authenticate = async (req, res, next) => {
   }
 };
 
-// Authorization middleware
 export const authorizeRoles = (...allowedRoles) => {
   
   return (req, res, next) => {

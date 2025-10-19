@@ -97,6 +97,7 @@ const AdminLogin = () => {
                       onChange={handleChange}
                       className="pl-10"
                       placeholder="admin@fildex.com"
+                      autoComplete="email"
                       required
                     />
                   </div>
@@ -116,6 +117,7 @@ const AdminLogin = () => {
                       onChange={handleChange}
                       className="pl-10 pr-10"
                       placeholder="Enter your password"
+                      autoComplete="current-password"
                       required
                     />
                     <button

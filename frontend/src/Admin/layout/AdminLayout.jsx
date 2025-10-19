@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/button'
 import { Badge } from '../../components/ui/badge'
 import { Avatar, AvatarFallback } from '../../components/ui/avatar'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../components/ui/dialog'
+import { Toaster } from 'sonner'
 import { 
   LayoutDashboard, 
   Bell, 
@@ -64,7 +65,8 @@ const AdminLayout = () => {
     { id: 'overview', label: 'Overview', icon: LayoutDashboard, path: '/admin' },
     { id: 'cv-management', label: 'CV Management', icon: FileText, path: '/admin/cv-management' },
     { id: 'job-postings', label: 'Job Postings', icon: Briefcase, path: '/admin/job-postings' },
-    { id: 'role-management', label: 'Role Management', icon: Users, path: '/admin/role-management' }
+    { id: 'role-management', label: 'Role Management', icon: Users, path: '/admin/role-management' },
+    { id: 'admin-registration', label: 'Add Admin', icon: User, path: '/admin/register' }
   ]
 
   const getCurrentTab = () => {
@@ -594,6 +596,9 @@ const AdminLayout = () => {
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* Toast notifications for admin */}
+      <Toaster position="top-right" richColors style={{ zIndex: 99999 }} />
     </div>
   )
 }

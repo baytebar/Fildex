@@ -1,16 +1,12 @@
-// API Configuration
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
 
-// API endpoints
 export const API_ENDPOINTS = {
-  // User endpoints
   USER: {
     REGISTER: '/user/auth/register',
     LOGIN: '/user/auth/login',
     PROFILE: '/user/profile',
     UPLOAD_CV: '/user/profile/profile-update',
   },
-  // Admin endpoints
   ADMIN: {
     LOGIN: '/admin/auth/login',
     REGISTER: '/admin/auth/register',
@@ -19,22 +15,19 @@ export const API_ENDPOINTS = {
     USER_BY_ID: '/admin/dashboard/user',
     INTEREST_ROLES: '/admin/intrest-roles',
   },
-  // Public endpoints
   PUBLIC: {
     UPLOADS: '/public/uploads',
   }
 };
 
-// API utility functions
 export const apiRequest = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
   
   const defaultOptions = {
     headers: {},
-    credentials: 'include', // Include cookies for authentication
+    credentials: 'include',
   };
 
-      // Add authorization header if token exists
       const userToken = localStorage.getItem('authToken');
       const adminToken = localStorage.getItem('adminToken');
       const token = userToken || adminToken;
@@ -42,7 +35,6 @@ export const apiRequest = async (endpoint, options = {}) => {
         defaultOptions.headers.Authorization = `Bearer ${token}`;
       }
 
-  // Set Content-Type for non-FormData requests
   if (!(options.body instanceof FormData)) {
     defaultOptions.headers['Content-Type'] = 'application/json';
   }
@@ -112,6 +104,11 @@ export const api = {
         },
 
         getUserById: (userId) => apiRequest(`${API_ENDPOINTS.ADMIN.USER_BY_ID}/${userId}`),
+
+        updateUserStatus: (userId, status) => apiRequest(`${API_ENDPOINTS.ADMIN.USER_BY_ID}/${userId}/status`, {
+          method: 'PUT',
+          body: JSON.stringify({ status }),
+        }),
 
         getAllInterestRoles: () => apiRequest(API_ENDPOINTS.ADMIN.INTEREST_ROLES),
 

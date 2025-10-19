@@ -10,7 +10,6 @@ import {
   Download, 
   Plus, 
   Mail, 
-  Trash2, 
   FileText,
   Calendar,
   Phone,
@@ -32,7 +31,9 @@ const AdminCvManagement = () => {
   const [adminFilters, setAdminFilters] = useState({
     search: '',
     status: '',
-    dateRange: { start: '', end: '' }
+    dateRange: { start: '', end: '' },
+    sortBy: 'createdAt',
+    sortOrder: 'desc'
   })
   const [showStatusDialog, setShowStatusDialog] = useState(false)
   const [selectedCvForStatus, setSelectedCvForStatus] = useState(null)
@@ -130,16 +131,14 @@ Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A
 
   const updateCvStatus = useCallback((userId, newStatus) => {
     dispatch(updateUserStatus({ userId, status: newStatus }))
-      .unwrap()
-      .then(() => {
-        toast.success('CV status updated successfully')
-      })
-      .catch((error) => {
-        toast.error('Failed to update CV status: ' + error.message)
-      })
   }, [dispatch])
 
   const openStatusDialog = useCallback((user) => {
+    // Don't open dialog if user has no CV
+    if (!user.cv?.url) {
+      toast.error('Cannot update status - No CV uploaded')
+      return
+    }
     setSelectedCvForStatus(user)
     setTempStatus(user.status || 'new')
     setShowStatusDialog(true)
@@ -175,6 +174,37 @@ Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A
         (user.createdAt && new Date(user.createdAt) >= new Date(adminFilters.dateRange.start))
       
       return matchesSearch && matchesStatus && matchesDate
+    })
+    
+    // Sort the filtered results
+    filtered.sort((a, b) => {
+      let aVal, bVal;
+      
+      switch (adminFilters.sortBy) {
+        case 'name':
+          aVal = a.name || '';
+          bVal = b.name || '';
+          break;
+        case 'email':
+          aVal = a.email || '';
+          bVal = b.email || '';
+          break;
+        case 'status':
+          aVal = a.status || 'new';
+          bVal = b.status || 'new';
+          break;
+        case 'createdAt':
+        default:
+          aVal = new Date(a.createdAt || 0);
+          bVal = new Date(b.createdAt || 0);
+          break;
+      }
+      
+      if (adminFilters.sortOrder === 'asc') {
+        return aVal > bVal ? 1 : -1;
+      } else {
+        return aVal < bVal ? 1 : -1;
+      }
     })
     
     return filtered
@@ -215,8 +245,12 @@ Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A
               <option value="">All Status</option>
               <option value="new">New</option>
               <option value="reviewed">Reviewed</option>
+              <option value="under_review">Under Review</option>
               <option value="shortlisted">Shortlisted</option>
+              <option value="interview_scheduled">Interview Scheduled</option>
+              <option value="hired">Hired</option>
               <option value="rejected">Rejected</option>
+              <option value="on_hold">On Hold</option>
             </select>
             
             
@@ -229,6 +263,22 @@ Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A
               }))}
               className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            
+            <select
+              value={`${adminFilters.sortBy}-${adminFilters.sortOrder}`}
+              onChange={(e) => {
+                const [sortBy, sortOrder] = e.target.value.split('-')
+                setAdminFilters(prev => ({ ...prev, sortBy, sortOrder }))
+              }}
+              className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="createdAt-desc">Newest First</option>
+              <option value="createdAt-asc">Oldest First</option>
+              <option value="name-asc">Name A-Z</option>
+              <option value="name-desc">Name Z-A</option>
+              <option value="status-asc">Status A-Z</option>
+              <option value="status-desc">Status Z-A</option>
+            </select>
           </div>
         </CardContent>
       </Card>
@@ -359,19 +409,33 @@ Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Badge 
-                            variant={(user.status || 'new') === 'new' ? 'default' : 
-                                    (user.status || 'new') === 'reviewed' ? 'secondary' :
-                                    (user.status || 'new') === 'shortlisted' ? 'default' : 'destructive'}
-                            className={(user.status || 'new') === 'shortlisted' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : ''}
+                            variant={
+                              (user.status || 'new') === 'new' ? 'default' : 
+                              (user.status || 'new') === 'reviewed' ? 'default' :
+                              (user.status || 'new') === 'under_review' ? 'secondary' :
+                              (user.status || 'new') === 'shortlisted' ? 'default' :
+                              (user.status || 'new') === 'interview_scheduled' ? 'default' :
+                              (user.status || 'new') === 'hired' ? 'default' :
+                              (user.status || 'new') === 'on_hold' ? 'secondary' : 'destructive'
+                            }
+                            className={
+                              (user.status || 'new') === 'reviewed' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300' :
+                              (user.status || 'new') === 'shortlisted' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' :
+                              (user.status || 'new') === 'interview_scheduled' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
+                              (user.status || 'new') === 'hired' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300' :
+                              (user.status || 'new') === 'on_hold' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' :
+                              (user.status || 'new') === 'rejected' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300' : ''
+                            }
                           >
-                            {user.status || 'new'}
+                            {(user.status || 'new').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                           </Badge>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => openStatusDialog(user)}
-                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 p-1"
-                            title="Update Status"
+                            disabled={!user.cv?.url}
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 p-1 disabled:text-gray-400 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                            title={user.cv?.url ? "Update Status" : "No CV uploaded - Cannot update status"}
                           >
                             <Edit3 className="w-3 h-3" />
                           </Button>
@@ -407,14 +471,6 @@ Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A
                             disabled={!user.email}
                           >
                             <Mail className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            title="Delete User"
-                          >
-                            <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
                       </TableCell>
@@ -483,9 +539,16 @@ Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A
                     <Button
                       variant={tempStatus === 'reviewed' ? 'default' : 'outline'}
                       onClick={() => handleStatusSelect('reviewed')}
-                      className="justify-start"
+                      className="justify-start bg-purple-600 hover:bg-purple-700 text-white"
                     >
                       Reviewed
+                    </Button>
+                    <Button
+                      variant={tempStatus === 'under_review' ? 'default' : 'outline'}
+                      onClick={() => handleStatusSelect('under_review')}
+                      className="justify-start"
+                    >
+                      Under Review
                     </Button>
                     <Button
                       variant={tempStatus === 'shortlisted' ? 'default' : 'outline'}
@@ -495,11 +558,32 @@ Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A
                       Shortlisted
                     </Button>
                     <Button
+                      variant={tempStatus === 'interview_scheduled' ? 'default' : 'outline'}
+                      onClick={() => handleStatusSelect('interview_scheduled')}
+                      className="justify-start bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      Interview Scheduled
+                    </Button>
+                    <Button
+                      variant={tempStatus === 'hired' ? 'default' : 'outline'}
+                      onClick={() => handleStatusSelect('hired')}
+                      className="justify-start bg-emerald-600 hover:bg-emerald-700 text-white"
+                    >
+                      Hired
+                    </Button>
+                    <Button
                       variant={tempStatus === 'rejected' ? 'default' : 'outline'}
                       onClick={() => handleStatusSelect('rejected')}
                       className="justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
                       Rejected
+                    </Button>
+                    <Button
+                      variant={tempStatus === 'on_hold' ? 'default' : 'outline'}
+                      onClick={() => handleStatusSelect('on_hold')}
+                      className="justify-start text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
+                    >
+                      On Hold
                     </Button>
                   </div>
                   

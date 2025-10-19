@@ -1,13 +1,11 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* Authentication page specific styles */
 .auth-page {
   position: relative;
   overflow: hidden;
 }
 
-/* Flip card styles for forms only */
 .flip-card-container {
   perspective: 1500px;
   width: 100%;
@@ -46,7 +44,6 @@
   transform: rotateY(180deg);
 }
 
-/* Enhanced transition styles */
 .page-transition-enter {
   opacity: 0;
   transform: translateX(20px) translateY(10px) scale(0.98);
@@ -79,7 +76,6 @@
     filter 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Additional smooth transitions for form elements */
 .auth-form-container {
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
@@ -89,7 +85,6 @@
   transform: translateY(-2px);
 }
 
-/* Smooth transitions for buttons */
 .btn-transition {
   transition: all 0.2s ease-in-out;
 }
@@ -99,7 +94,6 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
-/* Smooth transitions for input fields */
 .input-transition {
   transition: all 0.2s ease-in-out;
 }
@@ -112,7 +106,6 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Custom bounce-in animation for chatbot messages */
 @keyframes bounce-in {
   0% {
     opacity: 0;
@@ -135,7 +128,6 @@ html {
   animation: bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
-/* Loader animations */
 @keyframes float {
   0%, 100% {
     transform: translateY(0px);
@@ -231,72 +223,71 @@ html {
 
 :root {
   --radius: 0.625rem;
-  /* Purple and white theme */
-  --background: oklch(100% 0 0); /* White background */
-  --foreground: oklch(20% 0 0); /* Dark text */
-  --card: oklch(98% 0 0); /* Slightly off-white card */
-  --card-foreground: oklch(20% 0 0); /* Dark text on cards */
-  --popover: oklch(100% 0 0); /* White popover */
-  --popover-foreground: oklch(20% 0 0); /* Dark text in popover */
-  --primary: oklch(50% 0.2 290); /* Purple primary color */
-  --primary-foreground: oklch(100% 0 0); /* White text on purple */
-  --secondary: oklch(95% 0 0); /* Light gray secondary */
-  --secondary-foreground: oklch(20% 0 0); /* Dark text on secondary */
-  --muted: oklch(92% 0 0); /* Muted background */
-  --muted-foreground: oklch(45% 0 0); /* Muted text */
-  --accent: oklch(85% 0.1 290); /* Light purple accent */
-  --accent-foreground: oklch(20% 0 0); /* Dark text on accent */
-  --destructive: oklch(65% 0.2 25); /* Red for destructive actions */
-  --border: oklch(90% 0 0); /* Light border */
-  --input: oklch(90% 0 0); /* Input border */
-  --ring: oklch(50% 0.2 290); /* Purple ring */
-  --chart-1: oklch(50% 0.2 290); /* Purple for charts */
-  --chart-2: oklch(60% 0.15 290); /* Lighter purple */
-  --chart-3: oklch(70% 0.1 290); /* Even lighter purple */
-  --chart-4: oklch(80% 0.05 290); /* Very light purple */
-  --chart-5: oklch(90% 0 0); /* Almost white */
-  --sidebar: oklch(98% 0 0); /* Light sidebar */
-  --sidebar-foreground: oklch(20% 0 0); /* Dark text in sidebar */
-  --sidebar-primary: oklch(50% 0.2 290); /* Purple sidebar primary */
-  --sidebar-primary-foreground: oklch(100% 0 0); /* White text on sidebar primary */
-  --sidebar-accent: oklch(90% 0 0); /* Light sidebar accent */
-  --sidebar-accent-foreground: oklch(20% 0 0); /* Dark text on sidebar accent */
-  --sidebar-border: oklch(90% 0 0); /* Sidebar border */
-  --sidebar-ring: oklch(50% 0.2 290); /* Purple sidebar ring */
+  --background: oklch(100% 0 0);
+  --foreground: oklch(20% 0 0);
+  --card: oklch(98% 0 0);
+  --card-foreground: oklch(20% 0 0);
+  --popover: oklch(100% 0 0);
+  --popover-foreground: oklch(20% 0 0);
+  --primary: oklch(50% 0.2 290);
+  --primary-foreground: oklch(100% 0 0);
+  --secondary: oklch(95% 0 0);
+  --secondary-foreground: oklch(20% 0 0);
+  --muted: oklch(92% 0 0);
+  --muted-foreground: oklch(45% 0 0);
+  --accent: oklch(85% 0.1 290);
+  --accent-foreground: oklch(20% 0 0);
+  --destructive: oklch(65% 0.2 25);
+  --border: oklch(90% 0 0);
+  --input: oklch(90% 0 0);
+  --ring: oklch(50% 0.2 290);
+  --chart-1: oklch(50% 0.2 290);
+  --chart-2: oklch(60% 0.15 290);
+  --chart-3: oklch(70% 0.1 290);
+  --chart-4: oklch(80% 0.05 290);
+  --chart-5: oklch(90% 0 0);
+  --sidebar: oklch(98% 0 0);
+  --sidebar-foreground: oklch(20% 0 0);
+  --sidebar-primary: oklch(50% 0.2 290);
+  --sidebar-primary-foreground: oklch(100% 0 0);
+  --sidebar-accent: oklch(90% 0 0);
+  --sidebar-accent-foreground: oklch(20% 0 0);
+  --sidebar-border: oklch(90% 0 0);
+  --sidebar-ring: oklch(50% 0.2 290);
 }
 
 .dark {
-  --background: oklch(15% 0 0); /* Dark background */
-  --foreground: oklch(95% 0 0); /* Light text */
-  --card: oklch(20% 0 0); /* Darker card */
-  --card-foreground: oklch(95% 0 0); /* Light text on cards */
-  --popover: oklch(15% 0 0); /* Dark popover */
-  --popover-foreground: oklch(95% 0 0); /* Light text in popover */
-  --primary: oklch(70% 0.2 290); /* Lighter purple for dark mode */
-  --primary-foreground: oklch(15% 0 0); /* Dark text on purple */
-  --secondary: oklch(25% 0 0); /* Dark secondary */
-  --secondary-foreground: oklch(95% 0 0); /* Light text on secondary */
-  --muted: oklch(30% 0 0); /* Darker muted */
-  --muted-foreground: oklch(70% 0 0); /* Lighter muted text */
-  --accent: oklch(40% 0.15 290); /* Medium purple accent */
-  --accent-foreground: oklch(95% 0 0); /* Light text on accent */
-  --destructive: oklch(70% 0.2 25); /* Lighter red for destructive */
-  --border: oklch(25% 0 0); /* Dark border */
-  --input: oklch(25% 0 0); /* Input border */
-  --ring: oklch(70% 0.2 290); /* Lighter purple ring */
-  --chart-1: oklch(70% 0.2 290); /* Lighter purple for charts */
-  --chart-2: oklch(60% 0.15 290); /* Medium purple */
-  --chart-3: oklch(50% 0.1 290); /* Medium-dark purple */
-  --chart-4: oklch(40% 0.05 290); /* Darker purple */
-  --chart-5: oklch(20% 0 0); /* Very dark */
-  --sidebar: oklch(20% 0 0); /* Dark sidebar */
-  --sidebar-foreground: oklch(95% 0 0); /* Light text in sidebar */
-  --sidebar-primary: oklch(70% 0.2 290); /* Lighter purple sidebar primary */
-  --sidebar-primary-foreground: oklch(15% 0 0); /* Dark text on sidebar primary */
-  --sidebar-accent: oklch(30% 0 0); /* Dark sidebar accent */
-  --sidebar-accent-foreground: oklch(95% 0 0); /* Light text on sidebar accent */
-  --sidebar-border: oklch(25% 0 0); /* Sidebar border */
-  --sidebar-ring: oklch(70% 0.2 290); /* Lighter purple sidebar ring */
+  --background: oklch(15% 0 0);
+  --foreground: oklch(95% 0 0);
+  --card: oklch(20% 0 0);
+  --card-foreground: oklch(95% 0 0);
+  --popover: oklch(15% 0 0);
+  --popover-foreground: oklch(95% 0 0);
+  --primary: oklch(70% 0.2 290);
+  --primary-foreground: oklch(15% 0 0);
+  --secondary: oklch(25% 0 0);
+  --secondary-foreground: oklch(95% 0 0);
+  --muted: oklch(30% 0 0);
+  --muted-foreground: oklch(70% 0 0);
+  --accent: oklch(40% 0.15 290);
+  --accent-foreground: oklch(95% 0 0);
+  --destructive: oklch(70% 0.2 25);
+  --border: oklch(25% 0 0);
+  --input: oklch(25% 0 0);
+  --ring: oklch(70% 0.2 290);
+  --chart-1: oklch(70% 0.2 290);
+  --chart-2: oklch(60% 0.15 290);
+  --chart-3: oklch(50% 0.1 290);
+  --chart-4: oklch(40% 0.05 290);
+  --chart-5: oklch(20% 0 0);
+  --sidebar: oklch(20% 0 0);
+  --sidebar-foreground: oklch(95% 0 0);
+  --sidebar-primary: oklch(70% 0.2 290);
+  --sidebar-primary-foreground: oklch(15% 0 0);
+  --sidebar-accent: oklch(30% 0 0);
+  --sidebar-accent-foreground: oklch(95% 0 0);
+  --sidebar-border: oklch(25% 0 0);
+  --sidebar-ring: oklch(70% 0.2 290);
 }
 
 @layer base {

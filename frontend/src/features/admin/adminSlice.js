@@ -2,18 +2,28 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { api } from '../../config/api';
 import { toast } from 'sonner';
 
-// Async thunks for admin API calls
 export const adminLogin = createAsyncThunk(
   'admin/adminLogin',
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await api.admin.login(credentials);
-      // Store admin token in localStorage
       if (response.data?.token) {
         localStorage.setItem('adminToken', response.data.token);
-        localStorage.setItem('adminEmail', credentials.identifier); // Use identifier instead of email
+        localStorage.setItem('adminEmail', credentials.identifier);
         localStorage.setItem('isAdminLoggedIn', 'true');
       }
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const adminRegister = createAsyncThunk(
+  'admin/adminRegister',
+  async (adminData, { rejectWithValue }) => {
+    try {
+      const response = await api.admin.register(adminData);
       return response;
     } catch (error) {
       return rejectWithValue(error.message);
@@ -106,10 +116,9 @@ export const updateUserStatus = createAsyncThunk(
   'admin/updateUserStatus',
   async ({ userId, status }, { rejectWithValue }) => {
     try {
-      // For now, we'll just update the local state
-      // In a real implementation, you'd make an API call here
+      const response = await api.admin.updateUserStatus(userId, status);
       toast.success('User status updated successfully!');
-      return { userId, status };
+      return { userId, status, user: response.data };
     } catch (error) {
       toast.error('Failed to update user status: ' + (error.message || 'Please try again'));
       return rejectWithValue(error.message);
@@ -166,7 +175,16 @@ const adminSlice = createSlice({
     },
     setAdmin: (state, action) => {
       state.admin = action.payload;
+      state.token = action.payload?.token || state.token;
       state.isAuthenticated = true;
+    },
+    restoreAdminAuth: (state) => {
+      const token = localStorage.getItem('adminToken');
+      const isAdminLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
+      if (token && isAdminLoggedIn) {
+        state.token = token;
+        state.isAuthenticated = true;
+      }
     },
   },
   extraReducers: (builder) => {
@@ -186,6 +204,22 @@ const adminSlice = createSlice({
       .addCase(adminLogin.rejected, (state, action) => {
         state.isLoading = false;
         state.isAuthenticated = false;
+        state.error = action.payload;
+      })
+      
+      // Admin Registration
+      .addCase(adminRegister.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(adminRegister.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.error = null;
+        // Registration successful, but not automatically logged in
+        // The user needs to log in after registration
+      })
+      .addCase(adminRegister.rejected, (state, action) => {
+        state.isLoading = false;
         state.error = action.payload;
       })
       
@@ -286,15 +320,25 @@ const adminSlice = createSlice({
       })
       
       // Update User Status
+      .addCase(updateUserStatus.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
       .addCase(updateUserStatus.fulfilled, (state, action) => {
-        const { userId, status } = action.payload;
-        const user = state.users.data.find(u => u._id === userId);
-        if (user) {
-          user.status = status;
+        state.isLoading = false;
+        const { userId, status, user } = action.payload;
+        const userIndex = state.users.data.findIndex(u => u._id === userId);
+        if (userIndex !== -1) {
+          state.users.data[userIndex] = { ...state.users.data[userIndex], status };
         }
+        state.error = null;
+      })
+      .addCase(updateUserStatus.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
       });
   },
 });
 
-export const { adminLogout, clearError, setAdmin } = adminSlice.actions;
+export const { adminLogout, clearError, setAdmin, restoreAdminAuth } = adminSlice.actions;
 export default adminSlice.reducer;

@@ -14,7 +14,7 @@ const JobPostingForm = ({ onClose, onSave, jobData = null, isEditing = false }) 
     requirements: jobData?.requirements || '',
     benefits: jobData?.benefits || '',
     department: jobData?.department || '',
-    experience: jobData?.experience || 'entry',
+    experience: jobData?.experience || 'fresher',
     status: jobData?.status || 'active',
     applicationDeadline: jobData?.applicationDeadline || '',
     contactEmail: jobData?.contactEmail || 'hr@fildex.com'
@@ -159,10 +159,8 @@ const JobPostingForm = ({ onClose, onSave, jobData = null, isEditing = false }) 
                     required
                     className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white"
                   >
-                    <option value="entry">Entry Level</option>
-                    <option value="mid">Mid Level</option>
-                    <option value="senior">Senior Level</option>
-                    <option value="lead">Lead/Principal</option>
+                    <option value="fresher">Fresher</option>
+                    <option value="experienced">Experienced</option>
                   </select>
                 </div>
               </div>

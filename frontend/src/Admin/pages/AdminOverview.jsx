@@ -2,17 +2,21 @@ import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Card, CardContent } from '../../components/ui/card'
 import { FileText, Briefcase, TrendingUp, Users, Calendar, MapPin, Phone, Mail } from 'lucide-react'
-import { getAllUsers } from '../../features/admin/adminSlice'
+import { getAllUsers, getAllJobPostings, getAllDepartments } from '../../features/admin/adminSlice'
 
 const AdminOverview = () => {
   const dispatch = useDispatch()
   const { data: users, isLoading, error, totalUsers } = useSelector((state) => state.admin.users)
+  const { data: jobPostings, isLoading: jobsLoading } = useSelector((state) => state.admin.jobPostings)
+  const { data: departments, isLoading: deptLoading } = useSelector((state) => state.admin.departments)
   const { isAuthenticated } = useSelector((state) => state.admin)
   
-  // Fetch users data on component mount
+  // Fetch data on component mount
   useEffect(() => {
     if (isAuthenticated) {
       dispatch(getAllUsers({ page: 1, limit: 10 }))
+      dispatch(getAllJobPostings({ page: 1, limit: 10 }))
+      dispatch(getAllDepartments())
     }
   }, [dispatch, isAuthenticated])
   
@@ -23,6 +27,11 @@ const AdminOverview = () => {
   const shortlistedUsers = users?.filter(user => user.status === 'shortlisted').length || 0
   const usersWithCv = users?.filter(user => user.cv?.url).length || 0
   const usersWithoutCv = totalUsers - usersWithCv
+  
+  // Job posting statistics
+  const totalJobs = jobPostings?.length || 0
+  const activeJobs = jobPostings?.filter(job => job.status === 'active').length || 0
+  const totalDepartments = departments?.length || 0
 
   return (
     <div className="space-y-6">
@@ -93,6 +102,57 @@ const AdminOverview = () => {
             <div className="mt-4 flex items-center text-orange-100 text-sm">
               <TrendingUp className="w-4 h-4 mr-1" />
               {Math.round((shortlistedUsers / totalUsers) * 100) || 0}% success rate
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Additional Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-indigo-500 to-indigo-600 text-white">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-indigo-100 text-sm font-medium">Job Postings</p>
+                <p className="text-3xl font-bold">{jobsLoading ? '...' : totalJobs}</p>
+              </div>
+              <Briefcase className="w-8 h-8 text-indigo-200" />
+            </div>
+            <div className="mt-4 flex items-center text-indigo-100 text-sm">
+              <TrendingUp className="w-4 h-4 mr-1" />
+              {activeJobs} active jobs
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-teal-500 to-teal-600 text-white">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-teal-100 text-sm font-medium">Departments</p>
+                <p className="text-3xl font-bold">{deptLoading ? '...' : totalDepartments}</p>
+              </div>
+              <Calendar className="w-8 h-8 text-teal-200" />
+            </div>
+            <div className="mt-4 flex items-center text-teal-100 text-sm">
+              <TrendingUp className="w-4 h-4 mr-1" />
+              Available departments
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-pink-500 to-pink-600 text-white">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-pink-100 text-sm font-medium">CV Coverage</p>
+                <p className="text-3xl font-bold">{isLoading ? '...' : Math.round((usersWithCv / totalUsers) * 100) || 0}%</p>
+              </div>
+              <FileText className="w-8 h-8 text-pink-200" />
+            </div>
+            <div className="mt-4 flex items-center text-pink-100 text-sm">
+              <TrendingUp className="w-4 h-4 mr-1" />
+              Users with CVs
             </div>
           </CardContent>
         </Card>

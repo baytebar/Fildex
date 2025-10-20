@@ -13,9 +13,9 @@ const userSchema = mongoose.Schema({
     lowercase: true,
     trim: true,
   },
-  intrestRoles: [{
+  jobTitles: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'user_intrest_roles',
+    ref: 'job_titles',
     required: false, 
   }],
   contact: {
@@ -34,12 +34,6 @@ const userSchema = mongoose.Schema({
   cv: {
     url: { type: String, trim: true, },
     new: { type: Boolean, default: true },
-  },
-  status: {
-    type: String,
-    enum: ['new', 'reviewed', 'under_review', 'shortlisted', 'interview_scheduled', 'hired', 'rejected', 'on_hold'],
-    default: 'new',
-    required: false
   },
   password: { type: String, required: true },
   resetPasswordToken: { type: String },

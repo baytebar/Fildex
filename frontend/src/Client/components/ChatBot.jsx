@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { MessageCircle, X, Bot, User, Upload, Check, Lock } from 'lucide-react'
 import { useSelector, useDispatch } from 'react-redux'
-import { uploadCV } from '../../features/cvForm/cvFormSlice'
+import { uploadResume } from '../../features/resume/resumeSlice'
 import { extractUserInfo, formatPhoneNumber } from '../../utils/cvTextExtractor'
 
 const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
@@ -19,15 +19,6 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
   const handleFiles = useCallback(async (files) => {
     const file = files?.[0]
     if (!file) return
-    
-    // Check if user is authenticated
-    if (!isAuthenticated) {
-      setMessages(ms => ([
-        ...ms,
-        { id: Date.now(), role: 'bot', text: 'Please login to upload your resume. Click the login button in the header to get started!' }
-      ]))
-      return
-    }
     
     // Validate file type
     const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
@@ -66,9 +57,11 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
       const userInfo = extractUserInfo(extractedText)
       const formattedPhone = formatPhoneNumber(userInfo.phone)
       
-      // Upload to backend with user information
+      // Upload to backend with user information using the new resume API
       const formData = new FormData()
-      formData.append('cv', file)
+      formData.append('resume', file)
+      formData.append('name', userInfo.name || '')
+      formData.append('email', userInfo.email || '')
       
       // Add contact information if available
       if (userInfo.phone) {
@@ -80,7 +73,7 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
         }))
       }
       
-      const result = await dispatch(uploadCV(formData)).unwrap()
+      const result = await dispatch(uploadResume(formData)).unwrap()
       
       // Create success message with extracted info
       let successMessage = 'Resume uploaded successfully! Our team will review it and get back to you if there are any matching opportunities.'
@@ -146,9 +139,8 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
     // Initialize animation state when opening
     setIsAnimating(true)
     
-    const greeting = isAuthenticated 
-      ? 'Hello! I\'m your Resume Assistant. Upload your resume and I\'ll help optimize it for better job opportunities!'
-      : 'Hello! I\'m your Resume Assistant. Please login to upload your resume and get personalized optimization tips!'
+    // Update greeting message to reflect public upload
+    const greeting = 'Hello! I\'m your Resume Assistant. Upload your resume and I\'ll help optimize it for better job opportunities!'
     const id = Date.now()
     typingMessageId.current = id
     

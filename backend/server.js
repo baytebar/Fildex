@@ -1,37 +1,53 @@
 import express from "express";
-import cors from 'cors';
-import path from 'path';
+import cors from "cors";
+import path from "path";
 import { fileURLToPath } from "url";
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 import helmet from "helmet";
 import connectDB from "./src/config/mongoose.config.js";
-import indexRouter from "./src/routes/index.router.js";
+import indexRouter from "./src/routes/index.route.js";
 
-dotenv.config();
-
+// Load environment variables from .env file
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '.env') });
+
+console.log('Environment variables loaded:');
+console.log('MONGO_URI:', process.env.MONGO_URI);
+console.log('PORT:', process.env.PORT);
+console.log('JWT_SECRET:', process.env.JWT_SECRET ? '***' : 'NOT SET');
 
 const app = express();
 
 app.use(helmet());
-app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:3000'], // Vite default ports and React default port
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "http://localhost:5175"
+    ], // Vite default ports
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
-app.use(express.json())
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+// Removed duplicate cors() call that was overriding the configuration above
+app.use(express.json());
 
+// Parse URL-encoded payloads (optional, for simple form-data)
 app.use(express.urlencoded({ extended: true }));
 
-connectDB();
+connectDB().catch(err => {
+  console.error('Failed to connect to database:', err);
+  process.exit(1);
+});
 
-app.use('/api/v1/public', express.static(path.join(__dirname, 'src/public')));
-
+//routes
 app.use("/api/v1", indexRouter);
 
+//server
 const port = process.env.PORT || 5000;
 app.listen(port, () => {
   console.log(`server running on http://localhost:${port}`);
-})
+});

@@ -1,15 +1,16 @@
 import React, { useState, useRef } from 'react';
 import { Upload, FileText, Check, X, AlertCircle } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
-import { uploadCV, clearError, setUploadStatus } from '../features/cvForm/cvFormSlice';
+import { clearError, setUploadStatus } from '../features/cvForm/cvFormSlice';
+import { uploadResume } from '../features/resume/resumeSlice';
 
-const CVUploadForm = ({ onSuccess, onClose }) => {
+const CVUploadForm = ({ onSuccess, onClose, name, email, phone }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef(null);
   const dispatch = useDispatch();
   
-  const { isLoading, error, uploadStatus } = useSelector((state) => state.cvForm);
+  const { isLoading, error, uploadStatus } = useSelector((state) => state.resume);
 
   const handleFileSelect = (file) => {
     // Validate file type
@@ -60,11 +61,20 @@ const CVUploadForm = ({ onSuccess, onClose }) => {
   const handleUpload = async () => {
     if (!selectedFile) return;
 
+    // Use the new resume upload API
     const formData = new FormData();
-    formData.append('cv', selectedFile);
+    formData.append('resume', selectedFile);
+    if (name) formData.append('name', name);
+    if (email) formData.append('email', email);
+    if (phone) {
+      formData.append('contact', JSON.stringify({
+        number: phone,
+        country_code: '+353' // Default to Ireland, could be made dynamic
+      }));
+    }
 
     try {
-      const result = await dispatch(uploadCV(formData)).unwrap();
+      const result = await dispatch(uploadResume(formData)).unwrap();
       if (onSuccess) {
         onSuccess(result);
       }
@@ -164,17 +174,17 @@ const CVUploadForm = ({ onSuccess, onClose }) => {
         </div>
 
         {/* Error Message */}
-        {error && (
+        {(error || resumeError) && (
           <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex items-center gap-2">
               <AlertCircle className="w-4 h-4 text-red-600" />
-              <p className="text-sm text-red-700">{error}</p>
+              <p className="text-sm text-red-700">{error || resumeError}</p>
             </div>
           </div>
         )}
 
         {/* Success Message */}
-        {uploadStatus === 'success' && (
+        {(uploadStatus === 'success' || resumeUploadStatus === 'success') && (
           <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
             <div className="flex items-center gap-2">
               <Check className="w-4 h-4 text-green-600" />

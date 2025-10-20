@@ -4,7 +4,7 @@ import FildexLogo from '../../images/FILDEX_SOLUTIONS.png'
 import FildexText from '../../images/FILDEX_SOLUTIONS_TEXT.png'
 import { Link } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
-import { uploadCV } from '../../features/cvForm/cvFormSlice'
+import { uploadResume } from '../../features/resume/resumeSlice'
 import CareersHeader from './CareersHeader'
 
 const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
@@ -15,7 +15,7 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
   
   const dispatch = useDispatch()
   const { isAuthenticated, user } = useSelector((state) => state.auth)
-  const { isLoading, error, uploadStatus } = useSelector((state) => state.cvForm)
+  const { isLoading, error, uploadStatus } = useSelector((state) => state.resume)
 
   // Filter active job postings
   const activeJobs = jobPostings?.filter(job => job.status === 'active') || []
@@ -39,34 +39,36 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
   }, [])
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     
-    // Check if user is authenticated
-    if (!isAuthenticated) {
-      setCareerStatus('Please login to submit your application.')
-      return
-    }
+    // Remove authentication check - allow public resume upload
+    // if (!isAuthenticated) {
+    //   setCareerStatus('Please login to submit your application.');
+    //   return;
+    // }
     
     if (!careerForm.name || !careerForm.email || !careerForm.phone || !careerForm.roleInterest || !careerForm.cvFile || !careerForm.consent) {
-      setCareerStatus('Please fill all fields and accept the privacy policy.')
-      return
+      setCareerStatus('Please fill all fields and accept the privacy policy.');
+      return;
     }
     
-    setCareerStatus('uploading')
+    setCareerStatus('uploading');
 
     try {
-      // Create FormData for the API
-      const formData = new FormData()
-      formData.append('cv', careerForm.cvFile)
+      // Create FormData for the new resume API
+      const formData = new FormData();
+      formData.append('resume', careerForm.cvFile);
+      formData.append('name', careerForm.name);
+      formData.append('email', careerForm.email);
       
-      // Add contact information as JSON strings (backend expects this format)
+      // Add contact information
       formData.append('contact', JSON.stringify({
         number: careerForm.phone,
         country_code: '+353' // Default to Ireland, could be made dynamic
-      }))
+      }));
       
-      // Upload to backend
-      const result = await dispatch(uploadCV(formData)).unwrap()
+      // Upload to backend using the new dedicated resume API
+      const result = await dispatch(uploadResume(formData)).unwrap();
       
       // Add to local admin dashboard for demo purposes
       const newCv = {
@@ -78,16 +80,16 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
         uploadedDate: new Date().toISOString().split('T')[0],
         status: 'new',
         retentionDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 12 months from now
-        cvUrl: result.data?.cv?.url || null
+        cvUrl: result.data?.['resume-link'] || null
       }
-      setCvData(prev => [newCv, ...prev])
+      setCvData(prev => [newCv, ...prev]);
       
-      setCareerStatus('success')
-      setCareerForm({ name: '', email: '', phone: '', roleInterest: '', cvFile: null, consent: false })
+      setCareerStatus('success');
+      setCareerForm({ name: '', email: '', phone: '', roleInterest: '', cvFile: null, consent: false });
       
     } catch (error) {
-      console.error('Upload failed:', error)
-      setCareerStatus(`Upload failed: ${error.message || 'Please try again.'}`)
+      console.error('Upload failed:', error);
+      setCareerStatus(`Upload failed: ${error.message || 'Please try again.'}`);
     }
   }
 
@@ -124,8 +126,8 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
                 Join our talent pool and be considered for exciting opportunities in training and business solutions.
               </p>
               
-              {/* Authentication Status */}
-              {!isAuthenticated ? (
+              {/* Authentication Status - REMOVED for public upload */}
+              {/* {!isAuthenticated ? (
                 <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <div className="flex items-center gap-2">
                     <AlertTriangle className="w-5 h-5 text-yellow-600" />
@@ -146,7 +148,7 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
                     </p>
                   </div>
                 </div>
-              )}
+              )} */}
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -260,7 +262,7 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
                 </div>
 
                 <button
-                  disabled={careerStatus === 'uploading' || isLoading || !isAuthenticated}
+                  disabled={careerStatus === 'uploading' || isLoading}
                   className="w-full rounded-lg bg-primary px-5 py-3 text-base font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60 shadow-md transition-all duration-300"
                 >
                   {careerStatus === 'uploading' || isLoading ? (
@@ -268,8 +270,6 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
                       <span className="inline-block w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"></span>
                       <span>Uploading...</span>
                     </span>
-                  ) : !isAuthenticated ? (
-                    'Login Required'
                   ) : (
                     'Submit Application'
                   )}

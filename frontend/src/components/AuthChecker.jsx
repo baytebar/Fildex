@@ -30,7 +30,7 @@ const AuthChecker = ({ children }) => {
     
     // Check if trying to access user routes without user authentication
     // Only check for protected user routes, not the home page
-    if ((currentPath === '/jobs' || currentPath === '/careers') && !userAuthenticated) {
+    if (currentPath === '/jobs' && !userAuthenticated) {
       hasNavigated.current = true;
       navigate('/login', { 
         state: { from: location },

@@ -29,17 +29,23 @@ export const adminRegistration = async (req, res, next) => {
     //hashing the password
     const hashedPassword = await bcrypt.hash(value.password, 10);
 
+    // Get the creator admin ID from auth middleware
+    const createdBy = req.auth?.id || null;
+
     //create new admin in DB
     const newAdmin = await Admin.create({
       user_name: value.user_name,
       email: value.email,
-      password: hashedPassword
+      password: hashedPassword,
+      createdBy: createdBy
     })
 
     let resData = {
       id: newAdmin._id,
       user_name: newAdmin.user_name,
       email: newAdmin.email,
+      createdBy: newAdmin.createdBy,
+      createdAt: newAdmin.createdAt
     }
 
     return handleResponse(res, HttpStatusCodes.CREATED, successResponseMessage.adminCreated, resData);
@@ -51,7 +57,7 @@ export const adminRegistration = async (req, res, next) => {
 
 export const adminLogin = async (req, res, next) => {
   try {
-    // Validate input
+    //  Validate input
     const { error, value } = adminLoginValidation.validate(req.body, { abortEarly: true });
     if (error) return handleResponse(res, HttpStatusCodes.BAD_REQUEST, error.message);
 
@@ -70,7 +76,7 @@ export const adminLogin = async (req, res, next) => {
     if (!isPasswordValid)
       return handleResponse(res, HttpStatusCodes.UNAUTHORIZED, rejectResponseMessage.invalidCredentials);
 
-    // Generate JWT Token
+    // Generate JWT Token (expires in 1 day)
     const token = jwt.sign(
       { id: admin._id, userName: admin.user_name, email: admin.email, role: "admin" },
       process.env.JWT_SECRET,
@@ -146,5 +152,36 @@ export const resetCredentials = async (req, res, next) => {
 }
 
 
+
+// GET ALL ADMINS
+export const getAllAdmins = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const [admins, total] = await Promise.all([
+      Admin.find({})
+        .populate('createdBy', 'user_name email')
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 })
+        .select('-password'), // Exclude password from response
+      Admin.countDocuments({})
+    ]);
+
+    if (!admins.length) return handleResponse(res, HttpStatusCodes.NO_CONTENT, "No admins found");
+
+    const pagination = {
+      total,
+      page,
+      pages: Math.ceil(total / limit)
+    };
+
+    return handleResponse(res, HttpStatusCodes.OK, "Admins fetched successfully", { pagination, admins });
+  } catch (error) {
+    next(error);
+  }
+};
 
 //image api needed for banner

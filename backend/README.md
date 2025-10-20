@@ -147,7 +147,7 @@ GET /admin/dashboard/users?page=1&limit=10
         "name": "John Doe",
         "email": "john@example.com",
         "contact": { "number": "1234567890", "country_code": "+91" },
-        "intrestRoles": ["64fabd1234567890abcdef56"]
+        "jobTitles": ["64fabd1234567890abcdef56"]
       }
     ]
   }
@@ -371,7 +371,7 @@ POST /user/profile/profile-update
 ```json
 {
   "contact": { "number": "9876543210", "country_code": "+91" },
-  "intrestRoles": ["64fabc1234567890abcdef78"]
+  "jobTitles": ["64fabc1234567890abcdef78"]
 }
 ```
 
@@ -388,7 +388,7 @@ POST /user/profile/profile-update
     "name": "Jane Doe",
     "email": "jane@example.com",
     "contact": { "number": "9876543210", "country_code": "+91" },
-    "intrestRoles": [
+    "jobTitles": [
       { "_id": "64fabc1234567890abcdef78", "name": "Developer" }
     ],
     "cv": { "url": "public/uploads/64fabc1234567890abcdef90.pdf", "new": true }

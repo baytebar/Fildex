@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
-import { getAllUsers, adminLogout } from '../../features/admin/adminSlice'
+import { getAllUsers, getAllDepartments, getAllAdmins, adminLogout } from '../../features/admin/adminSlice'
+import { fetchAllResumes } from '../../features/resume/resumeSlice'
 import { Button } from '../../components/ui/button'
 import { Badge } from '../../components/ui/badge'
 import { Avatar, AvatarFallback } from '../../components/ui/avatar'
@@ -16,6 +17,7 @@ import {
   Briefcase, 
   User,
   Users,
+  Building,
   X
 } from 'lucide-react'
 import FildexLogo from '../../images/FILDEX_SOLUTIONS.png'
@@ -30,12 +32,20 @@ const AdminLayout = () => {
   
   // Get data from Redux
   const { data: users, totalUsers } = useSelector((state) => state.admin.users)
+  const { data: departments } = useSelector((state) => state.admin.departments)
+  const { data: admins, totalAdmins } = useSelector((state) => state.admin.admins)
+  const { data: jobTitles } = useSelector((state) => state.admin.jobTitles)
+  const { totalJobs: totalJobPostings } = useSelector((state) => state.admin.jobPostings)
+  const { pagination: resumePagination } = useSelector((state) => state.resume)
   const { isAuthenticated } = useSelector((state) => state.admin)
 
-  // Fetch users data when admin is authenticated
+  // Fetch data when admin is authenticated
   useEffect(() => {
     if (isAuthenticated) {
       dispatch(getAllUsers({ page: 1, limit: 10 }))
+      dispatch(getAllDepartments())
+      dispatch(getAllAdmins({ page: 1, limit: 10 }))
+      dispatch(fetchAllResumes({ page: 1, limit: 10 }))
     }
   }, [dispatch, isAuthenticated])
   const [showRoleDialog, setShowRoleDialog] = useState(false)
@@ -65,6 +75,8 @@ const AdminLayout = () => {
     { id: 'overview', label: 'Overview', icon: LayoutDashboard, path: '/admin' },
     { id: 'cv-management', label: 'CV Management', icon: FileText, path: '/admin/cv-management' },
     { id: 'job-postings', label: 'Job Postings', icon: Briefcase, path: '/admin/job-postings' },
+    { id: 'job-titles', label: 'Job Titles', icon: Briefcase, path: '/admin/job-titles' },
+    { id: 'department-management', label: 'Departments', icon: Building, path: '/admin/departments' },
     { id: 'role-management', label: 'Role Management', icon: Users, path: '/admin/role-management' },
     { id: 'admin-registration', label: 'Add Admin', icon: User, path: '/admin/register' }
   ]
@@ -246,17 +258,27 @@ const AdminLayout = () => {
                         {nav.label}
                         {nav.id === 'cv-management' && (
                           <Badge variant="secondary" className="ml-auto">
-                            {totalUsers || 0}
+                            {resumePagination?.totalResumes || 0}
                           </Badge>
                         )}
                         {nav.id === 'job-postings' && (
                           <Badge variant="secondary" className="ml-auto">
-                            0
+                            {totalJobPostings || 0}
+                          </Badge>
+                        )}
+                        {nav.id === 'job-titles' && (
+                          <Badge variant="secondary" className="ml-auto">
+                            {jobTitles?.length || 0}
+                          </Badge>
+                        )}
+                        {nav.id === 'department-management' && (
+                          <Badge variant="secondary" className="ml-auto">
+                            {departments?.length || 0}
                           </Badge>
                         )}
                         {nav.id === 'role-management' && (
                           <Badge variant="secondary" className="ml-auto">
-                            {users?.filter(user => user.userRole).length || 0}
+                            {totalAdmins || 0}
                           </Badge>
                         )}
                       </Button>
@@ -298,17 +320,27 @@ const AdminLayout = () => {
                     {nav.label}
                     {nav.id === 'cv-management' && (
                       <Badge variant="secondary" className="ml-auto">
-                        {totalUsers || 0}
+                        {resumePagination?.totalResumes || 0}
                       </Badge>
                     )}
                     {nav.id === 'job-postings' && (
                       <Badge variant="secondary" className="ml-auto">
-                        0
+                        {totalJobPostings || 0}
+                      </Badge>
+                    )}
+                    {nav.id === 'job-titles' && (
+                      <Badge variant="secondary" className="ml-auto">
+                        {jobTitles?.length || 0}
+                      </Badge>
+                    )}
+                    {nav.id === 'department-management' && (
+                      <Badge variant="secondary" className="ml-auto">
+                        {departments?.length || 0}
                       </Badge>
                     )}
                     {nav.id === 'role-management' && (
                       <Badge variant="secondary" className="ml-auto">
-                        {users?.filter(user => user.userRole).length || 0}
+                        {totalAdmins || 0}
                       </Badge>
                     )}
                   </Button>
@@ -604,3 +636,5 @@ const AdminLayout = () => {
 }
 
 export default AdminLayout
+
+

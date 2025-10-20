@@ -15,18 +15,20 @@ import {
   Phone,
   MapPin,
   Edit3,
-  Loader2,
   Eye,
   CheckCircle,
   XCircle
 } from 'lucide-react'
-import { getAllUsers, updateUserStatus } from '../../features/admin/adminSlice'
+import { updateUserStatus } from '../../features/admin/adminSlice'
+import { fetchAllResumes } from '../../features/resume/resumeSlice'
+import { api } from '../../config/api'
 import CvViewer from '../components/CvViewer'
 import { toast } from 'sonner'
+import Spinner from '../../components/Spinner'
 
 const AdminCvManagement = () => {
   const dispatch = useDispatch()
-  const { data: users, isLoading, error, totalUsers, currentPage, totalPages } = useSelector((state) => state.admin.users)
+  const { resumes, isLoading, error, pagination } = useSelector((state) => state.resume)
   const { isAuthenticated } = useSelector((state) => state.admin)
   const [adminFilters, setAdminFilters] = useState({
     search: '',
@@ -41,20 +43,28 @@ const AdminCvManagement = () => {
   const [showCvViewer, setShowCvViewer] = useState(false)
   const [selectedUserForView, setSelectedUserForView] = useState(null)
 
-  // Fetch users data on component mount
+  const statusOptions = [
+    { value: 'new', label: 'New', color: 'bg-yellow-100 text-yellow-800' },
+    { value: 'reviewed', label: 'Reviewed', color: 'bg-purple-100 text-purple-800' },
+    { value: 'shortlisted', label: 'Shortlisted', color: 'bg-green-100 text-green-800' },
+    { value: 'hired', label: 'Hired', color: 'bg-emerald-100 text-emerald-800' },
+    { value: 'rejected', label: 'Rejected', color: 'bg-red-100 text-red-800' }
+  ]
+
+  // Fetch resumes data on component mount
   useEffect(() => {
     if (isAuthenticated) {
-      dispatch(getAllUsers({ page: 1, limit: 10 }))
+      dispatch(fetchAllResumes({ page: 1, limit: 10 }))
         .unwrap()
         .catch((error) => {
-          toast.error('Failed to load CV data: ' + error.message)
+          toast.error('Failed to load resume data: ' + error.message)
         })
     }
   }, [dispatch, isAuthenticated])
 
   // Function to handle page changes
   const handlePageChange = (newPage) => {
-    dispatch(getAllUsers({ page: newPage, limit: 10 }))
+    dispatch(fetchAllResumes({ page: newPage, limit: pagination?.limit || 10 }))
       .unwrap()
       .catch((error) => {
         toast.error('Failed to load page: ' + error.message)
@@ -63,59 +73,36 @@ const AdminCvManagement = () => {
 
   const exportCvData = useCallback(() => {
     const csvContent = "data:text/csv;charset=utf-8," + 
-      "Name,Email,Phone,Status,Created Date,CV URL\n" +
-      (users || []).map(user => `${user.name || 'N/A'},${user.email || 'N/A'},${user.contact?.number || 'N/A'},${user.status || 'new'},${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'},${user.cv?.url || 'N/A'}`).join("\n")
+      "Name,Email,Phone,Created Date,Resume Link\n" +
+      (resumes || []).map(r => `${r.name || 'N/A'},${r.email || 'N/A'},${r.contact?.number || 'N/A'},${r.createdAt ? new Date(r.createdAt).toLocaleDateString() : 'N/A'},${r['resume-link'] || 'N/A'}`).join("\n")
     const encodedUri = encodeURI(csvContent)
     const link = document.createElement("a")
     link.setAttribute("href", encodedUri)
-    link.setAttribute("download", "user_data.csv")
+    link.setAttribute("download", "resumes.csv")
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-    toast.success('CV data exported successfully')
-  }, [users])
+    toast.success('Resume data exported successfully')
+  }, [resumes])
 
-  const downloadCv = useCallback((user) => {
-    if (user.cv?.url) {
-      // Construct the full URL for the CV
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1'
-      const cvUrl = `${baseUrl}/${user.cv.url}`
-      window.open(cvUrl, '_blank')
-      toast.success(`CV for ${user.name} downloaded successfully`)
-    } else {
-      // Create a mock CV file content
-      const cvContent = `
-CV - ${user.name || 'Unknown User'}
-================
-
-Contact Information:
-- Name: ${user.name || 'N/A'}
-- Email: ${user.email || 'N/A'}
-- Phone: ${user.contact?.number || 'N/A'}
-
-Professional Information:
-- Status: ${user.status || 'new'}
-- Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
-- Education: N/A
-
-Skills: N/A
-
-Summary: N/A
-
-Status: ${user.status || 'new'}
-Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
-    `.trim()
-
-    const blob = new Blob([cvContent], { type: 'text/plain' })
-    const url = window.URL.createObjectURL(blob)
-    const link = document.createElement("a")
-    link.href = url
-    link.download = `${(user.name || 'Unknown').replace(' ', '_')}_CV.txt`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(url)
-    toast.success(`CV for ${user.name} generated and downloaded successfully`)
+  const downloadCv = useCallback(async (resume) => {
+    try {
+      if (!resume || !resume._id) {
+        toast.error('Invalid resume record')
+        return
+      }
+      const { data } = await api.admin.getResumeDownloadUrl(resume._id)
+      if (data?.url) {
+        window.open(data.url, '_blank')
+        toast.success(`Resume for ${resume.name || 'Candidate'} opened`)
+      } else if (resume['resume-link']) {
+        // Fallback to stored URL if available
+        window.open(resume['resume-link'], '_blank')
+      } else {
+        toast.error('Download link not available')
+      }
+    } catch (err) {
+      toast.error(`Download failed: ${err.message || 'Unknown error'}`)
     }
   }, [])
 
@@ -154,24 +141,58 @@ Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A
     setTempStatus(newStatus)
   }, [])
 
-  const handleSaveStatus = useCallback(() => {
-    if (selectedCvForStatus && tempStatus) {
-      updateCvStatus(selectedCvForStatus._id, tempStatus)
-      closeStatusDialog()
+  const openGmail = useCallback((email) => {
+    if (!email) {
+      toast.error('No email address available')
+      return
     }
-  }, [selectedCvForStatus, tempStatus, updateCvStatus, closeStatusDialog])
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}`
+    window.open(gmailUrl, '_blank')
+  }, [])
+
+  // Update resume status
+  const updateResumeStatus = useCallback(async (resumeId, newStatus) => {
+    try {
+      const response = await api.admin.updateResumeStatus(resumeId, { status: newStatus })
+      if (response.status === 200) {
+        // Update the resume in the local state
+        const updatedResumes = resumes.map(resume => 
+          resume._id === resumeId 
+            ? { ...resume, status: newStatus }
+            : resume
+        )
+        // You might want to dispatch an action to update the Redux state
+        toast.success('Resume status updated successfully!')
+        return true
+      }
+    } catch (error) {
+      toast.error('Failed to update resume status: ' + error.message)
+      return false
+    }
+  }, [resumes])
+
+  const handleSaveStatus = useCallback(async () => {
+    if (selectedCvForStatus && tempStatus) {
+      const success = await updateResumeStatus(selectedCvForStatus._id, tempStatus)
+      if (success) {
+        closeStatusDialog()
+        // Refresh the resumes list
+        dispatch(fetchAllResumes({ page: pagination?.currentPage || 1, limit: pagination?.limit || 10 }))
+      }
+    }
+  }, [selectedCvForStatus, tempStatus, updateResumeStatus, closeStatusDialog, dispatch, pagination])
 
   const filteredCvs = useMemo(() => {
-    if (!users || !Array.isArray(users)) {
+    if (!resumes || !Array.isArray(resumes)) {
       return []
     }
     
-    const filtered = users.filter(user => {
-      const matchesSearch = (user.name && user.name.toLowerCase().includes(adminFilters.search.toLowerCase())) ||
-                           (user.email && user.email.toLowerCase().includes(adminFilters.search.toLowerCase()))
-      const matchesStatus = !adminFilters.status || (user.status || 'new') === adminFilters.status
+    const filtered = resumes.filter(r => {
+      const matchesSearch = (r.name && r.name.toLowerCase().includes(adminFilters.search.toLowerCase())) ||
+                           (r.email && r.email.toLowerCase().includes(adminFilters.search.toLowerCase()))
+      const matchesStatus = !adminFilters.status || r.status === adminFilters.status
       const matchesDate = !adminFilters.dateRange?.start || 
-        (user.createdAt && new Date(user.createdAt) >= new Date(adminFilters.dateRange.start))
+        (r.createdAt && new Date(r.createdAt) >= new Date(adminFilters.dateRange.start))
       
       return matchesSearch && matchesStatus && matchesDate
     })
@@ -208,7 +229,7 @@ Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A
     })
     
     return filtered
-  }, [users, adminFilters])
+  }, [resumes, adminFilters])
 
   return (
     <div className="space-y-6">
@@ -292,7 +313,6 @@ Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A
                 <TableRow>
                   <TableHead>Applicant</TableHead>
                   <TableHead>Contact</TableHead>
-                  <TableHead>Role</TableHead>
                   <TableHead>Uploaded</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
@@ -301,16 +321,16 @@ Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
+                    <TableCell colSpan={5} className="text-center py-8">
                       <div className="flex flex-col items-center gap-2">
-                        <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
+                        <Spinner />
                         <p className="text-slate-600 dark:text-slate-400">Loading users...</p>
                       </div>
                     </TableCell>
                   </TableRow>
                 ) : error ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
+                    <TableCell colSpan={5} className="text-center py-8">
                       <div className="flex flex-col items-center gap-2">
                         <FileText className="w-12 h-12 text-red-400" />
                         <p className="text-red-600 dark:text-red-400">Error loading users: {error}</p>
@@ -319,15 +339,15 @@ Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A
                   </TableRow>
                 ) : filteredCvs.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
+                    <TableCell colSpan={5} className="text-center py-8">
                       <div className="flex flex-col items-center gap-2">
                         <FileText className="w-12 h-12 text-slate-400" />
                         <p className="text-slate-600 dark:text-slate-400">
-                          {users && users.length > 0 
-                            ? 'No users match your current filters' 
-                            : 'No user data available'}
+                          {resumes && resumes.length > 0 
+                            ? 'No resumes match your current filters' 
+                            : 'No resume data available'}
                         </p>
-                        {users && users.length > 0 && (
+                        {resumes && resumes.length > 0 && (
                           <Button 
                             variant="outline" 
                             size="sm"
@@ -340,21 +360,21 @@ Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredCvs.map((user) => {
+                  filteredCvs.map((resume) => {
                   return (
-                    <TableRow key={user._id} className="hover:bg-slate-50 dark:hover:bg-slate-800">
+                    <TableRow key={resume._id} className="hover:bg-slate-50 dark:hover:bg-slate-800">
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="w-10 h-10">
                             <AvatarFallback className="bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300">
-                              {user.name ? user.name.split(' ').map(n => n[0]).join('') : 'U'}
+                              {resume.name ? resume.name.split(' ').map(n => n[0]).join('') : 'U'}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-medium text-slate-900 dark:text-white">{user.name || 'Unknown User'}</p>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">{user.contact?.number || 'N/A'}</p>
+                            <p className="font-medium text-slate-900 dark:text-white">{resume.name || 'Unknown'}</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">{resume.contact?.number || 'N/A'}</p>
                             <div className="flex items-center gap-1 mt-1">
-                              {user.cv?.url ? (
+                              {resume['resume-link'] ? (
                                 <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
                                   <CheckCircle className="w-3 h-3" />
                                   <span className="text-xs">CV Available</span>
@@ -370,105 +390,66 @@ Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div>
-                          <p className="text-slate-900 dark:text-white">{user.email || 'N/A'}</p>
-                          <p className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-1">
-                            <Mail className="w-3 h-3" />
-                            {user.email || 'No email'}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
                         <div className="space-y-1">
-                          {user.intrestRoles && user.intrestRoles.length > 0 ? (
-                            <div className="flex flex-wrap gap-1">
-                              {user.intrestRoles.slice(0, 2).map((role, index) => (
-                                <Badge key={index} variant="outline" className="text-xs">
-                                  {typeof role === 'object' ? role.name : role}
-                                </Badge>
-                              ))}
-                              {user.intrestRoles.length > 2 && (
-                                <Badge variant="outline" className="text-xs">
-                                  +{user.intrestRoles.length - 2} more
-                                </Badge>
-                              )}
-                            </div>
-                          ) : (
-                            <Badge variant="outline" className="text-xs">
-                              No roles
-                            </Badge>
-                          )}
+                          <div className="flex items-center gap-1 text-slate-700 dark:text-slate-300">
+                            <Mail className="w-4 h-4" />
+                            <span className="text-sm">{resume.email}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-slate-700 dark:text-slate-300">
+                            <Phone className="w-4 h-4" />
+                            <span className="text-sm">{resume.contact?.number || 'N/A'}</span>
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1 text-slate-600 dark:text-slate-400">
                           <Calendar className="w-4 h-4" />
-                          {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                          {resume.createdAt ? new Date(resume.createdAt).toLocaleDateString() : 'N/A'}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Badge 
-                            variant={
-                              (user.status || 'new') === 'new' ? 'default' : 
-                              (user.status || 'new') === 'reviewed' ? 'default' :
-                              (user.status || 'new') === 'under_review' ? 'secondary' :
-                              (user.status || 'new') === 'shortlisted' ? 'default' :
-                              (user.status || 'new') === 'interview_scheduled' ? 'default' :
-                              (user.status || 'new') === 'hired' ? 'default' :
-                              (user.status || 'new') === 'on_hold' ? 'secondary' : 'destructive'
-                            }
-                            className={
-                              (user.status || 'new') === 'reviewed' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300' :
-                              (user.status || 'new') === 'shortlisted' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' :
-                              (user.status || 'new') === 'interview_scheduled' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
-                              (user.status || 'new') === 'hired' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300' :
-                              (user.status || 'new') === 'on_hold' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' :
-                              (user.status || 'new') === 'rejected' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300' : ''
-                            }
-                          >
-                            {(user.status || 'new').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                          </Badge>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openStatusDialog(user)}
-                            disabled={!user.cv?.url}
-                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 p-1 disabled:text-gray-400 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-                            title={user.cv?.url ? "Update Status" : "No CV uploaded - Cannot update status"}
-                          >
-                            <Edit3 className="w-3 h-3" />
-                          </Button>
-                        </div>
+                        <Badge 
+                          variant="outline" 
+                          className={`text-xs ${
+                            statusOptions.find(s => s.value === resume.status)?.color || 'bg-yellow-100 text-yellow-800'
+                          }`}
+                        >
+                          {statusOptions.find(s => s.value === resume.status)?.label || 'New'}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => openCvViewer(user)}
+                            onClick={() => openCvViewer(resume)}
                             className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                             title="View Details"
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
+
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => downloadCv(user)}
-                            className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
-                            title="Download CV"
-                            disabled={!user.cv?.url}
+                            onClick={() => {
+                              setSelectedCvForStatus(resume)
+                              setTempStatus(resume.status || 'new')
+                              setShowStatusDialog(true)
+                            }}
+                            className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                            title="Update Status"
                           >
-                            <Download className="w-4 h-4" />
+                            <Edit3 className="w-4 h-4" />
                           </Button>
+
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => window.open(`mailto:${user.email}`, '_blank')}
+                            onClick={() => openGmail(resume.email)}
                             className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                            title="Send Email"
-                            disabled={!user.email}
+                            title="Send Email via Gmail"
+                            disabled={!resume.email}
                           >
                             <Mail className="w-4 h-4" />
                           </Button>
@@ -516,75 +497,29 @@ Created: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A
                   </Avatar>
                   <div>
                     <p className="font-medium text-slate-900 dark:text-white">{selectedCvForStatus.name || 'Unknown User'}</p>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">{selectedCvForStatus.role || 'N/A'}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">{selectedCvForStatus.email || 'N/A'}</p>
                   </div>
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Current Status: <span className="font-semibold">{selectedCvForStatus.status || 'new'}</span>
+                    Current Status: <span className="font-semibold">{selectedCvForStatus.status || 'New'}</span>
                   </label>
                   <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
                     Select a new status for this CV:
                   </p>
                   
                   <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      variant={tempStatus === 'new' ? 'default' : 'outline'}
-                      onClick={() => handleStatusSelect('new')}
-                      className="justify-start"
-                    >
-                      New
-                    </Button>
-                    <Button
-                      variant={tempStatus === 'reviewed' ? 'default' : 'outline'}
-                      onClick={() => handleStatusSelect('reviewed')}
-                      className="justify-start bg-purple-600 hover:bg-purple-700 text-white"
-                    >
-                      Reviewed
-                    </Button>
-                    <Button
-                      variant={tempStatus === 'under_review' ? 'default' : 'outline'}
-                      onClick={() => handleStatusSelect('under_review')}
-                      className="justify-start"
-                    >
-                      Under Review
-                    </Button>
-                    <Button
-                      variant={tempStatus === 'shortlisted' ? 'default' : 'outline'}
-                      onClick={() => handleStatusSelect('shortlisted')}
-                      className="justify-start bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      Shortlisted
-                    </Button>
-                    <Button
-                      variant={tempStatus === 'interview_scheduled' ? 'default' : 'outline'}
-                      onClick={() => handleStatusSelect('interview_scheduled')}
-                      className="justify-start bg-blue-600 hover:bg-blue-700 text-white"
-                    >
-                      Interview Scheduled
-                    </Button>
-                    <Button
-                      variant={tempStatus === 'hired' ? 'default' : 'outline'}
-                      onClick={() => handleStatusSelect('hired')}
-                      className="justify-start bg-emerald-600 hover:bg-emerald-700 text-white"
-                    >
-                      Hired
-                    </Button>
-                    <Button
-                      variant={tempStatus === 'rejected' ? 'default' : 'outline'}
-                      onClick={() => handleStatusSelect('rejected')}
-                      className="justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      Rejected
-                    </Button>
-                    <Button
-                      variant={tempStatus === 'on_hold' ? 'default' : 'outline'}
-                      onClick={() => handleStatusSelect('on_hold')}
-                      className="justify-start text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
-                    >
-                      On Hold
-                    </Button>
+                    {statusOptions.map((status) => (
+                      <Button
+                        key={status.value}
+                        variant={tempStatus === status.value ? 'default' : 'outline'}
+                        onClick={() => setTempStatus(status.value)}
+                        className="justify-start"
+                      >
+                        {status.label}
+                      </Button>
+                    ))}
                   </div>
                   
                   {tempStatus !== selectedCvForStatus.status && (

@@ -27,6 +27,6 @@ export const updateProfileValidation = Joi.object({
         "string.pattern.base": "Country code must start with + followed by 1–4 digits",
       }),
   }).required(),
-  intrestRoles: Joi.array().items(Joi.string().hex().length(24)).optional()
+  jobTitles: Joi.array().items(Joi.string().hex().length(24)).required()
 });
 

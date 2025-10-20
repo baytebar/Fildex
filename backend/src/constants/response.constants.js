@@ -7,6 +7,9 @@ export const rejectResponseMessage = {
   invalidToken: "Invalid token",
   invalidTokenOrUserNotFound: "Invalid token or account not found",
   accessDenied: "Access denied",
+  invalidId: 'Invalid ID provided.',
+  missingFields: "Required fields are missing.",
+  departmentAlreadyExist: "Department with this name already exists.",
 
   //user controller
   userAlreadyExist: 'User already exist',
@@ -14,7 +17,7 @@ export const rejectResponseMessage = {
   noUserFound: 'No user found',
   userNotFound: "User not found",
   invalidCredentials: 'invalid creadentials',
-  invalidRoles: "One or more interest roles are invalid or deleted",
+  invalidRoles: "One or more job titles are invalid or deleted",
   allFeildsRequired: "All fields are required",
   passwordDoesNotMatch: "Passwords do not match",
 
@@ -24,6 +27,21 @@ export const rejectResponseMessage = {
   roleNameRequired: 'Role name is required',
   roleAlreadyExist: 'Role already exists',
   noRolesFound: 'No role found',
+  noJobTitlesFound: 'No job titles found',
+  departmentNotFound: "Department not found.",
+  dataNotFound: 'Data not found',
+  
+  // Job Posting
+  MISSING_FIELDS: "Required fields are missing.",
+  SERVER_ERROR: "Server Error",
+  
+  // Resume
+  fileRequired: "Resume file is required",
+  missingRequiredFields: "Name and email are required fields",
+  invalidEmail: "Please provide a valid email address",
+  missingContactNumber: "Contact number is required",
+  noResumesFound: "No resumes found",
+  resumeNotFound: "Resume not found"
 }
 
 export const successResponseMessage = {
@@ -32,12 +50,28 @@ export const successResponseMessage = {
   userfetched: "Users fetched successfully",
   loginSuccess: 'login successfull',
   profileUpdated: 'Profile updated successfully',
-  profileFetched: 'Profile fetched successfully',
+  updated: "Updated successfully.",
+  deleted: 'data delated',
+  CREATED: "Created successfully.",
+  UPDATED: "Updated successfully.",
 
   //admin
   adminCreated: 'Admin created',
   instrestRoleCreated: 'Role created successfully',
+  jobTitleCreated: 'Job title created successfully',
   roleFetched: 'Role fetched',
+  jobTitlesFetched: 'Job titles fetched successfully',
+  jobTitleFetched: 'Job title fetched successfully',
   roleUpdated: 'Role updated',
-  roleDeleted: 'Role deleted'
+  jobTitleUpdated: 'Job title updated successfully',
+  roleDeleted: 'Role deleted',
+  jobTitleDeleted: 'Job title deleted successfully',
+  dataFetched: "Data fetched successfully.",
+  
+  // Resume
+  resumeUploaded: "Resume uploaded successfully",
+  resumesFetched: "Resumes fetched successfully",
+  resumeFetched: "Resume fetched successfully",
+  resumeDeleted: "Resume deleted successfully"
+  
 }

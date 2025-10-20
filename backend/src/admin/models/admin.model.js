@@ -15,6 +15,11 @@ const adminSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-},{timestamp : true})
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Admin',
+    default: null
+  }
+},{timestamps : true})
 
-export default mongoose.model("admin", adminSchema);
+export default mongoose.model("Admin", adminSchema);

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const userInstrestRolesSchema = mongoose.Schema({
+const jobTitleSchema = mongoose.Schema({
   name: {
     type: String,
     required: true,
@@ -8,7 +8,7 @@ const userInstrestRolesSchema = mongoose.Schema({
   },
   created_by : {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'admin',
+    ref: 'Admin',
     required: true
   },
   isDeleted: {
@@ -17,4 +17,4 @@ const userInstrestRolesSchema = mongoose.Schema({
   }
 }, {timestamps: true});
 
-export default mongoose.model('user_intrest_roles', userInstrestRolesSchema);
+export default mongoose.model('job_titles', jobTitleSchema);

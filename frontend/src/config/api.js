@@ -13,10 +13,16 @@ export const API_ENDPOINTS = {
     DASHBOARD: '/admin/dashboard',
     USERS: '/admin/dashboard/users',
     USER_BY_ID: '/admin/dashboard/user',
-    INTEREST_ROLES: '/admin/intrest-roles',
+    JOB_TITLES: '/admin/job-titles',
+    JOB_POSTINGS: '/job-posting',
+    DEPARTMENTS: '/admin/departments',
+    RESUMES: '/resume',
+    RESUME_DOWNLOAD: (id) => `/resume/${id}/download`,
+    ADMINS: '/admin/admins',
   },
   PUBLIC: {
     UPLOADS: '/public/uploads',
+    RESUME_UPLOAD: '/resume/upload',
   }
 };
 
@@ -51,18 +57,26 @@ export const apiRequest = async (endpoint, options = {}) => {
   try {
     const response = await fetch(url, config);
     
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    // Handle empty responses
+    const text = await response.text();
+    const data = text ? JSON.parse(text) : {};
+    
+    if (!response.ok && response.status !== 204) {
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
     }
-
-    return await response.json();
+    
+    // For 204 No Content, return empty data
+    if (response.status === 204) {
+      return { data: [] };
+    }
+    
+    return data;
   } catch (error) {
+    console.error(`API request failed: ${error.message}`);
     throw error;
   }
 };
 
-// Specific API functions
 export const api = {
   // User API
   user: {
@@ -85,47 +99,118 @@ export const api = {
     }),
   },
   
-      // Admin API
-      admin: {
-        login: (credentials) => apiRequest(API_ENDPOINTS.ADMIN.LOGIN, {
-          method: 'POST',
-          body: JSON.stringify(credentials),
-        }),
+  // Admin API
+  admin: {
+    login: (credentials) => apiRequest(API_ENDPOINTS.ADMIN.LOGIN, {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    }),
 
-        register: (adminData) => apiRequest(API_ENDPOINTS.ADMIN.REGISTER, {
-          method: 'POST',
-          body: JSON.stringify(adminData),
-        }),
+    register: (adminData) => apiRequest(API_ENDPOINTS.ADMIN.REGISTER, {
+      method: 'POST',
+      body: JSON.stringify(adminData),
+    }),
 
-        getAllUsers: (params = {}) => {
-          const queryString = new URLSearchParams(params).toString();
-          const url = queryString ? `${API_ENDPOINTS.ADMIN.USERS}?${queryString}` : API_ENDPOINTS.ADMIN.USERS;
-          return apiRequest(url);
-        },
+    getAllUsers: (params = {}) => {
+      const queryString = new URLSearchParams(params).toString();
+      const url = queryString ? `${API_ENDPOINTS.ADMIN.USERS}?${queryString}` : API_ENDPOINTS.ADMIN.USERS;
+      return apiRequest(url);
+    },
 
-        getUserById: (userId) => apiRequest(`${API_ENDPOINTS.ADMIN.USER_BY_ID}/${userId}`),
+    getUserById: (userId) => apiRequest(`${API_ENDPOINTS.ADMIN.USER_BY_ID}/${userId}`),
 
-        updateUserStatus: (userId, status) => apiRequest(`${API_ENDPOINTS.ADMIN.USER_BY_ID}/${userId}/status`, {
-          method: 'PUT',
-          body: JSON.stringify({ status }),
-        }),
+    updateUserStatus: (userId, status) => apiRequest(`${API_ENDPOINTS.ADMIN.USER_BY_ID}/${userId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    }),
 
-        getAllInterestRoles: () => apiRequest(API_ENDPOINTS.ADMIN.INTEREST_ROLES),
+    getAllResumes: (params = {}) => {
+      const queryString = new URLSearchParams(params).toString();
+      const url = queryString ? `${API_ENDPOINTS.ADMIN.RESUMES}?${queryString}` : API_ENDPOINTS.ADMIN.RESUMES;
+      return apiRequest(url);
+    },
 
-        createInterestRole: (roleData) => apiRequest(API_ENDPOINTS.ADMIN.INTEREST_ROLES, {
-          method: 'POST',
-          body: JSON.stringify(roleData),
-        }),
+    getResumeById: (resumeId) => apiRequest(`${API_ENDPOINTS.ADMIN.RESUMES}/${resumeId}`),
 
-        updateInterestRole: (roleId, roleData) => apiRequest(`${API_ENDPOINTS.ADMIN.INTEREST_ROLES}/${roleId}`, {
-          method: 'PUT',
-          body: JSON.stringify(roleData),
-        }),
+    deleteResume: (resumeId) => apiRequest(`${API_ENDPOINTS.ADMIN.RESUMES}/${resumeId}`, {
+      method: 'DELETE',
+    }),
 
-        deleteInterestRole: (roleId) => apiRequest(`${API_ENDPOINTS.ADMIN.INTEREST_ROLES}/${roleId}`, {
-          method: 'DELETE',
-        }),
-      },
+    updateResumeStatus: (resumeId, statusData) => apiRequest(`${API_ENDPOINTS.ADMIN.RESUMES}/${resumeId}`, {
+      method: 'PUT',
+      body: JSON.stringify(statusData),
+    }),
+
+    getResumeDownloadUrl: (resumeId) => apiRequest(API_ENDPOINTS.ADMIN.RESUME_DOWNLOAD(resumeId)),
+
+    // Job Titles
+    getAllJobTitles: () => apiRequest(API_ENDPOINTS.ADMIN.JOB_TITLES),
+    createJobTitle: (jobTitleData) => apiRequest(API_ENDPOINTS.ADMIN.JOB_TITLES, {
+      method: 'POST',
+      body: JSON.stringify(jobTitleData),
+    }),
+    updateJobTitle: (id, jobTitleData) => apiRequest(`${API_ENDPOINTS.ADMIN.JOB_TITLES}/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(jobTitleData),
+    }),
+    deleteJobTitle: (id) => apiRequest(`${API_ENDPOINTS.ADMIN.JOB_TITLES}/${id}`, {
+      method: 'DELETE',
+    }),
+    resumeJobTitle: (id) => apiRequest(`${API_ENDPOINTS.ADMIN.JOB_TITLES}/${id}/resume`, {
+      method: 'PUT',
+    }),
+
+    // Job Postings
+    getAllJobPostings: (params = {}) => {
+      const queryString = new URLSearchParams(params).toString();
+      const url = queryString ? `${API_ENDPOINTS.ADMIN.JOB_POSTINGS}?${queryString}` : API_ENDPOINTS.ADMIN.JOB_POSTINGS;
+      return apiRequest(url);
+    },
+    getJobPostingById: (id) => apiRequest(`${API_ENDPOINTS.ADMIN.JOB_POSTINGS}/${id}`),
+    createJobPosting: (jobData) => apiRequest(API_ENDPOINTS.ADMIN.JOB_POSTINGS, {
+      method: 'POST',
+      body: JSON.stringify(jobData),
+    }),
+    updateJobPosting: (id, jobData) => apiRequest(`${API_ENDPOINTS.ADMIN.JOB_POSTINGS}/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(jobData),
+    }),
+    deleteJobPosting: (id) => apiRequest(`${API_ENDPOINTS.ADMIN.JOB_POSTINGS}/${id}`, {
+      method: 'DELETE',
+    }),
+
+    // Departments
+    getAllDepartments: (params = {}) => {
+      const queryString = new URLSearchParams(params).toString();
+      const url = queryString ? `${API_ENDPOINTS.ADMIN.DEPARTMENTS}?${queryString}` : API_ENDPOINTS.ADMIN.DEPARTMENTS;
+      return apiRequest(url);
+    },
+    createDepartment: (deptData) => apiRequest(API_ENDPOINTS.ADMIN.DEPARTMENTS, {
+      method: 'POST',
+      body: JSON.stringify(deptData),
+    }),
+    updateDepartment: (id, deptData) => apiRequest(`${API_ENDPOINTS.ADMIN.DEPARTMENTS}/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(deptData),
+    }),
+    deleteDepartment: (id) => apiRequest(`${API_ENDPOINTS.ADMIN.DEPARTMENTS}/${id}`, {
+      method: 'DELETE',
+    }),
+
+    // Admins
+    getAllAdmins: (params = {}) => {
+      const queryString = new URLSearchParams(params).toString();
+      const url = queryString ? `${API_ENDPOINTS.ADMIN.ADMINS}?${queryString}` : API_ENDPOINTS.ADMIN.ADMINS;
+      return apiRequest(url);
+    },
+  },
+
+  // Public API
+  public: {
+    uploadResume: (formData) => apiRequest(API_ENDPOINTS.PUBLIC.RESUME_UPLOAD, {
+      method: 'POST',
+      headers: {}, // Let browser set Content-Type for FormData
+      body: formData,
+    }),
+  },
 };
-
-export default api;

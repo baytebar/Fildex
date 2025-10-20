@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useCallback } from 'react'
-import { useSelector } from 'react-redux'
+import React, { useState, useMemo, useCallback, useEffect } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card'
 import { Button } from '../../components/ui/button'
 import { Badge } from '../../components/ui/badge'
@@ -16,16 +16,41 @@ import {
   Trash2,
   Clock
 } from 'lucide-react'
+import { 
+  getAllUsers, 
+  getAllAdmins
+} from '../../features/admin/adminSlice'
+import { toast } from 'sonner'
+import Spinner from '../../components/Spinner'
 
 const AdminRoleManagement = () => {
-  // Get data from Redux
-  const { users: reduxUsers } = useSelector((state) => state.admin.users)
-  const { data: availableRoles = [] } = useSelector((state) => state.admin.interestRoles)
+  const dispatch = useDispatch()
   
-  const [activeTab, setActiveTab] = useState('users')
+  // Get data from Redux
+  const { data: reduxUsers, isLoading: usersLoading, error: usersError } = useSelector((state) => state.admin.users)
+  const { data: admins = [], isLoading: adminsLoading, error: adminsError } = useSelector((state) => state.admin.admins)
+  const { isAuthenticated } = useSelector((state) => state.admin)
+  
+  const [activeTab, setActiveTab] = useState('admins')
   const [searchTerm, setSearchTerm] = useState('')
-  const [showRoleDialog, setShowRoleDialog] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
+
+  // Fetch data on component mount
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(getAllUsers({ page: 1, limit: 50 }))
+        .unwrap()
+        .catch((error) => {
+          toast.error('Failed to load users: ' + error.message)
+        })
+
+      dispatch(getAllAdmins({ page: 1, limit: 50 }))
+        .unwrap()
+        .catch((error) => {
+          toast.error('Failed to load admins: ' + error.message)
+        })
+    }
+  }, [dispatch, isAuthenticated])
 
   // Create users list from Redux data with additional user management fields
   const users = useMemo(() => {
@@ -35,33 +60,27 @@ const AdminRoleManagement = () => {
       ...user,
       lastLogin: '2024-01-15', // Mock data
       loginCount: Math.floor(Math.random() * 50) + 1,
-      permissions: user.userRole && availableRoles ? availableRoles.find(role => role.id === user.userRole)?.permissions || [] : []
+      permissions: []
     }))
-  }, [reduxUsers, availableRoles])
+  }, [reduxUsers])
 
   const filteredUsers = useMemo(() => {
     return users.filter(user => 
       user.name && user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.role && user.role.toLowerCase().includes(searchTerm.toLowerCase())
+      user.userRole && user.userRole.toLowerCase().includes(searchTerm.toLowerCase())
     )
   }, [users, searchTerm])
 
-  const openRoleDialog = useCallback((user) => {
-    setSelectedUser(user)
-    setShowRoleDialog(true)
-  }, [])
+  const filteredAdmins = useMemo(() => {
+    return admins.filter(admin => 
+      admin.user_name && admin.user_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      admin.email && admin.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (admin.createdBy && admin.createdBy.user_name && admin.createdBy.user_name.toLowerCase().includes(searchTerm.toLowerCase()))
+    )
+  }, [admins, searchTerm])
 
-  const closeRoleDialog = useCallback(() => {
-    setShowRoleDialog(false)
-    setSelectedUser(null)
-  }, [])
 
-  const assignRole = useCallback((userId, roleId) => {
-    // TODO: Implement role assignment through Redux/API
-    console.log('Assigning role', roleId, 'to user', userId)
-    closeRoleDialog()
-  }, [closeRoleDialog])
 
 
 
@@ -69,64 +88,140 @@ const AdminRoleManagement = () => {
     const stats = {
       total: users.length,
       withRoles: users.filter(u => u.userRole).length,
-      withoutRoles: users.filter(u => !u.userRole).length
+      withoutRoles: users.filter(u => !u.userRole).length,
+      totalAdmins: admins.length,
+      createdByOthers: admins.filter(a => a.createdBy).length,
+      selfCreated: admins.filter(a => !a.createdBy).length
     }
     return stats
-  }, [users])
+  }, [users, admins])
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mb-2">Role & User Management</h2>
-          <p className="text-slate-600 dark:text-slate-400">Manage user roles, permissions, and login access</p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mb-2">User & Admin Management</h2>
+          <p className="text-slate-600 dark:text-slate-400">Manage users and admin accounts</p>
         </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex space-x-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+        <button
+          onClick={() => setActiveTab('admins')}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === 'admins'
+              ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          Admins ({roleStats.totalAdmins})
+        </button>
+        <button
+          onClick={() => setActiveTab('users')}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === 'users'
+              ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          Users ({roleStats.total})
+        </button>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        <Card>
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Total Users</p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">{roleStats.total}</p>
-              </div>
-              <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
-                <User className="w-6 h-6 text-blue-600 dark:text-blue-300" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {activeTab === 'admins' && (
+          <>
+            <Card>
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Total Admins</p>
+                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{roleStats.totalAdmins}</p>
+                  </div>
+                  <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
+                    <User className="w-6 h-6 text-blue-600 dark:text-blue-300" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
+            <Card>
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Created by Others</p>
+                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{roleStats.createdByOthers}</p>
+                  </div>
+                  <div className="p-3 bg-green-100 dark:bg-green-900 rounded-full">
+                    <Settings className="w-6 h-6 text-green-600 dark:text-green-300" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-600 dark:text-slate-400">With Roles</p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">{roleStats.withRoles}</p>
-              </div>
-              <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-full">
-                <Settings className="w-6 h-6 text-purple-600 dark:text-purple-300" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Self Created</p>
+                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{roleStats.selfCreated}</p>
+                  </div>
+                  <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-full">
+                    <User className="w-6 h-6 text-purple-600 dark:text-purple-300" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
 
-        <Card>
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Pending Roles</p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">{roleStats.withoutRoles}</p>
-              </div>
-              <div className="p-3 bg-orange-100 dark:bg-orange-900 rounded-full">
-                <Clock className="w-6 h-6 text-orange-600 dark:text-orange-300" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {activeTab === 'users' && (
+          <>
+            <Card>
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Total Users</p>
+                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{roleStats.total}</p>
+                  </div>
+                  <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
+                    <User className="w-6 h-6 text-blue-600 dark:text-blue-300" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400">With Roles</p>
+                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{roleStats.withRoles}</p>
+                  </div>
+                  <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-full">
+                    <Settings className="w-6 h-6 text-purple-600 dark:text-purple-300" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Pending Roles</p>
+                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{roleStats.withoutRoles}</p>
+                  </div>
+                  <div className="p-3 bg-orange-100 dark:bg-orange-900 rounded-full">
+                    <Clock className="w-6 h-6 text-orange-600 dark:text-orange-300" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       {/* Search */}
@@ -138,15 +233,144 @@ const AdminRoleManagement = () => {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search users by name, email, or role..."
+              placeholder={
+                activeTab === 'admins' 
+                  ? "Search admins by name, email, or creator..." 
+                  : activeTab === 'users'
+                  ? "Search users by name, email, or role..."
+                  : "Search roles by name..."
+              }
               className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </CardContent>
       </Card>
 
+      {/* Admins Table */}
+      {activeTab === 'admins' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Admin Management</CardTitle>
+            <CardDescription>Manage admin accounts and their creators</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Admin</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Created By</TableHead>
+                    <TableHead>Created At</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {adminsLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8">
+                        <div className="flex flex-col items-center gap-2">
+                          <Spinner />
+                          <p className="text-slate-600 dark:text-slate-400">Loading admins...</p>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : adminsError ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8">
+                        <div className="flex flex-col items-center gap-2">
+                          <User className="w-12 h-12 text-red-400" />
+                          <p className="text-red-600 dark:text-red-400">Error loading admins: {adminsError}</p>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredAdmins.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8">
+                        <div className="flex flex-col items-center gap-2">
+                          <User className="w-12 h-12 text-slate-400" />
+                          <p className="text-slate-600 dark:text-slate-400">No admins found</p>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredAdmins.map((admin) => (
+                      <TableRow key={admin._id} className="hover:bg-slate-50 dark:hover:bg-slate-800">
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-10 h-10">
+                              <AvatarFallback className="bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300">
+                                {admin.user_name.split(' ').map(n => n[0]).join('')}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium text-slate-900 dark:text-white">{admin.user_name}</p>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">Admin</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="text-slate-900 dark:text-white">{admin.email}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {admin.createdBy ? (
+                            <div className="flex items-center gap-2">
+                              <Avatar className="w-6 h-6">
+                                <AvatarFallback className="bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300 text-xs">
+                                  {admin.createdBy.user_name.split(' ').map(n => n[0]).join('')}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-sm text-slate-600 dark:text-slate-400">
+                                {admin.createdBy.user_name}
+                              </span>
+                            </div>
+                          ) : (
+                            <Badge variant="outline">Self Created</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1 text-slate-600 dark:text-slate-400">
+                            <Calendar className="w-4 h-4" />
+                            {admin.createdAt ? new Date(admin.createdAt).toLocaleDateString() : 'Unknown'}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => window.open(`mailto:${admin.email}`, '_blank')}
+                              className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                              title="Send Email"
+                            >
+                              <Mail className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              title="Delete Admin"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+
       {/* Users Table */}
-      <Card>
+      {activeTab === 'users' && (
+        <Card>
         <CardHeader>
           <CardTitle>User Management</CardTitle>
           <CardDescription>Manage user roles, permissions, and login access</CardDescription>
@@ -164,7 +388,25 @@ const AdminRoleManagement = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.length === 0 ? (
+                {usersLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8">
+                      <div className="flex flex-col items-center gap-2">
+                        <Spinner />
+                        <p className="text-slate-600 dark:text-slate-400">Loading users...</p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : usersError ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8">
+                      <div className="flex flex-col items-center gap-2">
+                        <User className="w-12 h-12 text-red-400" />
+                        <p className="text-red-600 dark:text-red-400">Error loading users: {usersError}</p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : filteredUsers.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-8">
                       <div className="flex flex-col items-center gap-2">
@@ -175,9 +417,9 @@ const AdminRoleManagement = () => {
                   </TableRow>
                 ) : (
                   filteredUsers.map((user) => {
-                    const currentRole = availableRoles ? availableRoles.find(role => role.id === user.userRole) : null
+                    const currentRole = null
                     return (
-                      <TableRow key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-800">
+                      <TableRow key={user._id || user.id} className="hover:bg-slate-50 dark:hover:bg-slate-800">
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="w-10 h-10">
@@ -187,7 +429,7 @@ const AdminRoleManagement = () => {
                             </Avatar>
                             <div>
                               <p className="font-medium text-slate-900 dark:text-white">{user.name}</p>
-                              <p className="text-sm text-slate-600 dark:text-slate-400">{user.role.replace('-', ' ')}</p>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">User</p>
                             </div>
                           </div>
                         </TableCell>
@@ -196,18 +438,12 @@ const AdminRoleManagement = () => {
                             <p className="text-slate-900 dark:text-white">{user.email}</p>
                             <p className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-1">
                               <Phone className="w-3 h-3" />
-                              {user.phone}
+                              {user.contact?.number || user.phone || 'N/A'}
                             </p>
                           </div>
                         </TableCell>
                         <TableCell>
-                          {currentRole ? (
-                            <Badge className={currentRole.color}>
-                              {currentRole.name}
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline">No Role</Badge>
-                          )}
+                          <Badge variant="outline">User</Badge>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1 text-slate-600 dark:text-slate-400">
@@ -217,15 +453,6 @@ const AdminRoleManagement = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openRoleDialog(user)}
-                              className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-                              title="Assign Role"
-                            >
-                              <Settings className="w-4 h-4" />
-                            </Button>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -254,9 +481,10 @@ const AdminRoleManagement = () => {
           </div>
         </CardContent>
       </Card>
+      )}
 
-      {/* Role Assignment Dialog */}
-      {showRoleDialog && (
+      {/* Role Assignment Dialog - REMOVED */}
+      {false && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div 
             className="fixed inset-0 bg-black/50 backdrop-blur-sm"
@@ -297,7 +525,7 @@ const AdminRoleManagement = () => {
                   </p>
                   
                   <div className="space-y-2">
-                    {availableRoles && availableRoles.map(role => (
+                    {availableRoles && availableRoles.map ? availableRoles.map(role => (
                       <Button
                         key={role.id}
                         variant={selectedUser.userRole === role.id ? 'default' : 'outline'}
@@ -309,7 +537,7 @@ const AdminRoleManagement = () => {
                           {role.name}
                         </div>
                       </Button>
-                    ))}
+                    )) : null}
                     <Button
                       variant={!selectedUser.userRole ? 'default' : 'outline'}
                       onClick={() => assignRole(selectedUser.id, null)}
@@ -321,6 +549,59 @@ const AdminRoleManagement = () => {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Create Role Dialog - REMOVED */}
+      {false && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div 
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowCreateRoleDialog(false)}
+          />
+          <div className="relative bg-white dark:bg-slate-900 rounded-lg shadow-2xl p-6 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                Create New Role
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowCreateRoleDialog(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                ×
+              </Button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Role Name
+                </label>
+                <input
+                  type="text"
+                  value={newRoleName}
+                  onChange={(e) => setNewRoleName(e.target.value)}
+                  placeholder="Enter role name..."
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+                <Button variant="outline" onClick={() => setShowCreateRoleDialog(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleCreateRole}
+                  disabled={!newRoleName.trim()}
+                  className="bg-blue-600 hover:bg-blue-700 text-white disabled:bg-slate-300 disabled:text-slate-500"
+                >
+                  Create Role
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       )}

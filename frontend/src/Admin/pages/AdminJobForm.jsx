@@ -1,37 +1,102 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Select } from '../../components/ui/select';
 import { Textarea } from '../../components/ui/textarea';
-import { ArrowLeft, Save, Eye } from 'lucide-react';
+import { ArrowLeft, Save, Eye, Loader2 } from 'lucide-react';
+import { createJobPosting, updateJobPosting, getAllDepartments, getAllJobTitles } from '../../features/admin/adminSlice';
+import { toast } from 'sonner';
 
 const AdminJobForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
   const jobData = location.state?.jobData || null;
   const isEditing = !!jobData;
-
+  
+  // Get data from Redux
+  const { data: departments, isLoading: departmentsLoading } = useSelector((state) => state.admin.departments);
+  const { data: jobTitles, isLoading: jobTitlesLoading } = useSelector((state) => state.admin.jobTitles);
+  const { isAuthenticated } = useSelector((state) => state.admin);
+  
   const [formData, setFormData] = useState({
-    title: jobData?.title || '',
+    title: jobData?.job_title || '',
     company: jobData?.company || 'Fildex Solutions',
     location: jobData?.location || '',
-    type: jobData?.type || 'full-time',
-    salary: jobData?.salary || '',
+    type: jobData?.job_type || 'full-time',
+    salary: jobData?.salary_range || '',
     description: jobData?.description || '',
     requirements: jobData?.requirements || '',
-    department: jobData?.department || '',
+    department: jobData?.department?.name || jobData?.department?._id || jobData?.department || '',
     experience: jobData?.experience || 'fresher',
     status: jobData?.status || 'active',
-    applicationDeadline: jobData?.applicationDeadline || '',
-    contactEmail: jobData?.contactEmail || 'hr@fildex.com'
+    applicationDeadline: jobData?.deadline ? new Date(jobData.deadline).toISOString().split('T')[0] : '',
+    contactEmail: jobData?.contact_email || 'hr@fildex.com'
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Update form data when jobData changes (for editing)
+  useEffect(() => {
+    if (jobData) {
+      console.log('Setting form data for editing:', jobData);
+      setFormData({
+        title: jobData?.job_title || '',
+        company: jobData?.company || 'Fildex Solutions',
+        location: jobData?.location || '',
+        type: jobData?.job_type || 'full-time',
+        salary: jobData?.salary_range || '',
+        description: jobData?.description || '',
+        requirements: jobData?.requirements || '',
+        department: jobData?.department?.name || jobData?.department?._id || jobData?.department || '',
+        experience: jobData?.experience || 'fresher',
+        status: jobData?.status || 'active',
+        applicationDeadline: jobData?.deadline ? new Date(jobData.deadline).toISOString().split('T')[0] : '',
+        contactEmail: jobData?.contact_email || 'hr@fildex.com'
+      });
+    }
+  }, [jobData]);
+
+  // Fetch departments on component mount - only once
+  useEffect(() => {
+    if (isAuthenticated && !departmentsLoading && (!departments || departments.length === 0)) {
+      dispatch(getAllDepartments())
+        .unwrap()
+        .catch((error) => {
+          toast.error('Failed to load departments: ' + error.message);
+        });
+    }
+  }, [dispatch, isAuthenticated]); // Only run when component mounts or auth changes
+
+  // Fetch job titles on component mount - only once
+  useEffect(() => {
+    if (isAuthenticated && !jobTitlesLoading && (!jobTitles || jobTitles.length === 0)) {
+      dispatch(getAllJobTitles())
+        .unwrap()
+        .catch((error) => {
+          toast.error('Failed to load job titles: ' + error.message);
+        });
+    }
+  }, [dispatch, isAuthenticated]); // Only run when component mounts or auth changes
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    // Handle special case for creating new job title
+    if (name === 'title' && value === '__create_new__') {
+      navigate('/admin/job-titles');
+      return;
+    }
+    
+    // Handle special case for creating new department
+    if (name === 'department' && value === '__create_new__') {
+      navigate('/admin/departments');
+      return;
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -43,20 +108,42 @@ const AdminJobForm = () => {
     setIsSubmitting(true);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Find the department ObjectId from the departments list
+      const selectedDepartment = departments?.find(dept => dept.name === formData.department);
       
-      const jobPosting = {
-        id: jobData?.id || Date.now(),
-        ...formData,
-        postedDate: new Date().toISOString().split('T')[0],
-        applicants: jobData?.applicants || 0,
-        createdAt: jobData?.createdAt || new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+      console.log('Departments available:', departments);
+      console.log('Selected department name:', formData.department);
+      console.log('Selected department object:', selectedDepartment);
+      console.log('Form data before submission:', formData);
+      
+      const jobPostingData = {
+        job_title: formData.title,
+        location: formData.location,
+        job_type: formData.type,
+        salary_range: formData.salary,
+        description: formData.description,
+        requirements: formData.requirements,
+        department: selectedDepartment?._id || null, // Use ObjectId if available, null otherwise
+        experience: formData.experience,
+        status: formData.status,
+        deadline: formData.applicationDeadline,
+        contact_email: formData.contactEmail,
       };
+      
+      console.log('Sending job posting data:', jobPostingData);
 
+      if (isEditing) {
+        await dispatch(updateJobPosting({ 
+          jobId: jobData._id || jobData.id, 
+          jobData: jobPostingData 
+        })).unwrap();
+      } else {
+        await dispatch(createJobPosting(jobPostingData)).unwrap();
+      }
+      
       navigate('/admin/job-postings');
     } catch (error) {
-      console.error('Error saving job posting:', error);
+      toast.error('Failed to save job posting: ' + (error.message || 'Please try again'));
     } finally {
       setIsSubmitting(false);
     }
@@ -106,34 +193,80 @@ const AdminJobForm = () => {
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
                       Job Title *
+                      {jobTitlesLoading && (
+                        <span className="ml-2 text-xs text-slate-500">(Loading...)</span>
+                      )}
                     </label>
-                    <Input
+                    <Select
                       name="title"
                       value={formData.title}
                       onChange={handleInputChange}
-                      placeholder="e.g., Senior Software Engineer"
                       required
                       className="h-11"
-                    />
+                      disabled={jobTitlesLoading}
+                    >
+                      <option value="">Select a job title...</option>
+                      {jobTitlesLoading ? (
+                        <option disabled>Loading job titles...</option>
+                      ) : (
+                        <>
+                          {jobTitles
+                            ?.filter(jobTitle => jobTitle.isDeleted !== true) // Only show active job titles
+                            ?.map((jobTitle) => (
+                              <option key={jobTitle._id} value={jobTitle.name}>
+                                {jobTitle.name}
+                              </option>
+                            ))}
+                          <option value="__create_new__" className="text-blue-600 font-medium">
+                            + Create New Job Title
+                          </option>
+                        </>
+                      )}
+                    </Select>
                   </div>
                   
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
                       Department *
+                      {departmentsLoading && (
+                        <span className="ml-2 text-xs text-slate-500">(Loading...)</span>
+                      )}
                     </label>
                     <Select
                       name="department"
                       value={formData.department}
                       onChange={handleInputChange}
                       required
+                      disabled={departmentsLoading}
+                      className="h-11"
                     >
                       <option value="">Select Department</option>
-                      <option value="engineering">Engineering</option>
-                      <option value="marketing">Marketing</option>
-                      <option value="sales">Sales</option>
-                      <option value="hr">Human Resources</option>
-                      <option value="finance">Finance</option>
-                      <option value="operations">Operations</option>
+                      {departmentsLoading ? (
+                        <option value="" disabled>Loading departments...</option>
+                      ) : departments && departments.length > 0 ? (
+                        <>
+                          {departments.map((dept) => (
+                            <option key={dept._id} value={dept.name}>
+                              {dept.name}
+                            </option>
+                          ))}
+                          <option value="__create_new__" className="text-blue-600 font-medium">
+                            + Create New Department
+                          </option>
+                        </>
+                      ) : (
+                        <>
+                          <option value="engineering">Engineering</option>
+                          <option value="marketing">Marketing</option>
+                          <option value="sales">Sales</option>
+                          <option value="hr">Human Resources</option>
+                          <option value="finance">Finance</option>
+                          <option value="operations">Operations</option>
+                          <option value="__create_new__" className="text-blue-600 font-medium">
+                            + Create New Department
+                          </option>
+                        </>
+                      )}
                     </Select>
                   </div>
                 </div>
@@ -182,11 +315,7 @@ const AdminJobForm = () => {
                       required
                     >
                       <option value="fresher">Fresher</option>
-                      <option value="associate">Associate</option>
-                      <option value="specialist">Specialist</option>
-                      <option value="senior">Senior</option>
-                      <option value="principal">Principal</option>
-                      <option value="director">Director</option>
+                      <option value="experienced">Experienced</option>
                     </Select>
                   </div>
                 </div>

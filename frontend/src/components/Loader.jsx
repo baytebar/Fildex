@@ -5,6 +5,7 @@ import { Code, Database, Cloud, Cpu, Zap, CheckCircle } from 'lucide-react'
 const Loader = ({ isLoading, onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0)
   const [progress, setProgress] = useState(0)
+  const [minTimeElapsed, setMinTimeElapsed] = useState(false)
 
   const steps = [
     { icon: Code, text: 'Initializing Development Environment', color: 'from-blue-500 to-purple-600' },
@@ -18,13 +19,15 @@ const Loader = ({ isLoading, onComplete }) => {
   useEffect(() => {
     if (!isLoading) return
 
+    // Timer to ensure minimum 3 seconds display
+    const minTimeTimer = setTimeout(() => {
+      setMinTimeElapsed(true)
+    }, 3000)
+
     const interval = setInterval(() => {
       setProgress(prev => {
+        // Continue progressing even after 100% to keep the animation going
         if (prev >= 100) {
-          clearInterval(interval)
-          setTimeout(() => {
-            onComplete?.()
-          }, 500)
           return 100
         }
         return prev + 2
@@ -34,7 +37,6 @@ const Loader = ({ isLoading, onComplete }) => {
     const stepInterval = setInterval(() => {
       setCurrentStep(prev => {
         if (prev >= steps.length - 1) {
-          clearInterval(stepInterval)
           return prev
         }
         return prev + 1
@@ -44,8 +46,20 @@ const Loader = ({ isLoading, onComplete }) => {
     return () => {
       clearInterval(interval)
       clearInterval(stepInterval)
+      clearTimeout(minTimeTimer)
     }
-  }, [isLoading, onComplete])
+  }, [isLoading, steps.length])
+
+  // Check if both progress is complete and minimum time has elapsed
+  useEffect(() => {
+    if (progress >= 100 && minTimeElapsed && isLoading) {
+      const completionTimer = setTimeout(() => {
+        onComplete?.()
+      }, 500)
+      
+      return () => clearTimeout(completionTimer)
+    }
+  }, [progress, minTimeElapsed, isLoading, onComplete])
 
   if (!isLoading) return null
 

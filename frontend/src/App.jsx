@@ -11,6 +11,7 @@ import Contact from './Client/section/Contact'
 import AdminLayout from './Admin/layout/AdminLayout'
 import ChatBot from './Client/components/ChatBot'
 import CvUploadPopup from './components/CvUploadPopup'
+import Loader from './Client/components/Loader'
 import { Route, Routes, useNavigate, useLocation } from 'react-router-dom'
 import JobListing from './Client/pages/JobListing'
 import ScrollToTop from './Client/components/ScrollToTop'
@@ -22,6 +23,7 @@ import AdminCvManagement from './Admin/pages/AdminCvManagement'
 import AdminJobPostings from './Admin/pages/AdminJobPostings'
 import AdminJobForm from './Admin/pages/AdminJobForm'
 import AdminRoleManagement from './Admin/pages/AdminRoleManagement'
+import AdminJobTitles from './Admin/pages/AdminJobTitles'
 import AdminRegistration from './Admin/pages/AdminRegistration'
 import Header from './Client/section/Header'
 
@@ -35,20 +37,10 @@ import AuthChecker from './components/AuthChecker'
 
 import { getUserProfile, logout, setUser } from './features/auth/authSlice'
 import { adminLogout, setAdmin, restoreAdminAuth } from './features/admin/adminSlice'
-// import Footer from './Client/section/Footer'
+import Footer from './Client/section/Footer'
+import AdminDepartmentManagement from './Admin/pages/AdminDepartmentManagement'
 
-// Temporary inline Footer component for testing
-const Footer = () => {
-  return (
-    <footer className="border-t border-border bg-card mt-12">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center text-muted-foreground">
-          © {new Date().getFullYear()} Fildex Solutions. All rights reserved.
-        </div>
-      </div>
-    </footer>
-  )
-}
+
 
 const AuthInitializer = ({ children }) => {
   const dispatch = useDispatch()
@@ -61,7 +53,7 @@ const AuthInitializer = ({ children }) => {
   useEffect(() => {
     const initializeAuth = async () => {
       const currentPath = location.pathname
-      
+
       const storedUserToken = localStorage.getItem('authToken')
       const storedAdminToken = localStorage.getItem('adminToken')
       const isUserLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
@@ -109,14 +101,14 @@ const AuthInitializer = ({ children }) => {
     if (!isInitialized) return
 
     const currentPath = location.pathname
-    
+
     console.log('Navigation check:', {
       currentPath,
       userAuthenticated,
       adminAuthenticated,
       isInitialized
     })
-    
+
     if (userAuthenticated && (currentPath === '/login' || currentPath === '/signup')) {
       navigate('/', { replace: true })
       return
@@ -128,11 +120,6 @@ const AuthInitializer = ({ children }) => {
     }
 
     if (adminAuthenticated && !userAuthenticated && currentPath === '/') {
-      navigate('/admin', { replace: true })
-      return
-    }
-
-    if (adminAuthenticated && !userAuthenticated && (currentPath === '/jobs' || currentPath === '/careers')) {
       navigate('/admin', { replace: true })
       return
     }
@@ -170,8 +157,18 @@ const App = () => {
   const [showAdmin, setShowAdmin] = useState(false)
   const [showCvPopup, setShowCvPopup] = useState(false)
   const [hasClosedCvPopup, setHasClosedCvPopup] = useState(false)
+  const [isInitialLoading, setIsInitialLoading] = useState(true)
 
   const isAdminPage = location.pathname.startsWith('/admin')
+
+  // Initial loader effect - show loader for 3 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsInitialLoading(false)
+    }, 3000) // 3 seconds
+
+    return () => clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     if (hasClosedCvPopup || isAdminPage) {
@@ -208,68 +205,69 @@ const App = () => {
   return (
     <Provider store={store}>
       <AuthInitializer>
-        <Toaster position="top-right" richColors style={{ zIndex: 99999 }} />
-        <ScrollToTop />
-        {!isAdminPage && <CvUploadPopup isOpen={showCvPopup} onClose={handleCloseCvPopup} />}
-        <AuthChecker>
-          <Routes>
-          <Route path="/" element={
-            <UserOnlyRoute>
-              <div className="min-h-dvh bg-background text-foreground">
-                <Header setShowBot={setShowBot} />
-                <main>
-                  <Hero />
-                  <About />
-                  <Training />
-                  <Contact />
-                </main>
-                <Footer />
-                <ChatBot showBot={showBot} setShowBot={setShowBot} cvData={cvData} setCvData={setCvData} />
-              </div>
-            </UserOnlyRoute>
-          } />
-          <Route path="/jobs" element={
-            <UserOnlyRoute>
-              <JobListing />
-            </UserOnlyRoute>
-          } />
-          <Route path="/careers" element={
-            <UserOnlyRoute>
-              <Careers setCvData={setCvData} jobPostings={jobPostings} />
-            </UserOnlyRoute>
-          } />
-          <Route path="/login" element={
-            <PublicRoute>
-              <Login />
-            </PublicRoute>
-          } />
-          <Route path="/signup" element={
-            <PublicRoute>
-              <Signup />
-            </PublicRoute>
-          } />
-          <Route path="/admin-login" element={
-            <PublicRoute>
-              <AdminLogin />
-            </PublicRoute>
-          } />
-          <Route path="/admin" element={
-            <AdminRoute>
-              <AdminLayout />
-            </AdminRoute>
-          }>
-            <Route index element={<AdminOverview />} />
-            <Route path="cv-management" element={<AdminCvManagement />} />
-            <Route path="job-postings" element={<AdminJobPostings />} />
-            <Route path="job-form" element={<AdminJobForm />} />
-            <Route path="job-form/:id" element={<AdminJobForm />} />
-            <Route path="role-management" element={<AdminRoleManagement />} />
-            <Route path="register" element={<AdminRegistration />} />
-          </Route>
-          
-          <Route path="/access-denied" element={<AccessDenied />} />
-          </Routes>
-        </AuthChecker>
+        <Loader isLoading={isInitialLoading} onComplete={() => setIsInitialLoading(false)} />
+        {!isInitialLoading && (
+          <>
+            <Toaster position="top-right" richColors style={{ zIndex: 99999 }} />
+            <ScrollToTop />
+            {!isAdminPage && <CvUploadPopup isOpen={showCvPopup} onClose={handleCloseCvPopup} />}
+            <AuthChecker>
+              <Routes>
+                <Route path="/" element={
+                  <div className="min-h-dvh bg-background text-foreground">
+                    <Header setShowBot={setShowBot} />
+                    <main>
+                      <Hero />
+                      <About />
+                      <Training />
+                      <Contact />
+                    </main>
+                    <Footer />
+                    <ChatBot showBot={showBot} setShowBot={setShowBot} cvData={cvData} setCvData={setCvData} />
+                  </div>
+                } />
+                <Route path="/jobs" element={
+                  <JobListing />
+                } />
+                <Route path="/careers" element={
+                  <Careers setCvData={setCvData} jobPostings={jobPostings} />
+                } />
+                <Route path="/login" element={
+                  <PublicRoute>
+                    <Login />
+                  </PublicRoute>
+                } />
+                <Route path="/signup" element={
+                  <PublicRoute>
+                    <Signup />
+                  </PublicRoute>
+                } />
+                <Route path="/admin-login" element={
+                  <PublicRoute>
+                    <AdminLogin />
+                  </PublicRoute>
+                } />
+                <Route path="/admin" element={
+                  <AdminRoute>
+                    <AdminLayout />
+                  </AdminRoute>
+                }>
+                  <Route index element={<AdminOverview />} />
+                  <Route path="cv-management" element={<AdminCvManagement />} />
+                  <Route path="job-postings" element={<AdminJobPostings />} />
+                  <Route path="job-form" element={<AdminJobForm />} />
+                  <Route path="job-form/:id" element={<AdminJobForm />} />
+                  <Route path="role-management" element={<AdminRoleManagement />} />
+                  <Route path="job-titles" element={<AdminJobTitles />} />
+                  <Route path="register" element={<AdminRegistration />} />
+                  <Route path="departments" element={<AdminDepartmentManagement />} />
+                </Route>
+
+                <Route path="/access-denied" element={<AccessDenied />} />
+              </Routes>
+            </AuthChecker>
+          </>
+        )}
       </AuthInitializer>
     </Provider>
   )

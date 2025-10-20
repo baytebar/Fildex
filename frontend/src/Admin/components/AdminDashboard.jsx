@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { toast } from 'sonner'
 import { 
   Search, FileText, Check, Clock, Users, 
   Mail, Trash2, FolderOpen, Briefcase, Pause, Play, 
@@ -102,9 +103,7 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
   }, [filteredCvData])
 
   const deleteCv = useCallback((id) => {
-    if (confirm('Are you sure you want to delete this CV? This action cannot be undone.')) {
-      setCvData(prev => prev.filter(cv => cv.id !== id))
-    }
+    setCvData(prev => prev.filter(cv => cv.id !== id))
   }, [setCvData])
 
   const addJobPosting = useCallback((newJob) => {
@@ -113,9 +112,7 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
   }, [setJobPostings])
 
   const deleteJobPosting = useCallback((id) => {
-    if (confirm('Are you sure you want to delete this job posting? This action cannot be undone.')) {
-      setJobPostings(prev => prev.filter(job => job.id !== id))
-    }
+    setJobPostings(prev => prev.filter(job => job.id !== id))
   }, [setJobPostings])
 
   const toggleJobStatus = useCallback((id) => {
@@ -642,8 +639,15 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                    onClick={() => window.open(`mailto:${cv.email}`, '_blank')}
-                                    title="Send Email"
+                                    onClick={() => {
+                                      if (!cv.email) {
+                                        toast.error('No email address available')
+                                        return
+                                      }
+                                      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(cv.email)}`
+                                      window.open(gmailUrl, '_blank')
+                                    }}
+                                    title="Send Email via Gmail"
                                   >
                                     <Mail className="w-4 h-4" />
                                   </Button>

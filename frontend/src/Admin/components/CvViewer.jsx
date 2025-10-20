@@ -3,10 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Button } from '../../components/ui/button'
 import { Badge } from '../../components/ui/badge'
 import { Avatar, AvatarFallback } from '../../components/ui/avatar'
-import { 
-  FileText, 
-  Download, 
-  Eye, 
+import {
+  FileText,
+  Download,
+  Eye,
   Mail,
   Phone,
   Calendar,
@@ -15,38 +15,81 @@ import {
   X,
   Loader2
 } from 'lucide-react'
+import { api } from '../../config/api'
+import { toast } from 'sonner'
 
 const CvViewer = ({ user, onClose, onStatusUpdate }) => {
   const [isLoading, setIsLoading] = useState(false)
   const [cvError, setCvError] = useState(null)
 
+  const openUrlInNewTab = (url) => {
+    if (!url) return
+    window.open(url, '_blank')
+  }
+
+  const resolveSignedUrl = async () => {
+    if (!user?._id) return null
+    try {
+      const { data } = await api.admin.getResumeDownloadUrl(user._id)
+      return data?.url || null
+    } catch (err) {
+      return null
+    }
+  }
+
+  const getStoredResumeUrl = () => {
+    const directUrl = user && user['resume-link'] ? user['resume-link'] : null
+    if (directUrl) return directUrl
+    // Legacy shape support (if ever present)
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1'
+    const legacy = user?.cv?.url ? `${baseUrl}/${user.cv.url}` : null
+    return legacy
+  }
+
   const handleDownloadCv = async () => {
-    if (!user.cv?.url) return
-    
     setIsLoading(true)
     setCvError(null)
-    
     try {
-      // Construct the full URL for the CV
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1'
-      const cvUrl = `${baseUrl}/${user.cv.url}`
-      
-      // Open CV in new tab
-      window.open(cvUrl, '_blank')
+      const signed = await resolveSignedUrl()
+      if (signed) {
+        openUrlInNewTab(signed)
+        toast.success('Download started')
+        return
+      }
+      const fallback = getStoredResumeUrl()
+      if (fallback) {
+        openUrlInNewTab(fallback)
+        toast.success('Opened stored resume link')
+        return
+      }
+      setCvError('Download link not available')
     } catch (error) {
       setCvError('Failed to open CV file')
-      console.error('Error opening CV:', error)
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleViewCv = () => {
-    if (!user.cv?.url) return
-    
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1'
-    const cvUrl = `${baseUrl}/${user.cv.url}`
-    window.open(cvUrl, '_blank')
+  const handleViewCv = async () => {
+    setIsLoading(true)
+    setCvError(null)
+    try {
+      const signed = await resolveSignedUrl()
+      if (signed) {
+        openUrlInNewTab(signed)
+        return
+      }
+      const fallback = getStoredResumeUrl()
+      if (fallback) {
+        openUrlInNewTab(fallback)
+        return
+      }
+      setCvError('CV not available')
+    } catch (err) {
+      setCvError('Failed to open CV')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const getStatusColor = (status) => {
@@ -70,7 +113,7 @@ const CvViewer = ({ user, onClose, onStatusUpdate }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div 
+      <div
         className="fixed inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
@@ -114,28 +157,44 @@ const CvViewer = ({ user, onClose, onStatusUpdate }) => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 gap-4">
-                    <div className="flex items-center gap-3">
-                      <Mail className="w-4 h-4 text-slate-400" />
-                      <div>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">Email</p>
-                        <p className="font-medium text-slate-900 dark:text-white">
-                          {user.email || 'N/A'}
-                        </p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Mail className="w-4 h-4 text-slate-400" />
+                        <div>
+                          <p className="text-sm text-slate-600 dark:text-slate-400">Email</p>
+                          <p className="font-medium text-slate-900 dark:text-white">
+                            {user.email || 'N/A'}
+                          </p>
+                        </div>
                       </div>
+                      {user.email && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(user.email)}`
+                            window.open(gmailUrl, '_blank')
+                          }}
+                          className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                        >
+                          <Mail className="w-4 h-4 mr-1" />
+                          Email
+                        </Button>
+                      )}
                     </div>
-                    
+
                     <div className="flex items-center gap-3">
                       <Phone className="w-4 h-4 text-slate-400" />
                       <div>
                         <p className="text-sm text-slate-600 dark:text-slate-400">Phone</p>
                         <p className="font-medium text-slate-900 dark:text-white">
-                          {user.contact?.country_code && user.contact?.number 
+                          {user.contact?.country_code && user.contact?.number
                             ? `${user.contact.country_code} ${user.contact.number}`
                             : 'N/A'}
                         </p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-3">
                       <Calendar className="w-4 h-4 text-slate-400" />
                       <div>
@@ -150,7 +209,7 @@ const CvViewer = ({ user, onClose, onStatusUpdate }) => {
               </Card>
 
               {/* Interest Roles */}
-              {user.intrestRoles && user.intrestRoles.length > 0 && (
+              {user.jobTitles && user.jobTitles.length > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -160,7 +219,7 @@ const CvViewer = ({ user, onClose, onStatusUpdate }) => {
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-wrap gap-2">
-                      {user.intrestRoles.map((role, index) => (
+                      {user.jobTitles.map((role, index) => (
                         <Badge key={index} variant="outline" className="text-xs">
                           {typeof role === 'object' ? role.name : role}
                         </Badge>
@@ -193,7 +252,7 @@ const CvViewer = ({ user, onClose, onStatusUpdate }) => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {user.cv?.url ? (
+                  {getStoredResumeUrl() ? (
                     <div className="space-y-4">
                       <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                         <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
@@ -201,10 +260,10 @@ const CvViewer = ({ user, onClose, onStatusUpdate }) => {
                           <span className="font-medium">CV Available</span>
                         </div>
                         <p className="text-sm text-green-600 dark:text-green-400 mt-1">
-                          CV was uploaded {user.cv.new ? 'recently' : 'previously'}
+                          CV was uploaded previously
                         </p>
                       </div>
-                      
+
                       <div className="flex flex-col sm:flex-row gap-3">
                         <Button
                           onClick={handleViewCv}
@@ -214,21 +273,9 @@ const CvViewer = ({ user, onClose, onStatusUpdate }) => {
                           <Eye className="w-4 h-4 mr-2" />
                           View CV
                         </Button>
-                        <Button
-                          variant="outline"
-                          onClick={handleDownloadCv}
-                          disabled={isLoading}
-                          className="flex-1"
-                        >
-                          {isLoading ? (
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          ) : (
-                            <Download className="w-4 h-4 mr-2" />
-                          )}
-                          Download
-                        </Button>
+
                       </div>
-                      
+
                       {cvError && (
                         <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
                           <p className="text-sm text-red-600 dark:text-red-400">{cvError}</p>

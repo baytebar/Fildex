@@ -1,10 +1,13 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { Rocket, FileText, AlertTriangle, Check, Star, Flame, Briefcase, MapPin, DollarSign, Calendar, ArrowRight } from 'lucide-react'
 import FildexLogo from '../../images/FILDEX_SOLUTIONS.png'
 import FildexText from '../../images/FILDEX_SOLUTIONS_TEXT.png'
 import { Link } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { uploadResume } from '../../features/resume/resumeSlice'
+import { getAllJobPostings } from '../../features/admin/adminSlice'
+import { api } from '../../config/api'
+import { toast } from 'sonner'
 import CareersHeader from './CareersHeader'
 
 const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
@@ -12,13 +15,53 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
   const [careerStatus, setCareerStatus] = useState('') // '', 'uploading', 'success', 'error'
   const [dragOver, setDragOver] = useState(false)
   const [selectedJob, setSelectedJob] = useState(null)
+  const [jobTitles, setJobTitles] = useState([])
+  const [latestJobs, setLatestJobs] = useState([])
+  const [isLoadingJobs, setIsLoadingJobs] = useState(false)
   
   const dispatch = useDispatch()
   const { isAuthenticated, user } = useSelector((state) => state.auth)
   const { isLoading, error, uploadStatus } = useSelector((state) => state.resume)
 
-  // Filter active job postings
-  const activeJobs = jobPostings?.filter(job => job.status === 'active') || []
+  // Load job titles and latest jobs on component mount
+  useEffect(() => {
+    loadJobTitles()
+    loadLatestJobs()
+  }, [])
+
+  const loadJobTitles = async () => {
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1'
+      const response = await fetch(`${API_BASE_URL}/public/job-titles`)
+      const data = await response.json()
+      if (data.data && Array.isArray(data.data)) {
+        const activeJobTitles = data.data.filter(jobTitle => jobTitle.isDeleted !== true)
+        setJobTitles(activeJobTitles)
+      }
+    } catch (error) {
+      console.error('Failed to load job titles:', error)
+    }
+  }
+
+  const loadLatestJobs = async () => {
+    setIsLoadingJobs(true)
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1'
+      const response = await fetch(`${API_BASE_URL}/public/job-postings?page=1&limit=5`)
+      const data = await response.json()
+      if (data.data && data.data.jobs && Array.isArray(data.data.jobs)) {
+        const activeJobs = data.data.jobs.filter(job => job.status === 'active')
+        setLatestJobs(activeJobs)
+      }
+    } catch (error) {
+      console.error('Failed to load latest jobs:', error)
+    } finally {
+      setIsLoadingJobs(false)
+    }
+  }
+
+  // Use latest jobs from API or fallback to props
+  const activeJobs = latestJobs.length > 0 ? latestJobs : (jobPostings?.filter(job => job.status === 'active') || [])
 
   const validateFile = useCallback((file) => {
     const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
@@ -191,14 +234,25 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
                       className="w-full rounded-lg bg-background border border-input px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-colors"
                     >
                       <option value="">Select a role</option>
-                      <option value="cloud-engineer">Cloud Engineer</option>
-                      <option value="devops-engineer">DevOps Engineer</option>
-                      <option value="ai-ml-developer">AI/ML Developer</option>
-                      <option value="network-engineer">Network Engineer</option>
-                      <option value="business-analyst">Business Analyst</option>
-                      <option value="project-manager">Project Manager</option>
-                      <option value="software-developer">Software Developer</option>
-                      <option value="internship">Internship Program</option>
+                      {jobTitles.length > 0 ? (
+                        jobTitles.map((jobTitle) => (
+                          <option key={jobTitle._id} value={jobTitle.name}>
+                            {jobTitle.name}
+                          </option>
+                        ))
+                      ) : (
+                        // Fallback options if API fails
+                        <>
+                          <option value="cloud-engineer">Cloud Engineer</option>
+                          <option value="devops-engineer">DevOps Engineer</option>
+                          <option value="ai-ml-developer">AI/ML Developer</option>
+                          <option value="network-engineer">Network Engineer</option>
+                          <option value="business-analyst">Business Analyst</option>
+                          <option value="project-manager">Project Manager</option>
+                          <option value="software-developer">Software Developer</option>
+                          <option value="internship">Internship Program</option>
+                        </>
+                      )}
                     </select>
                   </div>
                 </div>
@@ -305,25 +359,40 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
                 </button>
               </div>
 
-              {activeJobs.length > 0 ? (
+              {isLoadingJobs ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">Loading latest positions...</p>
+                </div>
+              ) : activeJobs.length > 0 ? (
                 <div className="space-y-5">
                   {activeJobs.map((job) => (
-                    <div key={job.id} className="border-b border-border pb-5 last:border-0 last:pb-0">
-                      <h4 className="font-bold text-lg text-foreground mb-2 group-hover:text-primary transition-colors">{job.title}</h4>
+                    <div key={job._id || job.id} className="border-b border-border pb-5 last:border-0 last:pb-0">
+                      <h4 className="font-bold text-lg text-foreground mb-2 group-hover:text-primary transition-colors">
+                        {job.job_title || job.title}
+                      </h4>
                       
                       <div className="flex flex-wrap gap-2 mb-3">
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Briefcase className="w-4 h-4" />
-                          <span>{job.department}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <MapPin className="w-4 h-4" />
-                          <span>{job.location}</span>
-                        </div>
-                        {job.salary && (
+                        {job.department && (
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Briefcase className="w-4 h-4" />
+                            <span>
+                              {typeof job.department === 'object' 
+                                ? job.department.name 
+                                : job.department}
+                            </span>
+                          </div>
+                        )}
+                        {job.location && (
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <MapPin className="w-4 h-4" />
+                            <span>{job.location}</span>
+                          </div>
+                        )}
+                        {job.salary_range && (
                           <div className="flex items-center gap-1 text-sm text-muted-foreground">
                             <DollarSign className="w-4 h-4" />
-                            <span>{job.salary}</span>
+                            <span>{job.salary_range}</span>
                           </div>
                         )}
                       </div>
@@ -334,7 +403,7 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
 
                       <div className="flex items-center gap-1 text-sm text-muted-foreground">
                         <Calendar className="w-4 h-4" />
-                        <span>Posted {job.postedDate}</span>
+                        <span>Posted {job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'Recently'}</span>
                       </div>
                     </div>
                   ))}

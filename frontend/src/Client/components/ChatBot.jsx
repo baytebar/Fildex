@@ -54,7 +54,6 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
         extractedText = await file.text()
         setResumeText(extractedText)
       } catch (textError) {
-        console.log('Could not extract text from file for analysis')
       }
 
       // Extract user information from CV text

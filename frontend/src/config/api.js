@@ -73,7 +73,6 @@ export const apiRequest = async (endpoint, options = {}) => {
     
     return data;
   } catch (error) {
-    console.error(`API request failed: ${error.message}`);
     throw error;
   }
 };

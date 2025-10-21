@@ -79,7 +79,6 @@ const CVUploadForm = ({ onSuccess, onClose, name, email, phone }) => {
         onSuccess(result);
       }
     } catch (error) {
-      console.error('Upload failed:', error);
     }
   };
 

@@ -40,7 +40,6 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
       
       const text = await response.text()
       if (!text) {
-        console.warn('Empty response from job titles API')
         setJobTitles([])
         return
       }
@@ -54,11 +53,9 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
         const activeJobTitles = data.filter(jobTitle => jobTitle.isDeleted !== true)
         setJobTitles(activeJobTitles)
       } else {
-        console.warn('Unexpected data format from job titles API:', data)
         setJobTitles([])
       }
     } catch (error) {
-      console.error('Failed to load job titles:', error)
       setJobTitles([])
     }
   }
@@ -74,7 +71,6 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
         setLatestJobs(activeJobs)
       }
     } catch (error) {
-      console.error('Failed to load latest jobs:', error)
     } finally {
       setIsLoadingJobs(false)
     }
@@ -160,7 +156,6 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
       }));
       
     } catch (error) {
-      console.error('Upload failed:', error);
       setCareerStatus(`Upload failed: ${error.message || 'Please try again.'}`);
     }
   }

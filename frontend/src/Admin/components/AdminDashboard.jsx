@@ -33,8 +33,6 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
   const { isAuthenticated } = useSelector((state) => state.admin)
   const { unreadCount } = useSelector((state) => state.notifications)
   
-  // Debug: Log notification state
-  console.log('Notification state:', { unreadCount })
   
   // Initialize notifications when component mounts
   useEffect(() => {

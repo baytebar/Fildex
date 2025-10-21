@@ -42,7 +42,6 @@ const Contact = () => {
         setContactStatus('Failed to send message. Please try again.')
       }
     } catch (error) {
-      console.error('Contact form error:', error)
       setContactStatus('Failed to send message. Please try again.')
     }
   }

@@ -45,21 +45,6 @@ const AdminLayout = () => {
   // Check if any critical data is still loading (only show loader on initial load)
   const isInitialLoading = (usersLoading || departmentsLoading || adminsLoading || jobTitlesLoading || jobPostingsLoading || resumesLoading) && isAuthenticated && !hasInitiallyLoaded
   
-  // Debug logging
-  useEffect(() => {
-    if (isAuthenticated) {
-      console.log('AdminLayout Loading States:', {
-        usersLoading,
-        departmentsLoading,
-        adminsLoading,
-        jobTitlesLoading,
-        jobPostingsLoading,
-        resumesLoading,
-        hasInitiallyLoaded,
-        isInitialLoading
-      })
-    }
-  }, [isAuthenticated, usersLoading, departmentsLoading, adminsLoading, jobTitlesLoading, jobPostingsLoading, resumesLoading, hasInitiallyLoaded, isInitialLoading])
   
 
   // Fetch data when admin is authenticated
@@ -153,7 +138,6 @@ const AdminLayout = () => {
   const assignRole = useCallback((roleId) => {
     if (selectedUserForRole) {
       // TODO: Implement role assignment through Redux/API
-      console.log('Assigning role', roleId, 'to user', selectedUserForRole.id)
       setShowRoleDialog(false)
       setSelectedUserForRole(null)
     }

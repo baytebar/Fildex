@@ -27,9 +27,9 @@ const Hero = () => {
 
       />
 
-      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center px-4 sm:px-6 lg:px-8  min-h-dvh">
+      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-4 lg:gap-8 items-center px-4 sm:px-6 lg:px-8 min-h-dvh py-4 sm:py-8 lg:py-0">
         <motion.div 
-          className="lg:col-span-7 space-y-6 order-2 lg:order-1 mt-4"
+          className="lg:col-span-7 space-y-3 sm:space-y-4 lg:space-y-5 order-2 lg:order-1 mt-2 sm:mt-4 lg:mt-2"
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
@@ -125,10 +125,13 @@ const Hero = () => {
           </motion.div>
         </motion.div>
 
-        <div className="lg:col-span-5 relative z-10 mt-8 lg:mt-0 flex items-center justify-center order-1 lg:order-2">
+        <div className="lg:col-span-5 relative z-10 mt-2 sm:mt-4 lg:mt-0 flex items-center justify-center order-1 lg:order-2">
           <motion.div 
-            className="rounded-2xl overflow-hidden w-full h-full"
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            className="rounded-2xl overflow-hidden w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl"
+            style={{
+              clipPath: 'inset(0 0 15% 0)'
+            }}
+            initial={{ opacity: 0, y: 30, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ 
               duration: 0.8, 
@@ -139,22 +142,19 @@ const Hero = () => {
             <motion.img
               src={HeroImage}
               alt="Fildex Solutions Platform"
-              className="w-full h-auto max-h-[750px] lg:w-[450px] xl:w-[500px] object-cover"
-              initial={{ opacity: 0, scale: 0.8 }}
+              className="w-full h-auto object-cover object-top max-h-[400px] sm:max-h-[500px] md:max-h-[600px] lg:max-h-none"
+              style={{
+                objectPosition: 'center top'
+              }}
+              initial={{ opacity: 0, scale: 0.9 }}
               animate={{ 
                 opacity: 1, 
-                scale: 1,
-                y: [0, -10, 0]
+                scale: 1
               }}
               transition={{ 
-                duration: 1.2,
+                duration: 1.0,
                 ease: "easeOut",
-                delay: 0.5,
-                y: {
-                  duration: 6,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }
+                delay: 0.5
               }}
             />
           </motion.div>

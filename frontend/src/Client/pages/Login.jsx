@@ -53,7 +53,6 @@ const Login = () => {
       await dispatch(loginUser({ email, password })).unwrap()
       // Navigation will be handled by useEffect
     } catch (error) {
-      console.error('Login error:', error)
       toast.error('Invalid email or password. Please check your credentials and try again.')
       setLoginError('Invalid email or password. Please check your credentials and try again.')
     } finally {

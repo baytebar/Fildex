@@ -13,10 +13,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 
-console.log('Environment variables loaded:');
-console.log('MONGO_URI:', process.env.MONGO_URI);
-console.log('PORT:', process.env.PORT);
-console.log('JWT_SECRET:', process.env.JWT_SECRET ? '***' : 'NOT SET');
 
 const app = express();
 
@@ -40,7 +36,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 connectDB().catch(err => {
-  console.error('Failed to connect to database:', err);
   process.exit(1);
 });
 
@@ -53,5 +48,4 @@ app.use(errorHandling);
 //server
 const port = process.env.PORT || 5000;
 app.listen(port, () => {
-  console.log(`server running on http://localhost:${port}`);
 });

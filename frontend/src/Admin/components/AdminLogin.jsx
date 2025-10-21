@@ -56,7 +56,6 @@ const AdminLogin = () => {
       // Navigation will be handled by useEffect
     } catch (error) {
       // Error is handled by Redux state
-      console.error('Login failed:', error);
     }
   };
 

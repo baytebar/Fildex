@@ -73,7 +73,6 @@ export const userLogin = async (req, res, next) => {
       return handleResponse(res, HttpStatusCodes.UNAUTHORIZED, rejectResponseMessage.invalidCredentials);
     }
 
-    console.log(user.password);
     
 
     // Compare password

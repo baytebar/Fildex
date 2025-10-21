@@ -58,7 +58,6 @@ export const getAllDepartments = async (req, res, next) => {
         }
       };
     } catch (jobError) {
-      console.error("Error fetching job postings:", jobError);
       // Continue without job postings data if there's an error
     }
 
@@ -104,14 +103,12 @@ export const getDepartmentById = async (req, res, next) => {
 // ----------------------------
 export const createDepartment = async (req, res, next) => {
   try {
-    console.log('Create department request body:', req.body);
     const { name } = req.body;
     
     // Get created_by from auth middleware
     const created_by = req.auth.id;
 
     if (!name) {
-      console.log('Missing fields - name:', name);
       return handleResponse(res, HttpStatusCodes.BAD_REQUEST, rejectResponseMessage.missingFields);
     }
 
@@ -130,7 +127,6 @@ export const createDepartment = async (req, res, next) => {
 
     return handleResponse(res, HttpStatusCodes.CREATED, successResponseMessage.CREATED, newDepartment);
   } catch (error) {
-    console.error('Error creating department:', error);
     // Gracefully handle duplicate key errors
     if (error && (error.code === 11000 || error.codeName === 'DuplicateKey')) {
       return handleResponse(res, HttpStatusCodes.CONFLICT, rejectResponseMessage.departmentAlreadyExist);

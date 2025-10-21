@@ -11,7 +11,6 @@ const JobListing = ({ jobPostings }) => {
 
     const handleApply = (applicationData) => {
         // In a real app, you would send this data to a server
-        console.log('Application submitted:', applicationData)
         // For now, we'll just close the form
         setSelectedJob(null)
     }

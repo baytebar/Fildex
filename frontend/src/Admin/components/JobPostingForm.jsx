@@ -49,14 +49,12 @@ const JobPostingForm = ({ onClose, onSave, jobData = null, isEditing = false }) 
       onSave(jobPosting);
       onClose();
     } catch (error) {
-      console.error('Error saving job posting:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handlePreview = () => {
-    console.log('Preview job posting:', formData);
   };
 
   return (

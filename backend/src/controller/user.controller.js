@@ -7,7 +7,8 @@ import JobTitle from "../admin/models/jobTitle.model.js";
 import { handleResponse } from "../utils/responseHandler.utils.js";
 import { updateProfileValidation } from "../utils/validator.utils.js";
 import { rejectResponseMessage, successResponseMessage } from "../constants/response.constants.js";
-import s3 from "../config/s3.config.js";
+import s3Client from "../config/s3.config.js";
+import { PutObjectCommand } from '@aws-sdk/client-s3';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -105,10 +106,10 @@ export const updateProfile = async (req, res, next) => {
         ContentType: req.file.mimetype,
       };
 
-      const uploadResult = await s3.upload(params).promise();
+      const uploadResult = await s3Client.send(new PutObjectCommand(params));
 
       // Store cloud storage URL in DB
-      updateData["cv.url"] = uploadResult.Location;
+      updateData["cv.url"] = `${process.env.HETZNER_ENDPOINT}/${process.env.HETZNER_BUCKET}/${params.Key}`;
       updateData["cv.new"] = true;
     }
 

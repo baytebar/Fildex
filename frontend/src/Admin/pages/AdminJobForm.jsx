@@ -43,7 +43,6 @@ const AdminJobForm = () => {
   // Update form data when jobData changes (for editing)
   useEffect(() => {
     if (jobData) {
-      console.log('Setting form data for editing:', jobData);
       setFormData({
         title: jobData?.job_title || '',
         company: jobData?.company || 'Fildex Solutions',
@@ -112,10 +111,6 @@ const AdminJobForm = () => {
       // Find the department ObjectId from the departments list
       const selectedDepartment = departments?.find(dept => dept.name === formData.department);
       
-      console.log('Departments available:', departments);
-      console.log('Selected department name:', formData.department);
-      console.log('Selected department object:', selectedDepartment);
-      console.log('Form data before submission:', formData);
       
       const jobPostingData = {
         job_title: formData.title,
@@ -131,7 +126,6 @@ const AdminJobForm = () => {
         contact_email: formData.contactEmail,
       };
       
-      console.log('Sending job posting data:', jobPostingData);
 
       if (isEditing) {
         await dispatch(updateJobPosting({ 
@@ -151,7 +145,6 @@ const AdminJobForm = () => {
   };
 
   const handlePreview = () => {
-    console.log('Preview job posting:', formData);
   };
 
   const handleCancel = () => {

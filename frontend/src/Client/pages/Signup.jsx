@@ -43,7 +43,6 @@ const Signup = () => {
       navigate('/login')
     } catch (error) {
       // Error is handled by Redux state
-      console.error('Registration failed:', error)
       toast.error('Registration failed. Please try again.')
     }
   }

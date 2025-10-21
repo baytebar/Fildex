@@ -7,7 +7,9 @@ import { HttpStatusCodes } from "../../constants/statusCode.constants.js";
 import Resume from "../models/resume.model.js";
 import { handleResponse } from "../../utils/responseHandler.utils.js";
 import upload from "../../config/multer.config.js";
-import s3 from "../../config/s3.config.js";
+import s3Client from "../../config/s3.config.js";
+import { PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 // Get the current directory
 const __filename = fileURLToPath(import.meta.url);
@@ -72,7 +74,7 @@ export const uploadResume = async (req, res, next) => {
       ContentType: req.file.mimetype,
     };
 
-    const uploadResult = await s3.upload(params).promise();
+    const uploadResult = await s3Client.send(new PutObjectCommand(params));
     
     // Create resume document with cloud storage URL
     const resumeData = {
@@ -80,7 +82,7 @@ export const uploadResume = async (req, res, next) => {
       email,
       contact: contactInfo,
       role: role || "",
-      "resume-link": uploadResult.Location,
+      "resume-link": `${process.env.HETZNER_ENDPOINT}/${process.env.HETZNER_BUCKET}/${params.Key}`,
       expiryDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days from now
     };
 
@@ -196,9 +198,8 @@ export const deleteResume = async (req, res, next) => {
     };
     
     try {
-      await s3.deleteObject(params).promise();
+      await s3Client.send(new DeleteObjectCommand(params));
     } catch (s3Error) {
-      console.error('Error deleting file from cloud storage:', s3Error);
     }
 
     // Delete from database
@@ -294,7 +295,7 @@ export const getResumeDownloadUrl = async (req, res, next) => {
       Expires: 60, // URL valid for 60 seconds
     };
 
-    const signedUrl = s3.getSignedUrl("getObject", params);
+    const signedUrl = await getSignedUrl(s3Client, new GetObjectCommand(params), { expiresIn: 3600 });
 
     return handleResponse(
       res,

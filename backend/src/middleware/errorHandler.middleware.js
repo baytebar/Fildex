@@ -2,7 +2,6 @@ import { rejectResponseMessage } from "../constants/response.constants.js";
 import { HttpStatusCodes } from "../constants/statusCode.constants.js";
 
 export const errorHandling = (err, req, res, next) => {
-  console.log(err.stack);
 
   res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR)
     .json({

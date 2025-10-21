@@ -59,36 +59,21 @@ const AuthInitializer = ({ children }) => {
       const isUserLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
       const isAdminLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true'
 
-      console.log('Auth initialization:', {
-        storedUserToken: !!storedUserToken,
-        storedAdminToken: !!storedAdminToken,
-        isUserLoggedIn,
-        isAdminLoggedIn,
-        currentPath,
-        currentUserAuth: userAuthenticated,
-        currentAdminAuth: adminAuthenticated
-      })
 
       if (storedUserToken && isUserLoggedIn) {
         try {
-          console.log('Fetching user profile...')
           const result = await dispatch(getUserProfile()).unwrap()
-          console.log('User profile fetched successfully:', result)
         } catch (error) {
-          console.error('Failed to fetch user profile:', error)
           if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
             dispatch(logout())
           } else {
-            console.warn('Network error during profile fetch, setting basic auth state')
             dispatch(setUser({ token: storedUserToken }))
           }
         }
       }
 
       if (storedAdminToken && isAdminLoggedIn) {
-        console.log('Restoring admin authentication...')
         dispatch(restoreAdminAuth())
-        console.log('Admin authentication restored')
       }
 
       setIsInitialized(true)
@@ -102,12 +87,6 @@ const AuthInitializer = ({ children }) => {
 
     const currentPath = location.pathname
 
-    console.log('Navigation check:', {
-      currentPath,
-      userAuthenticated,
-      adminAuthenticated,
-      isInitialized
-    })
 
     if (userAuthenticated && (currentPath === '/login' || currentPath === '/signup')) {
       navigate('/', { replace: true })

@@ -36,25 +36,18 @@ const AdminJobPostings = () => {
 
   // Fetch job postings on component mount
   useEffect(() => {
-    console.log('AdminJobPostings useEffect - isAuthenticated:', isAuthenticated);
     if (isAuthenticated) {
-      console.log('Dispatching getAllJobPostings...');
       dispatch(getAllJobPostings({ page: 1, limit: 10 }))
         .unwrap()
         .then((result) => {
-          console.log('Job postings fetched successfully:', result);
         })
         .catch((error) => {
-          console.error('Failed to load job postings:', error);
           toast.error('Failed to load job postings: ' + error.message)
         })
     }
   }, [dispatch, isAuthenticated])
 
   const filteredJobs = useCallback(() => {
-    console.log('filteredJobs - jobPostings:', jobPostings);
-    console.log('filteredJobs - isLoading:', isLoading);
-    console.log('filteredJobs - error:', error);
     if (!jobPostings || !Array.isArray(jobPostings)) return []
     
     return jobPostings.filter(job => {

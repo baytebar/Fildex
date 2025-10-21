@@ -87,7 +87,6 @@ const AdminRegistration = () => {
         toast.error(result.message || 'Failed to create admin account');
       }
     } catch (error) {
-      console.error('Registration failed:', error);
       toast.error(error.message || 'Failed to create admin account. Please try again.');
     }
   };

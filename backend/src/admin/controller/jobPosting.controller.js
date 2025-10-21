@@ -48,7 +48,6 @@ export const getAllJobPostings = async (req, res) => {
       }
     );
   } catch (error) {
-    console.error("Error in getAllJobPostings:", error);
     return handleResponse(
       res,
       HttpStatusCodes.INTERNAL_SERVER_ERROR,
@@ -93,7 +92,6 @@ export const getJobPostingById = async (req, res) => {
       job
     );
   } catch (error) {
-    console.error("Error in getJobPostingById:", error);
     return handleResponse(
       res,
       HttpStatusCodes.INTERNAL_SERVER_ERROR,
@@ -192,7 +190,6 @@ export const createJobPosting = async (req, res) => {
       newJob
     );
   } catch (error) {
-    console.error("Error in createJobPosting:", error);
     return handleResponse(
       res,
       HttpStatusCodes.INTERNAL_SERVER_ERROR,
@@ -253,7 +250,6 @@ export const updateJobPosting = async (req, res) => {
       job
     );
   } catch (error) {
-    console.error("Error in updateJobPosting:", error);
     return handleResponse(
       res,
       HttpStatusCodes.INTERNAL_SERVER_ERROR,
@@ -294,7 +290,6 @@ export const deleteJobPosting = async (req, res) => {
       { id: job._id }
     );
   } catch (error) {
-    console.error("Error in deleteJobPosting:", error);
     return handleResponse(
       res,
       HttpStatusCodes.INTERNAL_SERVER_ERROR,
@@ -338,7 +333,6 @@ export const pauseJobPosting = async (req, res) => {
       { id: job._id, status: 'paused' }
     );
   } catch (error) {
-    console.error("Error in pauseJobPosting:", error);
     return handleResponse(
       res,
       HttpStatusCodes.INTERNAL_SERVER_ERROR,
@@ -382,7 +376,6 @@ export const resumeJobPosting = async (req, res) => {
       { id: job._id, status: 'active' }
     );
   } catch (error) {
-    console.error("Error in resumeJobPosting:", error);
     return handleResponse(
       res,
       HttpStatusCodes.INTERNAL_SERVER_ERROR,

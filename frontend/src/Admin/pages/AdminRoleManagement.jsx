@@ -333,7 +333,7 @@ const AdminRoleManagement = () => {
                         <TableCell>
                           <div className="flex items-center gap-1 text-slate-600 dark:text-slate-400">
                             <Calendar className="w-4 h-4" />
-                            {admin.createdAt ? new Date(admin.createdAt).toLocaleDateString() : 'Unknown'}
+                            {admin.createdAt ? new Date(admin.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) : 'Unknown'}
                           </div>
                         </TableCell>
                         <TableCell>

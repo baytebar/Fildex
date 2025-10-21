@@ -19,6 +19,7 @@ export const API_ENDPOINTS = {
     RESUMES: '/resume',
     RESUME_DOWNLOAD: (id) => `/resume/${id}/download`,
     ADMINS: '/admin/admins',
+    NOTIFICATIONS: '/admin/notifications',
   },
   PUBLIC: {
     UPLOADS: '/public/uploads',
@@ -141,6 +142,15 @@ export const api = {
       body: JSON.stringify(statusData),
     }),
 
+    updateResumeExpiry: (resumeId, expiryData) => apiRequest(`${API_ENDPOINTS.ADMIN.RESUMES}/${resumeId}/expiry`, {
+      method: 'PUT',
+      body: JSON.stringify(expiryData),
+    }),
+
+    checkExpiredResumes: () => apiRequest(`${API_ENDPOINTS.ADMIN.RESUMES}/check-expired`, {
+      method: 'POST',
+    }),
+
     getResumeDownloadUrl: (resumeId) => apiRequest(API_ENDPOINTS.ADMIN.RESUME_DOWNLOAD(resumeId)),
 
     // Job Titles
@@ -155,6 +165,9 @@ export const api = {
     }),
     deleteJobTitle: (id) => apiRequest(`${API_ENDPOINTS.ADMIN.JOB_TITLES}/${id}`, {
       method: 'DELETE',
+    }),
+    pauseJobTitle: (id) => apiRequest(`${API_ENDPOINTS.ADMIN.JOB_TITLES}/${id}/pause`, {
+      method: 'PUT',
     }),
     resumeJobTitle: (id) => apiRequest(`${API_ENDPOINTS.ADMIN.JOB_TITLES}/${id}/resume`, {
       method: 'PUT',
@@ -178,6 +191,22 @@ export const api = {
     deleteJobPosting: (id) => apiRequest(`${API_ENDPOINTS.ADMIN.JOB_POSTINGS}/${id}`, {
       method: 'DELETE',
     }),
+    pauseJobPosting: (id) => apiRequest(`${API_ENDPOINTS.ADMIN.JOB_POSTINGS}/${id}/pause`, {
+      method: 'PUT',
+    }),
+    resumeJobPosting: (id) => apiRequest(`${API_ENDPOINTS.ADMIN.JOB_POSTINGS}/${id}/resume`, {
+      method: 'PUT',
+    }),
+
+    // Notifications
+    getRecentCvs: (params = {}) => {
+      const queryString = new URLSearchParams(params).toString();
+      const url = queryString ? `${API_ENDPOINTS.ADMIN.NOTIFICATIONS}/recent-cvs?${queryString}` : `${API_ENDPOINTS.ADMIN.NOTIFICATIONS}/recent-cvs`;
+      return apiRequest(url);
+    },
+    markNotificationAsRead: (notificationId) => apiRequest(`${API_ENDPOINTS.ADMIN.NOTIFICATIONS}/${notificationId}/read`, {
+      method: 'PUT',
+    }),
 
     // Departments
     getAllDepartments: (params = {}) => {
@@ -193,8 +222,11 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify(deptData),
     }),
-    deleteDepartment: (id) => apiRequest(`${API_ENDPOINTS.ADMIN.DEPARTMENTS}/${id}`, {
-      method: 'DELETE',
+    holdDepartment: (id) => apiRequest(`${API_ENDPOINTS.ADMIN.DEPARTMENTS}/${id}/hold`, {
+      method: 'PUT',
+    }),
+    reactivateDepartment: (id) => apiRequest(`${API_ENDPOINTS.ADMIN.DEPARTMENTS}/${id}/reactivate`, {
+      method: 'PUT',
     }),
 
     // Admins

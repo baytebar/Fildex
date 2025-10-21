@@ -11,6 +11,12 @@ const jobTitleSchema = mongoose.Schema({
     ref: 'Admin',
     required: true
   },
+  status: {
+    type: String,
+    enum: ['active', 'hold', 'inactive'],
+    default: 'active',
+    required: true
+  },
   isDeleted: {
     type: Boolean,
     default: false

@@ -78,7 +78,7 @@ export const adminLogin = async (req, res, next) => {
 
     // Generate JWT Token (expires in 1 day)
     const token = jwt.sign(
-      { id: admin._id, userName: admin.user_name, email: admin.email, role: "admin" },
+      { id: admin._id, userName: admin.user_name, email: admin.email, role: admin.role },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
@@ -185,3 +185,179 @@ export const getAllAdmins = async (req, res, next) => {
 };
 
 //image api needed for banner
+
+// CREATE DEFAULT ADMIN (no authentication required)
+export const createDefaultAdmin = async (req, res, next) => {
+  try {
+    // Check if any admin already exists
+    const existingAdmin = await Admin.findOne({});
+    if (existingAdmin) {
+      return handleResponse(res, HttpStatusCodes.CONFLICT, "Default admin already exists. Use regular registration endpoint.");
+    }
+
+    //req validation
+    const { error, value } = adminRegistrationValidation.validate(req.body, { abortEarly: true })
+    if (error) return handleResponse(res, HttpStatusCodes.BAD_REQUEST, error.message)
+
+    //hashing the password
+    const hashedPassword = await bcrypt.hash(value.password, 10);
+
+    //create new admin in DB (no createdBy since this is the first admin)
+    const newAdmin = await Admin.create({
+      user_name: value.user_name,
+      email: value.email,
+      password: hashedPassword,
+      createdBy: null // First admin has no creator
+    })
+
+    let resData = {
+      id: newAdmin._id,
+      user_name: newAdmin.user_name,
+      email: newAdmin.email,
+      createdBy: newAdmin.createdBy,
+      createdAt: newAdmin.createdAt
+    }
+
+    return handleResponse(res, HttpStatusCodes.CREATED, "Default admin created successfully", resData);
+
+  } catch (error) {
+    next(error)
+  }
+}
+
+// CREATE ADMIN WITHOUT AUTH (for emergency admin creation)
+export const createAdminWithoutAuth = async (req, res, next) => {
+  try {
+    //req validation
+    const { error, value } = adminRegistrationValidation.validate(req.body, { abortEarly: true })
+    if (error) return handleResponse(res, HttpStatusCodes.BAD_REQUEST, error.message)
+
+    //check if userName or email already exist
+    const existingAdmin = await Admin.findOne({
+      $or: [
+        { email: value.email },
+        { userName: value.user_name }
+      ]
+    })
+
+    if (existingAdmin) {
+      if (existingAdmin.user_name === value.user_name) return handleResponse(res, HttpStatusCodes.CONFLICT, rejectResponseMessage.userNameAlreadyExist);
+      if (existingAdmin.email === value.email) return handleResponse(res, HttpStatusCodes.CONFLICT, rejectResponseMessage.emailAlreadyExist)
+    }
+
+    //hashing the password
+    const hashedPassword = await bcrypt.hash(value.password, 10);
+
+    //create new admin in DB (no createdBy since this is emergency creation)
+    const newAdmin = await Admin.create({
+      user_name: value.user_name,
+      email: value.email,
+      password: hashedPassword,
+      createdBy: null // Emergency admin has no creator
+    })
+
+    let resData = {
+      id: newAdmin._id,
+      user_name: newAdmin.user_name,
+      email: newAdmin.email,
+      createdBy: newAdmin.createdBy,
+      createdAt: newAdmin.createdAt
+    }
+
+    return handleResponse(res, HttpStatusCodes.CREATED, "Emergency admin created successfully", resData);
+
+  } catch (error) {
+    next(error)
+  }
+}
+
+// CREATE SUPER ADMIN (no authentication required - highest privilege)
+export const createSuperAdmin = async (req, res, next) => {
+  try {
+    //req validation
+    const { error, value } = adminRegistrationValidation.validate(req.body, { abortEarly: true })
+    if (error) return handleResponse(res, HttpStatusCodes.BAD_REQUEST, error.message)
+
+    // Check if super admin already exists
+    const existingSuperAdmin = await Admin.findOne({ role: 'super_admin' });
+    if (existingSuperAdmin) {
+      return handleResponse(res, HttpStatusCodes.CONFLICT, "Super admin already exists. Only one super admin is allowed.");
+    }
+
+    //check if userName or email already exist
+    const existingAdmin = await Admin.findOne({
+      $or: [
+        { email: value.email },
+        { userName: value.user_name }
+      ]
+    })
+
+    if (existingAdmin) {
+      if (existingAdmin.user_name === value.user_name) return handleResponse(res, HttpStatusCodes.CONFLICT, rejectResponseMessage.userNameAlreadyExist);
+      if (existingAdmin.email === value.email) return handleResponse(res, HttpStatusCodes.CONFLICT, rejectResponseMessage.emailAlreadyExist)
+    }
+
+    //hashing the password
+    const hashedPassword = await bcrypt.hash(value.password, 10);
+
+    //create new super admin in DB
+    const newSuperAdmin = await Admin.create({
+      user_name: value.user_name,
+      email: value.email,
+      password: hashedPassword,
+      role: 'super_admin',
+      createdBy: null // Super admin has no creator
+    })
+
+    let resData = {
+      id: newSuperAdmin._id,
+      user_name: newSuperAdmin.user_name,
+      email: newSuperAdmin.email,
+      role: newSuperAdmin.role,
+      createdBy: newSuperAdmin.createdBy,
+      createdAt: newSuperAdmin.createdAt
+    }
+
+    return handleResponse(res, HttpStatusCodes.CREATED, "Super admin created successfully", resData);
+
+  } catch (error) {
+    next(error)
+  }
+}
+
+// DELETE ADMIN (with super admin protection)
+export const deleteAdmin = async (req, res, next) => {
+  try {
+    const adminId = req.params.id;
+    const currentAdmin = req.auth;
+
+    // Check if admin exists
+    const adminToDelete = await Admin.findById(adminId);
+    if (!adminToDelete) {
+      return handleResponse(res, HttpStatusCodes.NOT_FOUND, "Admin not found");
+    }
+
+    // Prevent deletion of super admin
+    if (adminToDelete.role === 'super_admin') {
+      return handleResponse(res, HttpStatusCodes.FORBIDDEN, "Cannot delete super admin account");
+    }
+
+    // Only super admin can delete other admins
+    if (currentAdmin.role !== 'super_admin') {
+      return handleResponse(res, HttpStatusCodes.FORBIDDEN, "Only super admin can delete admin accounts");
+    }
+
+    // Prevent self-deletion
+    if (adminToDelete._id.toString() === currentAdmin.id) {
+      return handleResponse(res, HttpStatusCodes.FORBIDDEN, "Cannot delete your own account");
+    }
+
+    // Delete the admin
+    await Admin.findByIdAndDelete(adminId);
+
+    return handleResponse(res, HttpStatusCodes.OK, "Admin deleted successfully");
+
+  } catch (error) {
+    next(error);
+  }
+}

@@ -7,6 +7,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { AlertTriangle, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import AuthHeader from '../../Client/section/AuthHeader';
+import Spinner from '../../components/Spinner';
 
 const AdminLogin = () => {
   const [formData, setFormData] = useState({
@@ -138,7 +139,7 @@ const AdminLogin = () => {
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center gap-2">
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <Spinner size="sm" />
                     <span>Signing in...</span>
                   </div>
                 ) : (

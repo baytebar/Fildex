@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { getAllDepartments, createDepartment, updateDepartment, deleteDepartment } from '../../features/admin/adminSlice'
+import { getAllDepartments, createDepartment, updateDepartment, holdDepartment, reactivateDepartment } from '../../features/admin/adminSlice'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table'
 import { Badge } from '../../components/ui/badge'
 import { toast } from 'sonner'
-import { Plus, Edit, Trash2 } from 'lucide-react'
+import { Plus, Edit, Pause, Play } from 'lucide-react'
 
 const AdminDepartmentManagement = () => {
   const dispatch = useDispatch()
@@ -64,12 +64,21 @@ const AdminDepartmentManagement = () => {
     }
   }
 
-  const handleDeleteDepartment = async (deptId) => {
+  const handleHoldDepartment = async (deptId) => {
     try {
-      await dispatch(deleteDepartment(deptId)).unwrap()
-      toast.success('Department deleted successfully!')
+      await dispatch(holdDepartment(deptId)).unwrap()
+      toast.success('Department held successfully!')
     } catch (error) {
-      toast.error('Failed to delete department: ' + (error.message || 'Please try again'))
+      toast.error('Failed to hold department: ' + (error.message || 'Please try again'))
+    }
+  }
+
+  const handleReactivateDepartment = async (deptId) => {
+    try {
+      await dispatch(reactivateDepartment(deptId)).unwrap()
+      toast.success('Department reactivated successfully!')
+    } catch (error) {
+      toast.error('Failed to reactivate department: ' + (error.message || 'Please try again'))
     }
   }
 
@@ -147,6 +156,7 @@ const AdminDepartmentManagement = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Department Name</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Created By</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -155,6 +165,20 @@ const AdminDepartmentManagement = () => {
                   {departments.map((department) => (
                     <TableRow key={department._id}>
                       <TableCell className="font-medium">{department.name}</TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant="outline" 
+                          className={
+                            department.status === 'active' 
+                              ? 'bg-green-100 text-green-800 border-green-200' 
+                              : department.status === 'hold' 
+                              ? 'bg-orange-100 text-orange-800 border-orange-200'
+                              : 'bg-gray-100 text-gray-800 border-gray-200'
+                          }
+                        >
+                          {department.status === 'active' ? 'Active' : department.status === 'hold' ? 'On Hold' : 'Inactive'}
+                        </Badge>
+                      </TableCell>
                       <TableCell>
                         {department.created_by ? (
                           <div className="flex items-center gap-2">
@@ -179,13 +203,25 @@ const AdminDepartmentManagement = () => {
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteDepartment(department._id)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          {department.status === 'active' ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleHoldDepartment(department._id)}
+                              className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                            >
+                              <Pause className="w-4 h-4" />
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleReactivateDepartment(department._id)}
+                              className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                            >
+                              <Play className="w-4 h-4" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

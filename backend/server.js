@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import helmet from "helmet";
 import connectDB from "./src/config/mongoose.config.js";
 import indexRouter from "./src/routes/index.route.js";
+import { errorHandling } from "./src/middleware/errorHandler.middleware.js";
 
 // Load environment variables from .env file
 const __filename = fileURLToPath(import.meta.url);
@@ -45,6 +46,9 @@ connectDB().catch(err => {
 
 //routes
 app.use("/api/v1", indexRouter);
+
+// Error handling middleware (must be last)
+app.use(errorHandling);
 
 //server
 const port = process.env.PORT || 5000;

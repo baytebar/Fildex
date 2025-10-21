@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { MessageCircle, X, Bot, User, Upload, Check, Lock } from 'lucide-react'
-import { useSelector, useDispatch } from 'react-redux'
+import { MessageCircle, X, Bot, User, Upload, Check, Send } from 'lucide-react'
+import { useDispatch } from 'react-redux'
+import { toast } from 'sonner'
 import { uploadResume } from '../../features/resume/resumeSlice'
 import { extractUserInfo, formatPhoneNumber } from '../../utils/cvTextExtractor'
 
 const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
-  const { isAuthenticated } = useSelector((state) => state.auth)
   const dispatch = useDispatch()
   const [uploadedFile, setUploadedFile] = useState(null)
   const [resumeText, setResumeText] = useState('')
@@ -13,6 +13,10 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
   const [isTyping, setIsTyping] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [userName, setUserName] = useState('')
+  const [userEmail, setUserEmail] = useState('')
+  const [currentStep, setCurrentStep] = useState('greeting') // greeting, name, email, resume
+  const [inputValue, setInputValue] = useState('')
   const typingMessageId = useRef(null)
   const chatEndRef = useRef(null)
 
@@ -25,7 +29,7 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
     if (!allowedTypes.includes(file.type)) {
       setMessages(ms => ([
         ...ms,
-        { id: Date.now(), role: 'bot', text: 'Please upload a PDF or DOC file only.' }
+        { id: Date.now(), role: 'bot', text: 'Please upload a PDF, DOC, or DOCX file only.' }
       ]))
       return
     }
@@ -60,8 +64,8 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
       // Upload to backend with user information using the new resume API
       const formData = new FormData()
       formData.append('resume', file)
-      formData.append('name', userInfo.name || '')
-      formData.append('email', userInfo.email || '')
+      formData.append('name', userName || userInfo.name || '')
+      formData.append('email', userEmail || userInfo.email || '')
       
       // Add contact information if available
       if (userInfo.phone) {
@@ -76,13 +80,11 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
       const result = await dispatch(uploadResume(formData)).unwrap()
       
       // Create success message with extracted info
-      let successMessage = 'Resume uploaded successfully! Our team will review it and get back to you if there are any matching opportunities.'
+      let successMessage = `Thank you ${userName}! Your resume has been uploaded successfully. Our team will review it and get back to you if there are any matching opportunities.`
       
-      if (userInfo.name || userInfo.email || userInfo.phone) {
-        successMessage += '\n\nI found the following information in your resume:'
-        if (userInfo.name) successMessage += `\n• Name: ${userInfo.name}`
-        if (userInfo.email) successMessage += `\n• Email: ${userInfo.email}`
-        if (userInfo.phone) successMessage += `\n• Phone: ${formattedPhone}`
+      if (userInfo.phone) {
+        successMessage += `\n\nI found the following additional information in your resume:`
+        successMessage += `\n• Phone: ${formattedPhone}`
       }
       
       setMessages(ms => ([
@@ -90,20 +92,95 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
         { id: Date.now(), role: 'bot', text: successMessage }
       ]))
       
+      // Show success toast notification
+      toast.success('Resume uploaded successfully!', {
+        description: 'Our team will review your resume and get back to you soon.',
+        duration: 5000,
+      })
+      
+      // Reset the flow
+      setCurrentStep('greeting')
+      setUserName('')
+      setUserEmail('')
+      setUploadedFile(null)
+      
+      // Close the chatbot after successful upload
+      setTimeout(() => {
+        handleCloseChat()
+      }, 2000) // Wait 2 seconds to let user see the success message
+      
     } catch (error) {
       setMessages(ms => ([
         ...ms,
         { id: Date.now(), role: 'bot', text: `Upload failed: ${error.message || 'Please try again.'}` }
       ]))
+      
+      // Show error toast notification
+      toast.error('Upload failed', {
+        description: error.message || 'Please try again.',
+        duration: 5000,
+      })
     } finally {
       setIsUploading(false)
     }
-  }, [dispatch, isAuthenticated])
+  }, [dispatch, userName, userEmail])
 
   const onBrowse = useCallback((e) => {
     const files = e.target.files
     handleFiles(files)
   }, [handleFiles])
+
+  const handleUserInput = useCallback(() => {
+    if (!inputValue.trim()) return
+
+    // Add user message
+    const userMessage = { id: Date.now(), role: 'user', text: inputValue }
+    setMessages(ms => [...ms, userMessage])
+    
+    const trimmedInput = inputValue.trim()
+    setInputValue('')
+
+    // Handle conversation flow
+    if (currentStep === 'name') {
+      setUserName(trimmedInput)
+      setCurrentStep('email')
+      setTimeout(() => {
+        setMessages(ms => [...ms, { 
+          id: Date.now() + 1, 
+          role: 'bot', 
+          text: `Nice to meet you, ${trimmedInput}! What's your email address?` 
+        }])
+      }, 500)
+    } else if (currentStep === 'email') {
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(trimmedInput)) {
+        setTimeout(() => {
+          setMessages(ms => [...ms, { 
+            id: Date.now() + 1, 
+            role: 'bot', 
+            text: 'Please enter a valid email address.' 
+          }])
+        }, 500)
+        return
+      }
+      setUserEmail(trimmedInput)
+      setCurrentStep('resume')
+      setTimeout(() => {
+        setMessages(ms => [...ms, { 
+          id: Date.now() + 1, 
+          role: 'bot', 
+          text: 'Perfect! Now please upload your resume so I can help you with job opportunities.' 
+        }])
+      }, 500)
+    }
+  }, [inputValue, currentStep])
+
+  const handleKeyPress = useCallback((e) => {
+    if (e.key === 'Enter') {
+      handleUserInput()
+    }
+  }, [handleUserInput])
 
   const keywordStats = React.useMemo(() => {
     if (!resumeText) return []
@@ -139,8 +216,15 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
     // Initialize animation state when opening
     setIsAnimating(true)
     
-    // Update greeting message to reflect public upload
-    const greeting = 'Hello! I\'m your Resume Assistant. Upload your resume and I\'ll help optimize it for better job opportunities!'
+    // Reset conversation state
+    setCurrentStep('greeting')
+    setUserName('')
+    setUserEmail('')
+    setUploadedFile(null)
+    setInputValue('')
+    
+    // Update greeting message to start conversation
+    const greeting = 'Hello! I\'m your Resume Assistant. What\'s your name?'
     const id = Date.now()
     typingMessageId.current = id
     
@@ -150,6 +234,7 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
     // Remove the "isNew" flag after animation completes
     setTimeout(() => {
       setMessages(ms => ms.map(m => m.id === id ? { ...m, isNew: false } : m))
+      setCurrentStep('name')
     }, 400)
     
     return () => {
@@ -191,7 +276,7 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
               </div>
               <div>
                 <h4 className="font-bold text-gray-800 text-lg">Resume Assistant</h4>
-                <p className="text-xs text-gray-500">AI-powered resume optimization</p>
+                <p className="text-xs text-gray-500">Upload your resume for job opportunities</p>
               </div>
             </div>
             <button className="text-gray-400 hover:text-gray-600 transition-all duration-200 p-2 hover:bg-gray-100 rounded-full hover:scale-110 active:scale-95" onClick={handleCloseChat}>
@@ -225,24 +310,27 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
             <div ref={chatEndRef} />
           </div>
           <div className="px-6 py-4 border-t border-gray-100 bg-white rounded-b-3xl">
-            {/* Resume Upload Section */}
-            <div className="mb-4">
-              {!isAuthenticated ? (
-                <div className="inline-flex items-center gap-3 rounded-xl bg-gray-100 border-2 border-dashed border-gray-300 px-4 py-3 w-full opacity-60">
-                  <div className="size-10 rounded-full bg-gray-400 flex items-center justify-center">
-                    <Lock size={20} className="text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm font-semibold text-gray-600 block truncate">
-                      Login Required
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      Please login to upload your resume
-                    </span>
-                  </div>
-                  <span className="text-xs font-medium text-gray-500 bg-gray-200 px-2 py-1 rounded-full">Locked</span>
-                </div>
-              ) : (
+            {/* Input Section */}
+            {currentStep === 'name' || currentStep === 'email' ? (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder={currentStep === 'name' ? 'Enter your name...' : 'Enter your email...'}
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <button
+                  onClick={handleUserInput}
+                  disabled={!inputValue.trim()}
+                  className="px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
+                >
+                  <Send size={16} />
+                </button>
+              </div>
+            ) : currentStep === 'resume' ? (
+              <div className="space-y-4">
                 <label className="inline-flex cursor-pointer items-center gap-3 rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-dashed border-blue-200 px-4 py-3 hover:from-blue-100 hover:to-purple-100 hover:border-blue-300 transition-all duration-200 w-full group">
                   <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={onBrowse} />
                   <div className="size-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -258,22 +346,22 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
                   </div>
                   <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded-full">Choose</span>
                 </label>
-              )}
-              {isUploading && (
-                <div className="mt-3 flex items-center gap-2 text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
-                  <div className="size-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin flex-shrink-0" />
-                  <span className="truncate">Uploading resume...</span>
-                </div>
-              )}
-              {uploadedFile && !isUploading && (
-                <div className="mt-3 flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-2 rounded-lg">
-                  <div className="size-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                    <Check size={12} className="text-white" />
+                {isUploading && (
+                  <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
+                    <div className="size-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                    <span className="truncate">Uploading resume...</span>
                   </div>
-                  <span className="truncate">Resume uploaded successfully! ({Math.round(uploadedFile.size / 1024)}KB)</span>
-                </div>
-              )}
-            </div>
+                )}
+                {uploadedFile && !isUploading && (
+                  <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-2 rounded-lg">
+                    <div className="size-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                      <Check size={12} className="text-white" />
+                    </div>
+                    <span className="truncate">Resume uploaded successfully! ({Math.round(uploadedFile.size / 1024)}KB)</span>
+                  </div>
+                )}
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

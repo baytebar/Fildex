@@ -12,9 +12,9 @@ import {
   Calendar,
   User,
   MapPin,
-  X,
-  Loader2
+  X
 } from 'lucide-react'
+import Spinner from '../../components/Spinner'
 import { api } from '../../config/api'
 import { toast } from 'sonner'
 

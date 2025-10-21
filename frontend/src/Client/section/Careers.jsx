@@ -1,17 +1,17 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { Rocket, FileText, AlertTriangle, Check, Star, Flame, Briefcase, MapPin, DollarSign, Calendar, ArrowRight } from 'lucide-react'
 import FildexLogo from '../../images/FILDEX_SOLUTIONS.png'
-import FildexText from '../../images/FILDEX_SOLUTIONS_TEXT.png'
 import { Link } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { uploadResume } from '../../features/resume/resumeSlice'
 import { getAllJobPostings } from '../../features/admin/adminSlice'
+import { addCvUploadNotification } from '../../features/notifications/notificationSlice'
 import { api } from '../../config/api'
 import { toast } from 'sonner'
 import CareersHeader from './CareersHeader'
 
 const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
-  const [careerForm, setCareerForm] = useState({ name: '', email: '', phone: '', roleInterest: '', cvFile: null, consent: false })
+  const [careerForm, setCareerForm] = useState({ name: '', email: '', phone: '', jobTitle: '', cvFile: null, consent: false })
   const [careerStatus, setCareerStatus] = useState('') // '', 'uploading', 'success', 'error'
   const [dragOver, setDragOver] = useState(false)
   const [selectedJob, setSelectedJob] = useState(null)
@@ -33,13 +33,33 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
     try {
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1'
       const response = await fetch(`${API_BASE_URL}/public/job-titles`)
-      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      const text = await response.text()
+      if (!text) {
+        console.warn('Empty response from job titles API')
+        setJobTitles([])
+        return
+      }
+      
+      const data = JSON.parse(text)
       if (data.data && Array.isArray(data.data)) {
         const activeJobTitles = data.data.filter(jobTitle => jobTitle.isDeleted !== true)
         setJobTitles(activeJobTitles)
+      } else if (Array.isArray(data)) {
+        // Handle case where data is directly an array
+        const activeJobTitles = data.filter(jobTitle => jobTitle.isDeleted !== true)
+        setJobTitles(activeJobTitles)
+      } else {
+        console.warn('Unexpected data format from job titles API:', data)
+        setJobTitles([])
       }
     } catch (error) {
       console.error('Failed to load job titles:', error)
+      setJobTitles([])
     }
   }
 
@@ -90,7 +110,7 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
     //   return;
     // }
     
-    if (!careerForm.name || !careerForm.email || !careerForm.phone || !careerForm.roleInterest || !careerForm.cvFile || !careerForm.consent) {
+    if (!careerForm.name || !careerForm.email || !careerForm.phone || !careerForm.jobTitle || !careerForm.cvFile || !careerForm.consent) {
       setCareerStatus('Please fill all fields and accept the privacy policy.');
       return;
     }
@@ -103,6 +123,7 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
       formData.append('resume', careerForm.cvFile);
       formData.append('name', careerForm.name);
       formData.append('email', careerForm.email);
+      formData.append('role', careerForm.jobTitle);
       
       // Add contact information
       formData.append('contact', JSON.stringify({
@@ -119,16 +140,24 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
         name: careerForm.name,
         email: careerForm.email,
         phone: careerForm.phone,
-        role: careerForm.roleInterest,
+        role: careerForm.jobTitle,
         uploadedDate: new Date().toISOString().split('T')[0],
         status: 'new',
-        retentionDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 12 months from now
+        retentionDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 90 days from now
         cvUrl: result.data?.['resume-link'] || null
       }
       setCvData(prev => [newCv, ...prev]);
       
       setCareerStatus('success');
-      setCareerForm({ name: '', email: '', phone: '', roleInterest: '', cvFile: null, consent: false });
+      setCareerForm({ name: '', email: '', phone: '', jobTitle: '', cvFile: null, consent: false });
+      
+      // Trigger notification for admin
+      dispatch(addCvUploadNotification({
+        name: careerForm.name,
+        role: careerForm.jobTitle,
+        email: careerForm.email,
+        phone: careerForm.phone
+      }));
       
     } catch (error) {
       console.error('Upload failed:', error);
@@ -227,13 +256,13 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-muted-foreground mb-2">Role Interest *</label>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Job Title *</label>
                     <select
-                      value={careerForm.roleInterest}
-                      onChange={(e) => setCareerForm(c => ({ ...c, roleInterest: e.target.value }))}
+                      value={careerForm.jobTitle}
+                      onChange={(e) => setCareerForm(c => ({ ...c, jobTitle: e.target.value }))}
                       className="w-full rounded-lg bg-background border border-input px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-colors"
                     >
-                      <option value="">Select a role</option>
+                      <option value="">Select a job title</option>
                       {jobTitles.length > 0 ? (
                         jobTitles.map((jobTitle) => (
                           <option key={jobTitle._id} value={jobTitle.name}>

@@ -1,8 +1,9 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
-import { getAllUsers, getAllDepartments, getAllAdmins, adminLogout } from '../../features/admin/adminSlice'
+import { getAllUsers, getAllDepartments, getAllAdmins, getAllJobTitles, getAllJobPostings, adminLogout } from '../../features/admin/adminSlice'
 import { fetchAllResumes } from '../../features/resume/resumeSlice'
+import { fetchRecentCvs, checkForNewCvs, markAsRead, markAllAsRead, addCvUploadNotification } from '../../features/notifications/notificationSlice'
 import { Button } from '../../components/ui/button'
 import { Badge } from '../../components/ui/badge'
 import { Avatar, AvatarFallback } from '../../components/ui/avatar'
@@ -11,7 +12,6 @@ import { Toaster } from 'sonner'
 import { 
   LayoutDashboard, 
   Bell, 
-  Settings, 
   LogOut, 
   FileText, 
   Briefcase, 
@@ -21,6 +21,7 @@ import {
   X
 } from 'lucide-react'
 import FildexLogo from '../../images/FILDEX_SOLUTIONS.png'
+import Spinner from '../../components/Spinner'
 
 const AdminLayout = () => {
   const navigate = useNavigate()
@@ -28,16 +29,38 @@ const AdminLayout = () => {
   const dispatch = useDispatch()
   const [showMobileMenu, setShowMobileMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
-  const [showSettingsDialog, setShowSettingsDialog] = useState(false)
+  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false)
   
   // Get data from Redux
-  const { data: users, totalUsers } = useSelector((state) => state.admin.users)
-  const { data: departments } = useSelector((state) => state.admin.departments)
-  const { data: admins, totalAdmins } = useSelector((state) => state.admin.admins)
-  const { data: jobTitles } = useSelector((state) => state.admin.jobTitles)
-  const { totalJobs: totalJobPostings } = useSelector((state) => state.admin.jobPostings)
-  const { pagination: resumePagination } = useSelector((state) => state.resume)
+  const { data: users, totalUsers, isLoading: usersLoading = false } = useSelector((state) => state.admin.users)
+  const { data: departments, isLoading: departmentsLoading = false } = useSelector((state) => state.admin.departments)
+  const { data: admins, totalAdmins, isLoading: adminsLoading = false } = useSelector((state) => state.admin.admins)
+  const { data: jobTitles, isLoading: jobTitlesLoading = false } = useSelector((state) => state.admin.jobTitles)
+  const { totalJobs: totalJobPostings, isLoading: jobPostingsLoading = false } = useSelector((state) => state.admin.jobPostings)
+  const { pagination: resumePagination, isLoading: resumesLoading = false } = useSelector((state) => state.resume)
   const { isAuthenticated } = useSelector((state) => state.admin)
+  const { newCvNotifications, unreadCount, lastChecked } = useSelector((state) => state.notifications)
+  const { uploadStatus } = useSelector((state) => state.resume)
+  
+  // Check if any critical data is still loading (only show loader on initial load)
+  const isInitialLoading = (usersLoading || departmentsLoading || adminsLoading || jobTitlesLoading || jobPostingsLoading || resumesLoading) && isAuthenticated && !hasInitiallyLoaded
+  
+  // Debug logging
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log('AdminLayout Loading States:', {
+        usersLoading,
+        departmentsLoading,
+        adminsLoading,
+        jobTitlesLoading,
+        jobPostingsLoading,
+        resumesLoading,
+        hasInitiallyLoaded,
+        isInitialLoading
+      })
+    }
+  }, [isAuthenticated, usersLoading, departmentsLoading, adminsLoading, jobTitlesLoading, jobPostingsLoading, resumesLoading, hasInitiallyLoaded, isInitialLoading])
+  
 
   // Fetch data when admin is authenticated
   useEffect(() => {
@@ -45,24 +68,48 @@ const AdminLayout = () => {
       dispatch(getAllUsers({ page: 1, limit: 10 }))
       dispatch(getAllDepartments())
       dispatch(getAllAdmins({ page: 1, limit: 10 }))
+      dispatch(getAllJobTitles())
+      dispatch(getAllJobPostings({ page: 1, limit: 10 }))
       dispatch(fetchAllResumes({ page: 1, limit: 10 }))
+      dispatch(fetchRecentCvs())
     }
   }, [dispatch, isAuthenticated])
+
+  // Track when initial data has been loaded
+  useEffect(() => {
+    if (isAuthenticated && !usersLoading && !departmentsLoading && !adminsLoading && !jobTitlesLoading && !jobPostingsLoading && !resumesLoading && !hasInitiallyLoaded) {
+      setHasInitiallyLoaded(true)
+    }
+  }, [isAuthenticated, usersLoading, departmentsLoading, adminsLoading, jobTitlesLoading, jobPostingsLoading, resumesLoading, hasInitiallyLoaded])
+
+  // Fallback timeout to hide loader after 10 seconds
+  useEffect(() => {
+    if (isAuthenticated && !hasInitiallyLoaded) {
+      const timeout = setTimeout(() => {
+        setHasInitiallyLoaded(true)
+      }, 10000) // 10 seconds timeout
+
+      return () => clearTimeout(timeout)
+    }
+  }, [isAuthenticated, hasInitiallyLoaded])
+
+  // Poll for new CVs every 10 seconds
+  useEffect(() => {
+    if (!isAuthenticated) return
+
+    // Initial fetch of recent CVs
+    dispatch(fetchRecentCvs())
+
+    const pollInterval = setInterval(() => {
+      const checkTime = lastChecked || new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // Check last 24 hours if no previous check
+      dispatch(checkForNewCvs(checkTime))
+    }, 10000) // Check every 10 seconds
+
+    return () => clearInterval(pollInterval)
+  }, [dispatch, isAuthenticated, lastChecked])
   const [showRoleDialog, setShowRoleDialog] = useState(false)
   const [selectedUserForRole, setSelectedUserForRole] = useState(null)
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
-  const [settings, setSettings] = useState({
-    notifications: true,
-    emailAlerts: true,
-    autoDeleteExpired: false,
-    retentionDays: 365
-  })
-  const [tempSettings, setTempSettings] = useState({
-    notifications: true,
-    emailAlerts: true,
-    autoDeleteExpired: false,
-    retentionDays: 365
-  })
 
   const availableRoles = [
     { id: 'admin', name: 'Administrator', description: 'Full access to all features', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300' },
@@ -96,25 +143,7 @@ const AdminLayout = () => {
     setShowNotifications(prev => !prev)
   }, [])
 
-  const openSettings = useCallback(() => {
-    setTempSettings({ ...settings })
-    setShowSettingsDialog(true)
-  }, [settings])
 
-  const saveSettings = useCallback(() => {
-    setSettings({ ...tempSettings })
-    localStorage.setItem('adminSettings', JSON.stringify(tempSettings))
-    setShowSettingsDialog(false)
-  }, [tempSettings])
-
-  const discardSettings = useCallback(() => {
-    setTempSettings({ ...settings })
-    setShowSettingsDialog(false)
-  }, [settings])
-
-  const updateTempSettings = useCallback((newSettings) => {
-    setTempSettings(prev => ({ ...prev, ...newSettings }))
-  }, [])
 
   const openRoleDialog = useCallback((cv) => {
     setSelectedUserForRole(cv)
@@ -144,6 +173,18 @@ const AdminLayout = () => {
     setShowLogoutDialog(false)
   }, [])
 
+  // Show loader while initial data is loading
+  if (isInitialLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
+        <div className="text-center">
+          <Spinner size="lg" />
+          <p className="text-slate-600 dark:text-slate-400 mt-4 text-lg">Loading admin dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       {/* Header */}
@@ -163,14 +204,14 @@ const AdminLayout = () => {
                 <img
                   src={FildexLogo}
                   alt="Fildex Logo"
-                  className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 lg:h-10 lg:w-10 xl:h-12 xl:w-12 2xl:h-10 2xl:w-10 flex-shrink-0 cursor-pointer"
+                  className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 lg:h-12 lg:w-12 xl:h-14 xl:w-14 2xl:h-12 2xl:w-12 flex-shrink-0 cursor-pointer"
                   onClick={() => navigate('/admin')}
                 />
                 <div className='flex flex-col'>
-                  <h1 className='text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-3xl 2xl:text-2xl font-semibold text-blue-950 leading-tight cursor-pointer' onClick={() => navigate('/admin')}>
+                  <h1 className='text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-3xl 2xl:text-2xl font-bold text-blue-950 leading-tight cursor-pointer' onClick={() => navigate('/admin')}>
                     FILDEX
                   </h1>
-                  <h4 className='text-xs sm:text-sm md:text-base lg:text-lg xl:text-lg 2xl:text-base text-blue-950 font-bold leading-tight cursor-pointer' onClick={() => navigate('/admin')}>
+                  <h4 className='text-xs sm:text-xs md:text-sm lg:text-sm xl:text-sm 2xl:text-sm text-blue-950 font-bold leading-tight cursor-pointer' onClick={() => navigate('/admin')}>
                     SOLUTIONS
                   </h4>
                 </div>
@@ -181,35 +222,28 @@ const AdminLayout = () => {
                 variant="outline" 
                 size="sm"
                 onClick={toggleNotifications}
-                className="hidden sm:flex"
+                className="hidden sm:flex relative"
               >
                 <Bell className="w-4 h-4 mr-2" />
                 Notifications
+                {unreadCount > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 text-white">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </Badge>
+                )}
               </Button>
               <Button 
                 variant="outline" 
                 size="sm"
                 onClick={toggleNotifications}
-                className="sm:hidden p-2"
+                className="sm:hidden p-2 relative"
               >
                 <Bell className="w-4 h-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={openSettings}
-                className="hidden sm:flex"
-              >
-                <Settings className="w-4 h-4 mr-2" />
-                Settings
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={openSettings}
-                className="sm:hidden p-2"
-              >
-                <Settings className="w-4 h-4" />
+                {unreadCount > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 text-white">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </Badge>
+                )}
               </Button>
               <Button 
                 variant="ghost" 
@@ -370,135 +404,6 @@ const AdminLayout = () => {
           }} />
         </main>
 
-        {/* Settings Sidebar */}
-        {showSettingsDialog && (
-          <div className="fixed inset-0 z-50 flex">
-            <div 
-              className="flex-1 bg-black/50 backdrop-blur-sm"
-              onClick={discardSettings}
-            />
-            <div className="w-full sm:w-96 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-700 shadow-2xl">
-              <div className="h-full flex flex-col">
-                <div className="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-700">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                        <Settings className="w-5 h-5 text-white" />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Settings</h2>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">Configure your preferences</p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={discardSettings}
-                      className="text-slate-400 hover:text-slate-600"
-                    >
-                      <X className="w-5 h-5" />
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-                  <div className="space-y-6">
-                    <div className="space-y-4">
-                      <h4 className="font-medium text-slate-900 dark:text-white">Notifications</h4>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between p-4 border border-slate-200 dark:border-slate-700 rounded-lg">
-                          <div>
-                            <p className="font-medium text-slate-900 dark:text-white">Push Notifications</p>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">Receive notifications for new CV uploads</p>
-                          </div>
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={tempSettings.notifications}
-                              onChange={(e) => updateTempSettings({ notifications: e.target.checked })}
-                              className="sr-only peer"
-                            />
-                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                          </label>
-                        </div>
-                        
-                        <div className="flex items-center justify-between p-4 border border-slate-200 dark:border-slate-700 rounded-lg">
-                          <div>
-                            <p className="font-medium text-slate-900 dark:text-white">Email Alerts</p>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">Get email notifications for important events</p>
-                          </div>
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={tempSettings.emailAlerts}
-                              onChange={(e) => updateTempSettings({ emailAlerts: e.target.checked })}
-                              className="sr-only peer"
-                            />
-                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <h4 className="font-medium text-slate-900 dark:text-white">Data Management</h4>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between p-4 border border-slate-200 dark:border-slate-700 rounded-lg">
-                          <div>
-                            <p className="font-medium text-slate-900 dark:text-white">Auto-delete Expired CVs</p>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">Automatically remove CVs after retention period</p>
-                          </div>
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={tempSettings.autoDeleteExpired}
-                              onChange={(e) => updateTempSettings({ autoDeleteExpired: e.target.checked })}
-                              className="sr-only peer"
-                            />
-                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                          </label>
-                        </div>
-                        
-                        <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg">
-                          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                            CV Retention Period (Days)
-                          </label>
-                          <input
-                            type="number"
-                            value={tempSettings.retentionDays}
-                            onChange={(e) => updateTempSettings({ retentionDays: parseInt(e.target.value) })}
-                            className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            min="30"
-                            max="1095"
-                          />
-                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">CVs will be retained for this many days (30-1095)</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4 sm:p-6 border-t border-slate-200 dark:border-slate-700">
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="outline"
-                      onClick={discardSettings}
-                      className="flex-1"
-                    >
-                      Discard
-                    </Button>
-                    <Button
-                      onClick={saveSettings}
-                      className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                    >
-                      Save Changes
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Notifications Panel */}
         {showNotifications && (
@@ -532,39 +437,81 @@ const AdminLayout = () => {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-                  <div className="space-y-4">
-                    <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg bg-blue-50 dark:bg-blue-900/20">
-                      <div className="flex items-start gap-3">
-                        <div className="w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
-                        <div className="flex-1">
-                          <p className="font-medium text-slate-900 dark:text-white">New CV Upload</p>
-                          <p className="text-sm text-slate-600 dark:text-slate-400">John Smith uploaded a CV for Cloud Engineer position</p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">2 minutes ago</p>
+                  {newCvNotifications.length > 0 ? (
+                    <div className="space-y-4">
+                      {newCvNotifications.map((notification) => (
+                        <div 
+                          key={notification.id}
+                          className={`p-4 border border-slate-200 dark:border-slate-700 rounded-lg cursor-pointer ${
+                            notification.read 
+                              ? 'bg-slate-50 dark:bg-slate-800' 
+                              : 'bg-blue-50 dark:bg-blue-900/20'
+                          }`}
+                          onClick={() => dispatch(markAsRead(notification.id))}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className={`w-2 h-2 rounded-full mt-2 ${
+                              notification.read ? 'bg-slate-400' : 'bg-blue-600'
+                            }`}></div>
+                            <div className="flex-1">
+                              <p className="font-medium text-slate-900 dark:text-white">
+                                {notification.type === 'cv_upload' ? 'New CV Upload' : 'Notification'}
+                              </p>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">
+                                {notification.message}
+                              </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    {(() => {
+                      try {
+                        if (notification.timestamp) {
+                          const date = new Date(notification.timestamp);
+                          return isNaN(date.getTime()) ? 'Just now' : date.toLocaleString();
+                        }
+                        return 'Just now';
+                      } catch (error) {
+                        return 'Just now';
+                      }
+                    })()}
+                  </p>
+                            </div>
+                            {!notification.read && (
+                              <div className="w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
+                            )}
+                          </div>
                         </div>
-                      </div>
+                      ))}
                     </div>
-
-                    <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg bg-green-50 dark:bg-green-900/20">
-                      <div className="flex items-start gap-3">
-                        <div className="w-2 h-2 bg-green-600 rounded-full mt-2"></div>
-                        <div className="flex-1">
-                          <p className="font-medium text-slate-900 dark:text-white">Job Application</p>
-                          <p className="text-sm text-slate-600 dark:text-slate-400">Sarah Johnson applied for DevOps Specialist role</p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">15 minutes ago</p>
-                        </div>
-                      </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Bell className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                      <p className="text-slate-600 dark:text-slate-400">No notifications yet</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
+                        You'll see CV upload notifications here
+                      </p>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 <div className="p-4 sm:p-6 border-t border-slate-200 dark:border-slate-700">
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => setShowNotifications(false)}
-                  >
-                    Mark All as Read
-                  </Button>
+                  <div className="flex gap-2">
+                    {newCvNotifications.length > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => dispatch(markAllAsRead())}
+                        className="flex-1"
+                      >
+                        Mark All as Read
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => setShowNotifications(false)}
+                    >
+                      Close
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -629,8 +576,6 @@ const AdminLayout = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Toast notifications for admin */}
-      <Toaster position="top-right" richColors style={{ zIndex: 99999 }} />
     </div>
   )
 }

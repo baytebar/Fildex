@@ -21,11 +21,11 @@ const AuthHeader = () => {
               <img
                 src={FildexLogo}
                 alt="Fildex Logo"
-                className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 lg:h-10 lg:w-10 xl:h-12 xl:w-12 2xl:h-10 2xl:w-10 flex-shrink-0"
+                className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 lg:h-12 lg:w-12 xl:h-14 xl:w-14 2xl:h-12 2xl:w-12 flex-shrink-0"
               />
               <div className='flex flex-col'>
-                <h1 className='text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-3xl 2xl:text-2xl font-semibold text-blue-950 leading-tight'>FILDEX</h1>
-                <h4 className='text-xs sm:text-sm md:text-base lg:text-lg xl:text-lg 2xl:text-base text-blue-950 font-bold leading-tight'>SOLUTIONS</h4>
+                <h1 className='text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-3xl 2xl:text-2xl font-bold text-blue-950 leading-tight'>FILDEX</h1>
+                <h4 className='text-xs sm:text-xs md:text-sm lg:text-sm xl:text-sm 2xl:text-sm text-blue-950 font-bold leading-tight'>SOLUTIONS</h4>
               </div>
             </div>
           </Link>

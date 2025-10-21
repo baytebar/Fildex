@@ -31,9 +31,9 @@ export const authenticate = async (req, res, next) => {
     let authUser = null;
     let role = "user"; // default
 
-    if (decoded.role === "admin") {
+    if (decoded.role === "admin" || decoded.role === "super_admin") {
       authUser = await Admin.findById(decoded.id).select("-password");
-      role = "admin";
+      role = authUser.role; // Use the actual role from database
     } else {
       authUser = await User.findById(decoded.id).select("-password");
     }
@@ -68,8 +68,38 @@ export const authorizeRoles = (...allowedRoles) => {
 
 // Admin authorization middleware
 export const authorizeAdmin = (req, res, next) => {
-  if (!req.auth || req.auth.role !== 'admin') {
+  if (!req.auth || (req.auth.role !== 'admin' && req.auth.role !== 'super_admin')) {
     return handleResponse(res, HttpStatusCodes.FORBIDDEN, rejectResponseMessage.accessDenied);
   }
   next();
+};
+
+// Super admin authorization middleware
+export const authorizeSuperAdmin = (req, res, next) => {
+  if (!req.auth || req.auth.role !== 'super_admin') {
+    return handleResponse(res, HttpStatusCodes.FORBIDDEN, "Only super admin access allowed");
+  }
+  next();
+};
+
+// Super admin creation token middleware
+export const validateSuperAdminCreationToken = (req, res, next) => {
+  try {
+    const token = req.headers['x-super-admin-token'] || req.headers['authorization']?.replace('Bearer ', '');
+    
+    if (!token) {
+      return handleResponse(res, HttpStatusCodes.UNAUTHORIZED, "Super admin creation token required");
+    }
+
+    // Check against environment variable
+    const validToken = process.env.SUPER_ADMIN_CREATION_TOKEN || 'super_admin_secure_token_2024_fildex';
+    
+    if (token !== validToken) {
+      return handleResponse(res, HttpStatusCodes.UNAUTHORIZED, "Invalid super admin creation token");
+    }
+
+    next();
+  } catch (error) {
+    return handleResponse(res, HttpStatusCodes.UNAUTHORIZED, "Invalid token format");
+  }
 };

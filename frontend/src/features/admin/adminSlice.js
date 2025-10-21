@@ -38,7 +38,6 @@ export const getAllUsers = createAsyncThunk(
       const response = await api.admin.getAllUsers(params);
       return response;
     } catch (error) {
-      toast.error('Failed to load users: ' + (error.message || 'Please try again'));
       return rejectWithValue(error.message);
     }
   }
@@ -51,7 +50,6 @@ export const getUserById = createAsyncThunk(
       const response = await api.admin.getUserById(userId);
       return response;
     } catch (error) {
-      toast.error('Failed to load user: ' + (error.message || 'Please try again'));
       return rejectWithValue(error.message);
     }
   }
@@ -64,7 +62,6 @@ export const getAllJobTitles = createAsyncThunk(
       const response = await api.admin.getAllJobTitles();
       return response;
     } catch (error) {
-      toast.error('Failed to load job titles: ' + (error.message || 'Please try again'));
       return rejectWithValue(error.message);
     }
   }
@@ -75,10 +72,8 @@ export const createJobTitle = createAsyncThunk(
   async (jobTitleData, { rejectWithValue }) => {
     try {
       const response = await api.admin.createJobTitle(jobTitleData);
-      toast.success('Job title created successfully!');
       return response;
     } catch (error) {
-      toast.error('Failed to create job title: ' + (error.message || 'Please try again'));
       return rejectWithValue(error.message);
     }
   }
@@ -89,10 +84,8 @@ export const updateJobTitle = createAsyncThunk(
   async ({ id, jobTitleData }, { rejectWithValue }) => {
     try {
       const response = await api.admin.updateJobTitle(id, jobTitleData);
-      toast.success('Job title updated successfully!');
       return response;
     } catch (error) {
-      toast.error('Failed to update job title: ' + (error.message || 'Please try again'));
       return rejectWithValue(error.message);
     }
   }
@@ -103,10 +96,20 @@ export const deleteJobTitle = createAsyncThunk(
   async (jobTitleId, { rejectWithValue }) => {
     try {
       const response = await api.admin.deleteJobTitle(jobTitleId);
-      toast.success('Job title paused successfully!');
       return response;
     } catch (error) {
-      toast.error('Failed to pause job title: ' + (error.message || 'Please try again'));
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const pauseJobTitle = createAsyncThunk(
+  'admin/pauseJobTitle',
+  async (jobTitleId, { rejectWithValue }) => {
+    try {
+      const response = await api.admin.pauseJobTitle(jobTitleId);
+      return response;
+    } catch (error) {
       return rejectWithValue(error.message);
     }
   }
@@ -117,10 +120,8 @@ export const resumeJobTitle = createAsyncThunk(
   async (jobTitleId, { rejectWithValue }) => {
     try {
       const response = await api.admin.resumeJobTitle(jobTitleId);
-      toast.success('Job title resumed successfully!');
       return response;
     } catch (error) {
-      toast.error('Failed to resume job title: ' + (error.message || 'Please try again'));
       return rejectWithValue(error.message);
     }
   }
@@ -131,10 +132,8 @@ export const updateUserStatus = createAsyncThunk(
   async ({ userId, status }, { rejectWithValue }) => {
     try {
       const response = await api.admin.updateUserStatus(userId, status);
-      toast.success('User status updated successfully!');
       return { userId, status, user: response.data };
     } catch (error) {
-      toast.error('Failed to update user status: ' + (error.message || 'Please try again'));
       return rejectWithValue(error.message);
     }
   }
@@ -148,7 +147,6 @@ export const getAllJobPostings = createAsyncThunk(
       const response = await api.admin.getAllJobPostings(params);
       return response;
     } catch (error) {
-      toast.error('Failed to load job postings: ' + (error.message || 'Please try again'));
       return rejectWithValue(error.message);
     }
   }
@@ -161,7 +159,6 @@ export const getJobPostingById = createAsyncThunk(
       const response = await api.admin.getJobPostingById(jobId);
       return response;
     } catch (error) {
-      toast.error('Failed to load job posting: ' + (error.message || 'Please try again'));
       return rejectWithValue(error.message);
     }
   }
@@ -172,10 +169,8 @@ export const createJobPosting = createAsyncThunk(
   async (jobData, { rejectWithValue }) => {
     try {
       const response = await api.admin.createJobPosting(jobData);
-      toast.success('Job posting created successfully!');
       return response;
     } catch (error) {
-      toast.error('Failed to create job posting: ' + (error.message || 'Please try again'));
       return rejectWithValue(error.message);
     }
   }
@@ -186,10 +181,8 @@ export const updateJobPosting = createAsyncThunk(
   async ({ jobId, jobData }, { rejectWithValue }) => {
     try {
       const response = await api.admin.updateJobPosting(jobId, jobData);
-      toast.success('Job posting updated successfully!');
       return response;
     } catch (error) {
-      toast.error('Failed to update job posting: ' + (error.message || 'Please try again'));
       return rejectWithValue(error.message);
     }
   }
@@ -200,10 +193,8 @@ export const deleteJobPosting = createAsyncThunk(
   async (jobId, { rejectWithValue }) => {
     try {
       const response = await api.admin.deleteJobPosting(jobId);
-      toast.success('Job posting deleted successfully!');
       return { jobId, response };
     } catch (error) {
-      toast.error('Failed to delete job posting: ' + (error.message || 'Please try again'));
       return rejectWithValue(error.message);
     }
   }
@@ -217,7 +208,6 @@ export const getAllDepartments = createAsyncThunk(
       const response = await api.admin.getAllDepartments(params);
       return response;
     } catch (error) {
-      toast.error('Failed to load departments: ' + (error.message || 'Please try again'));
       return rejectWithValue(error.message);
     }
   }
@@ -228,10 +218,8 @@ export const createDepartment = createAsyncThunk(
   async (deptData, { rejectWithValue }) => {
     try {
       const response = await api.admin.createDepartment(deptData);
-      toast.success('Department created successfully!');
       return response;
     } catch (error) {
-      toast.error('Failed to create department: ' + (error.message || 'Please try again'));
       return rejectWithValue(error.message);
     }
   }
@@ -251,15 +239,57 @@ export const updateDepartment = createAsyncThunk(
   }
 );
 
-export const deleteDepartment = createAsyncThunk(
-  'admin/deleteDepartment',
+export const holdDepartment = createAsyncThunk(
+  'admin/holdDepartment',
   async (deptId, { rejectWithValue }) => {
     try {
-      const response = await api.admin.deleteDepartment(deptId);
-      toast.success('Department deleted successfully!');
+      const response = await api.admin.holdDepartment(deptId);
+      toast.success('Department held successfully!');
       return { deptId, response };
     } catch (error) {
-      toast.error('Failed to delete department: ' + (error.message || 'Please try again'));
+      toast.error('Failed to hold department: ' + (error.message || 'Please try again'));
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const reactivateDepartment = createAsyncThunk(
+  'admin/reactivateDepartment',
+  async (deptId, { rejectWithValue }) => {
+    try {
+      const response = await api.admin.reactivateDepartment(deptId);
+      toast.success('Department reactivated successfully!');
+      return { deptId, response };
+    } catch (error) {
+      toast.error('Failed to reactivate department: ' + (error.message || 'Please try again'));
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const pauseJobPosting = createAsyncThunk(
+  'admin/pauseJobPosting',
+  async (jobId, { rejectWithValue }) => {
+    try {
+      const response = await api.admin.pauseJobPosting(jobId);
+      toast.success('Job posting paused successfully!');
+      return { jobId, response };
+    } catch (error) {
+      toast.error('Failed to pause job posting: ' + (error.message || 'Please try again'));
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const resumeJobPosting = createAsyncThunk(
+  'admin/resumeJobPosting',
+  async (jobId, { rejectWithValue }) => {
+    try {
+      const response = await api.admin.resumeJobPosting(jobId);
+      toast.success('Job posting resumed successfully!');
+      return { jobId, response };
+    } catch (error) {
+      toast.error('Failed to resume job posting: ' + (error.message || 'Please try again'));
       return rejectWithValue(error.message);
     }
   }
@@ -512,6 +542,25 @@ const adminSlice = createSlice({
         state.jobTitles.error = action.payload;
       })
       
+      // Pause Job Title
+      .addCase(pauseJobTitle.pending, (state) => {
+        state.jobTitles.isLoading = true;
+        state.jobTitles.error = null;
+      })
+      .addCase(pauseJobTitle.fulfilled, (state, action) => {
+        state.jobTitles.isLoading = false;
+        // Update the job title to mark it as paused
+        const index = state.jobTitles.data.findIndex(role => role._id === action.payload.data._id);
+        if (index !== -1) {
+          state.jobTitles.data[index].status = 'hold';
+        }
+        state.jobTitles.error = null;
+      })
+      .addCase(pauseJobTitle.rejected, (state, action) => {
+        state.jobTitles.isLoading = false;
+        state.jobTitles.error = action.payload;
+      })
+      
       // Resume Job Title
       .addCase(resumeJobTitle.pending, (state) => {
         state.jobTitles.isLoading = true;
@@ -522,7 +571,7 @@ const adminSlice = createSlice({
         // Update the job title to mark it as active (unpause)
         const index = state.jobTitles.data.findIndex(role => role._id === action.payload.data._id);
         if (index !== -1) {
-          state.jobTitles.data[index].isDeleted = false;
+          state.jobTitles.data[index].status = 'active';
         }
         state.jobTitles.error = null;
       })
@@ -613,6 +662,40 @@ const adminSlice = createSlice({
         state.jobPostings.error = action.payload;
       })
       
+      .addCase(pauseJobPosting.pending, (state) => {
+        state.jobPostings.isLoading = true;
+        state.jobPostings.error = null;
+      })
+      .addCase(pauseJobPosting.fulfilled, (state, action) => {
+        state.jobPostings.isLoading = false;
+        const jobIndex = state.jobPostings.data.findIndex(job => job._id === action.payload.jobId);
+        if (jobIndex !== -1) {
+          state.jobPostings.data[jobIndex].status = 'paused';
+        }
+        state.jobPostings.error = null;
+      })
+      .addCase(pauseJobPosting.rejected, (state, action) => {
+        state.jobPostings.isLoading = false;
+        state.jobPostings.error = action.payload;
+      })
+      
+      .addCase(resumeJobPosting.pending, (state) => {
+        state.jobPostings.isLoading = true;
+        state.jobPostings.error = null;
+      })
+      .addCase(resumeJobPosting.fulfilled, (state, action) => {
+        state.jobPostings.isLoading = false;
+        const jobIndex = state.jobPostings.data.findIndex(job => job._id === action.payload.jobId);
+        if (jobIndex !== -1) {
+          state.jobPostings.data[jobIndex].status = 'active';
+        }
+        state.jobPostings.error = null;
+      })
+      .addCase(resumeJobPosting.rejected, (state, action) => {
+        state.jobPostings.isLoading = false;
+        state.jobPostings.error = action.payload;
+      })
+      
       // Departments
       .addCase(getAllDepartments.pending, (state) => {
         state.departments.isLoading = true;
@@ -659,16 +742,36 @@ const adminSlice = createSlice({
         state.departments.error = action.payload;
       })
       
-      .addCase(deleteDepartment.pending, (state) => {
+      .addCase(holdDepartment.pending, (state) => {
         state.departments.isLoading = true;
         state.departments.error = null;
       })
-      .addCase(deleteDepartment.fulfilled, (state, action) => {
+      .addCase(holdDepartment.fulfilled, (state, action) => {
         state.departments.isLoading = false;
-        state.departments.data = state.departments.data.filter(dept => dept._id !== action.payload.deptId);
+        const deptIndex = state.departments.data.findIndex(dept => dept._id === action.payload.deptId);
+        if (deptIndex !== -1) {
+          state.departments.data[deptIndex].status = 'hold';
+        }
         state.departments.error = null;
       })
-      .addCase(deleteDepartment.rejected, (state, action) => {
+      .addCase(holdDepartment.rejected, (state, action) => {
+        state.departments.isLoading = false;
+        state.departments.error = action.payload;
+      })
+      
+      .addCase(reactivateDepartment.pending, (state) => {
+        state.departments.isLoading = true;
+        state.departments.error = null;
+      })
+      .addCase(reactivateDepartment.fulfilled, (state, action) => {
+        state.departments.isLoading = false;
+        const deptIndex = state.departments.data.findIndex(dept => dept._id === action.payload.deptId);
+        if (deptIndex !== -1) {
+          state.departments.data[deptIndex].status = 'active';
+        }
+        state.departments.error = null;
+      })
+      .addCase(reactivateDepartment.rejected, (state, action) => {
         state.departments.isLoading = false;
         state.departments.error = action.payload;
       })

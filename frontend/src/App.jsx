@@ -11,7 +11,6 @@ import Contact from './Client/section/Contact'
 import AdminLayout from './Admin/layout/AdminLayout'
 import ChatBot from './Client/components/ChatBot'
 import CvUploadPopup from './components/CvUploadPopup'
-import Loader from './Client/components/Loader'
 import { Route, Routes, useNavigate, useLocation } from 'react-router-dom'
 import JobListing from './Client/pages/JobListing'
 import ScrollToTop from './Client/components/ScrollToTop'
@@ -39,6 +38,7 @@ import { getUserProfile, logout, setUser } from './features/auth/authSlice'
 import { adminLogout, setAdmin, restoreAdminAuth } from './features/admin/adminSlice'
 import Footer from './Client/section/Footer'
 import AdminDepartmentManagement from './Admin/pages/AdminDepartmentManagement'
+import Loader from './Client/components/Loader'
 
 
 
@@ -161,14 +161,26 @@ const App = () => {
 
   const isAdminPage = location.pathname.startsWith('/admin')
 
-  // Initial loader effect - show loader for 3 seconds
+  // Initial loader effect - show loader for 3 seconds only on home page
   useEffect(() => {
-    const timer = setTimeout(() => {
+    // Only show loader on home page, not on admin pages
+    if (isAdminPage) {
       setIsInitialLoading(false)
-    }, 3000) // 3 seconds
+      return
+    }
 
-    return () => clearTimeout(timer)
-  }, [])
+    // Reset loader when navigating to home page
+    if (location.pathname === '/') {
+      setIsInitialLoading(true)
+      const timer = setTimeout(() => {
+        setIsInitialLoading(false)
+      }, 3000) // 3 seconds
+
+      return () => clearTimeout(timer)
+    } else {
+      setIsInitialLoading(false)
+    }
+  }, [isAdminPage, location.pathname])
 
   useEffect(() => {
     if (hasClosedCvPopup || isAdminPage) {
@@ -205,7 +217,12 @@ const App = () => {
   return (
     <Provider store={store}>
       <AuthInitializer>
-        <Loader isLoading={isInitialLoading} onComplete={() => setIsInitialLoading(false)} />
+        {isInitialLoading && !isAdminPage && (
+          <Loader 
+            isLoading={isInitialLoading} 
+            onComplete={() => setIsInitialLoading(false)} 
+          />
+        )}
         {!isInitialLoading && (
           <>
             <Toaster position="top-right" richColors style={{ zIndex: 99999 }} />

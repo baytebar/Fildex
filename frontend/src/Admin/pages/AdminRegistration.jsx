@@ -7,6 +7,7 @@ import { Input } from '../../components/ui/input';
 import { Eye, EyeOff, User, Mail, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { adminRegister } from '../../features/admin/adminSlice';
+import Spinner from '../../components/Spinner';
 
 const AdminRegistration = () => {
   const [formData, setFormData] = useState({
@@ -207,7 +208,7 @@ const AdminRegistration = () => {
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <Spinner size="sm" />
                     <span>Creating Account...</span>
                   </div>
                 ) : (

@@ -3,6 +3,7 @@ import authReducer from '../features/auth/authSlice';
 import cvFormReducer from '../features/cvForm/cvFormSlice';
 import adminReducer from '../features/admin/adminSlice';
 import resumeReducer from '../features/resume/resumeSlice';
+import notificationReducer from '../features/notifications/notificationSlice';
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     cvForm: cvFormReducer,
     admin: adminReducer,
     resume: resumeReducer,
+    notifications: notificationReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

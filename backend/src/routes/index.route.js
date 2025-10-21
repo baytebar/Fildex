@@ -6,8 +6,10 @@ import adminAuthRouter from './adminAuth.route.js';
 import departmentRouter from './department.route.js';
 import jobPostingRouter from './jobPosting.route.js';
 import resumeRouter from './resume.route.js';
-import { getAllJobTitles } from '../admin/controller/jobTitle.controller.js';
+import jobTitleRouter from './jobTitle.route.js';
+import notificationRouter from './notification.route.js';
 import { getAllJobPostings } from '../admin/controller/jobPosting.controller.js';
+import { getActiveJobTitles } from '../admin/controller/jobTitle.controller.js';
 
 const indexRouter = express.Router();
 
@@ -31,8 +33,14 @@ indexRouter.use('/job-posting', jobPostingRouter)
 //resume router
 indexRouter.use('/resume', resumeRouter)
 
+//job title router
+indexRouter.use('/admin/job-titles', jobTitleRouter)
+
+//notification router
+indexRouter.use('/admin/notifications', notificationRouter)
+
 // Public routes for careers page (no authentication required)
-indexRouter.get('/public/job-titles', getAllJobTitles);
+indexRouter.get('/public/job-titles', getActiveJobTitles);
 indexRouter.get('/public/job-postings', getAllJobPostings);
 
 export default indexRouter;

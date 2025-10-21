@@ -105,7 +105,7 @@ const CVUploadForm = ({ onSuccess, onClose, name, email, phone }) => {
         <div className="text-center mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Upload Your Resume</h3>
           <p className="text-sm text-gray-600">
-            Upload your CV in PDF or DOC format (max 5MB)
+            Upload your CV in PDF, DOC, or DOCX format (max 5MB)
           </p>
         </div>
 
@@ -174,17 +174,17 @@ const CVUploadForm = ({ onSuccess, onClose, name, email, phone }) => {
         </div>
 
         {/* Error Message */}
-        {(error || resumeError) && (
+        {error && (
           <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex items-center gap-2">
               <AlertCircle className="w-4 h-4 text-red-600" />
-              <p className="text-sm text-red-700">{error || resumeError}</p>
+              <p className="text-sm text-red-700">{error}</p>
             </div>
           </div>
         )}
 
         {/* Success Message */}
-        {(uploadStatus === 'success' || resumeUploadStatus === 'success') && (
+        {uploadStatus === 'success' && (
           <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
             <div className="flex items-center gap-2">
               <Check className="w-4 h-4 text-green-600" />

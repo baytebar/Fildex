@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Input } from '../../components/ui/input';
 import { Select } from '../../components/ui/select';
 import { Textarea } from '../../components/ui/textarea';
-import { ArrowLeft, Save, Eye, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Eye } from 'lucide-react';
+import Spinner from '../../components/Spinner';
 import { createJobPosting, updateJobPosting, getAllDepartments, getAllJobTitles } from '../../features/admin/adminSlice';
 import { toast } from 'sonner';
 
@@ -210,13 +211,11 @@ const AdminJobForm = () => {
                         <option disabled>Loading job titles...</option>
                       ) : (
                         <>
-                          {jobTitles
-                            ?.filter(jobTitle => jobTitle.isDeleted !== true) // Only show active job titles
-                            ?.map((jobTitle) => (
-                              <option key={jobTitle._id} value={jobTitle.name}>
-                                {jobTitle.name}
-                              </option>
-                            ))}
+                          {jobTitles?.map((jobTitle) => (
+                            <option key={jobTitle._id} value={jobTitle.name}>
+                              {jobTitle.name}
+                            </option>
+                          ))}
                           <option value="__create_new__" className="text-blue-600 font-medium">
                             + Create New Job Title
                           </option>
@@ -280,7 +279,7 @@ const AdminJobForm = () => {
                       name="location"
                       value={formData.location}
                       onChange={handleInputChange}
-                      placeholder="e.g., Dublin, Ireland"
+                      placeholder="e.g., Cork, Ireland"
                       required
                       className="h-11"
                     />

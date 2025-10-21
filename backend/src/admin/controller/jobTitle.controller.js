@@ -25,6 +25,7 @@ export const createJobTitle = async (req, res, next) => {
     const resData = {
       _id: newJobTitle._id,
       name: newJobTitle.name,
+      status: newJobTitle.status,
       created_by: newJobTitle.created_by,
       isDeleted: newJobTitle.isDeleted,
       createdAt: newJobTitle.createdAt,
@@ -37,9 +38,29 @@ export const createJobTitle = async (req, res, next) => {
   }
 };
 
-// GET ALL (with optional pagination)
+// GET ALL ACTIVE (for job posting form)
+export const getActiveJobTitles = async (req, res, next) => {
+  try {
+    // Return only active job titles for job posting form
+    const jobTitles = await JobTitle.find({ status: 'active', isDeleted: false }).sort({ createdAt: -1 });
+    
+    if (!jobTitles.length) return handleResponse(res, HttpStatusCodes.NO_CONTENT, rejectResponseMessage.noJobTitlesFound);
+    
+    return handleResponse(res, HttpStatusCodes.OK, successResponseMessage.jobTitlesFetched, jobTitles);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// GET ALL (with optional pagination) - for admin interface
 export const getAllJobTitles = async (req, res, next) => {
   try {
+    // Update existing job titles that don't have status field
+    await JobTitle.updateMany(
+      { status: { $exists: false } },
+      { $set: { status: 'active' } }
+    );
+
     // Check if pagination parameters are provided
     const usePagination = req.query.page || req.query.limit;
     
@@ -49,11 +70,11 @@ export const getAllJobTitles = async (req, res, next) => {
       const skip = (page - 1) * limit;
 
       const [jobTitles, total] = await Promise.all([
-        JobTitle.find({})
+        JobTitle.find({ isDeleted: false })
           .skip(skip)
           .limit(limit)
           .sort({ createdAt: -1 }),
-        JobTitle.countDocuments({})
+        JobTitle.countDocuments({ isDeleted: false })
       ]);
 
       if (!jobTitles.length) return handleResponse(res, HttpStatusCodes.NO_CONTENT, rejectResponseMessage.noJobTitlesFound);
@@ -66,8 +87,8 @@ export const getAllJobTitles = async (req, res, next) => {
 
       return handleResponse(res, HttpStatusCodes.OK, successResponseMessage.jobTitlesFetched, { pagination, jobTitles });
     } else {
-      // Return all job titles without pagination (both active and paused)
-      const jobTitles = await JobTitle.find({}).sort({ createdAt: -1 });
+      // Return all job titles (including paused) without pagination for admin interface
+      const jobTitles = await JobTitle.find({ isDeleted: false }).sort({ createdAt: -1 });
       
       if (!jobTitles.length) return handleResponse(res, HttpStatusCodes.NO_CONTENT, rejectResponseMessage.noJobTitlesFound);
       
@@ -117,6 +138,7 @@ export const updateJobTitle = async (req, res, next) => {
     const resData = {
       _id: existingJobTitle._id,
       name: existingJobTitle.name,
+      status: existingJobTitle.status,
       created_by: existingJobTitle.created_by,
       isDeleted: existingJobTitle.isDeleted,
       createdAt: existingJobTitle.createdAt,
@@ -129,7 +151,61 @@ export const updateJobTitle = async (req, res, next) => {
   }
 };
 
-// DELETE (soft delete) - Pause
+// PAUSE (hold job title)
+export const pauseJobTitle = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const jobTitle = await JobTitle.findOne({ _id: id, isDeleted: false });
+    if (!jobTitle) return handleResponse(res, HttpStatusCodes.NOT_FOUND, rejectResponseMessage.noJobTitlesFound);
+
+    jobTitle.status = 'hold';
+    await jobTitle.save();
+
+    const resData = {
+      _id: jobTitle._id,
+      name: jobTitle.name,
+      status: jobTitle.status,
+      created_by: jobTitle.created_by,
+      isDeleted: jobTitle.isDeleted,
+      createdAt: jobTitle.createdAt,
+      updatedAt: jobTitle.updatedAt
+    };
+
+    return handleResponse(res, HttpStatusCodes.OK, "Job title paused successfully", resData);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// RESUME (unpause job title)
+export const resumeJobTitle = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const jobTitle = await JobTitle.findOne({ _id: id, isDeleted: false });
+    if (!jobTitle) return handleResponse(res, HttpStatusCodes.NOT_FOUND, rejectResponseMessage.noJobTitlesFound);
+
+    jobTitle.status = 'active';
+    await jobTitle.save();
+
+    const resData = {
+      _id: jobTitle._id,
+      name: jobTitle.name,
+      status: jobTitle.status,
+      created_by: jobTitle.created_by,
+      isDeleted: jobTitle.isDeleted,
+      createdAt: jobTitle.createdAt,
+      updatedAt: jobTitle.updatedAt
+    };
+
+    return handleResponse(res, HttpStatusCodes.OK, "Job title resumed successfully", resData);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// DELETE (soft delete)
 export const deleteJobTitle = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -143,6 +219,7 @@ export const deleteJobTitle = async (req, res, next) => {
     const resData = {
       _id: jobTitle._id,
       name: jobTitle.name,
+      status: jobTitle.status,
       created_by: jobTitle.created_by,
       isDeleted: jobTitle.isDeleted,
       createdAt: jobTitle.createdAt,
@@ -155,28 +232,3 @@ export const deleteJobTitle = async (req, res, next) => {
   }
 };
 
-// RESUME (unpause)
-export const resumeJobTitle = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-
-    const jobTitle = await JobTitle.findOne({ _id: id, isDeleted: true });
-    if (!jobTitle) return handleResponse(res, HttpStatusCodes.NOT_FOUND, rejectResponseMessage.noJobTitlesFound);
-
-    jobTitle.isDeleted = false;
-    await jobTitle.save();
-
-    const resData = {
-      _id: jobTitle._id,
-      name: jobTitle.name,
-      created_by: jobTitle.created_by,
-      isDeleted: jobTitle.isDeleted,
-      createdAt: jobTitle.createdAt,
-      updatedAt: jobTitle.updatedAt
-    };
-
-    return handleResponse(res, HttpStatusCodes.OK, successResponseMessage.jobTitleUpdated, resData);
-  } catch (error) {
-    next(error);
-  }
-};

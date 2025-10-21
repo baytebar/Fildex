@@ -20,6 +20,7 @@ import {
   createJobTitle, 
   updateJobTitle, 
   deleteJobTitle,
+  pauseJobTitle,
   resumeJobTitle
 } from '../../features/admin/adminSlice'
 import { toast } from 'sonner'
@@ -63,13 +64,15 @@ const AdminJobTitles = () => {
 
   // Stats calculation
   const stats = useMemo(() => {
-    const activeJobTitles = jobTitles.filter(jt => jt.isDeleted !== true);
-    const inactiveJobTitles = jobTitles.filter(jt => jt.isDeleted === true);
+    const activeJobTitles = jobTitles.filter(jt => jt.status === 'active' && jt.isDeleted !== true);
+    const pausedJobTitles = jobTitles.filter(jt => jt.status === 'hold' && jt.isDeleted !== true);
+    const deletedJobTitles = jobTitles.filter(jt => jt.isDeleted === true);
     
     return {
       total: jobTitles.length,
       active: activeJobTitles.length,
-      inactive: inactiveJobTitles.length,
+      paused: pausedJobTitles.length,
+      deleted: deletedJobTitles.length,
       recent: activeJobTitles.filter(jt => 
         jt.createdAt && new Date(jt.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
       ).length
@@ -125,11 +128,8 @@ const AdminJobTitles = () => {
   }, [dispatch, editJobTitleName, selectedJobTitle])
 
   const handlePauseJobTitle = useCallback((jobTitleId) => {
-    dispatch(deleteJobTitle(jobTitleId))
+    dispatch(pauseJobTitle(jobTitleId))
       .unwrap()
-      .then(() => {
-        toast.success('Job title paused successfully!')
-      })
       .catch((error) => {
         toast.error('Failed to pause job title: ' + error.message)
       })
@@ -202,7 +202,7 @@ const AdminJobTitles = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Paused</p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.inactive}</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.paused}</p>
               </div>
               <div className="p-3 bg-orange-100 dark:bg-orange-900 rounded-full">
                 <Pause className="w-6 h-6 text-orange-600 dark:text-orange-300" />
@@ -299,11 +299,15 @@ const AdminJobTitles = () => {
                       <TableCell>
                         <Badge 
                           variant="outline" 
-                          className={jobTitle.isDeleted 
-                            ? "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300" 
-                            : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"}
+                          className={
+                            jobTitle.isDeleted 
+                              ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
+                              : jobTitle.status === 'hold'
+                              ? "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300"
+                              : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                          }
                         >
-                          {jobTitle.isDeleted ? 'Paused' : 'Active'}
+                          {jobTitle.isDeleted ? 'Deleted' : jobTitle.status === 'hold' ? 'Paused' : 'Active'}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -324,6 +328,16 @@ const AdminJobTitles = () => {
                             <Edit className="w-4 h-4" />
                           </Button>
                           {jobTitle.isDeleted ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleResumeJobTitle(jobTitle._id)}
+                              className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                              title="Restore Job Title"
+                            >
+                              <Play className="w-4 h-4" />
+                            </Button>
+                          ) : jobTitle.status === 'hold' ? (
                             <Button
                               variant="ghost"
                               size="sm"

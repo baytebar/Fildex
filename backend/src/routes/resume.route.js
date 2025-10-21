@@ -1,5 +1,5 @@
 import express from 'express';
-import { uploadResume, getAllResumes, getResumeById, deleteResume, getResumeDownloadUrl, updateResumeStatus } from '../admin/controller/resume.controller.js';
+import { uploadResume, getAllResumes, getResumeById, deleteResume, getResumeDownloadUrl, updateResumeStatus, updateResumeExpiry, checkExpiredResumes } from '../admin/controller/resume.controller.js';
 import { authenticate, authorizeAdmin } from '../middleware/auth.middleware.js';
 import upload from '../config/multer.config.js';
 
@@ -27,6 +27,8 @@ resumeRouter.get("/", authenticate, authorizeAdmin, getAllResumes);
 resumeRouter.get("/:id", authenticate, authorizeAdmin, getResumeById);
 resumeRouter.get("/:id/download", authenticate, authorizeAdmin, getResumeDownloadUrl);
 resumeRouter.put("/:id", authenticate, authorizeAdmin, updateResumeStatus);
+resumeRouter.put("/:id/expiry", authenticate, authorizeAdmin, updateResumeExpiry);
+resumeRouter.post("/check-expired", authenticate, authorizeAdmin, checkExpiredResumes);
 resumeRouter.delete("/:id", authenticate, authorizeAdmin, deleteResume);
 
 export default resumeRouter;

@@ -25,12 +25,12 @@ const About = () => {
             </h3>
             <p className="text-lg text-foreground leading-relaxed">
               Fildex Solutions operates as a complete digital service provider delivering website development, 
-              software solutions, and business process support. We support clients across Ireland and abroad 
+              software solutions, and business process support. We support clients across Cork, Ireland and abroad 
               with end-to-end technical, development, and business services.
             </p>
             <p className="text-lg text-foreground leading-relaxed">
               Our vision centers on practical training that bridges the gap between education and industry needs. 
-              We provide hands-on internships, real-world project experience, and comprehensive job assistance 
+               We provide hands-on certifications, real-world project experience, and comprehensive job assistance
               to ensure our students are career-ready from day one.
             </p>
             <div className="flex flex-wrap gap-4 mt-6">
@@ -125,20 +125,20 @@ const About = () => {
             <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
               <Rocket className="w-8 h-8 text-primary" />
             </div>
-            <h3 className="font-bold text-xl text-foreground mb-4">Internships</h3>
-            <p className="text-muted-foreground mb-4">Industry partnerships and mentorship for real-world experience.</p>
+             <h3 className="font-bold text-xl text-foreground mb-4">Certifications</h3>
+            <p className="text-muted-foreground mb-4">Industry-recognized certifications and professional development programs.</p>
             <ul className="space-y-2">
               <li className="flex items-center gap-2 text-sm text-muted-foreground">
                 <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                6-Month Programs
+                Industry Standards
               </li>
               <li className="flex items-center gap-2 text-sm text-muted-foreground">
                 <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                Expert Mentorship
+                Expert Instructors
               </li>
               <li className="flex items-center gap-2 text-sm text-muted-foreground">
                 <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                Project Portfolio
+                Professional Recognition
               </li>
             </ul>
           </div>

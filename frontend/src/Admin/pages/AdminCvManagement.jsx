@@ -17,10 +17,13 @@ import {
   Edit3,
   Eye,
   CheckCircle,
-  XCircle
+  XCircle,
+  Clock,
+  AlertTriangle,
+  Trash2
 } from 'lucide-react'
 import { updateUserStatus } from '../../features/admin/adminSlice'
-import { fetchAllResumes } from '../../features/resume/resumeSlice'
+import { fetchAllResumes, deleteResume } from '../../features/resume/resumeSlice'
 import { api } from '../../config/api'
 import CvViewer from '../components/CvViewer'
 import { toast } from 'sonner'
@@ -42,13 +45,21 @@ const AdminCvManagement = () => {
   const [tempStatus, setTempStatus] = useState('')
   const [showCvViewer, setShowCvViewer] = useState(false)
   const [selectedUserForView, setSelectedUserForView] = useState(null)
+  const [showExpiryDialog, setShowExpiryDialog] = useState(false)
+  const [selectedCvForExpiry, setSelectedCvForExpiry] = useState(null)
+  const [tempExpiryDate, setTempExpiryDate] = useState('')
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [selectedCvForDelete, setSelectedCvForDelete] = useState(null)
 
   const statusOptions = [
     { value: 'new', label: 'New', color: 'bg-yellow-100 text-yellow-800' },
     { value: 'reviewed', label: 'Reviewed', color: 'bg-purple-100 text-purple-800' },
+    { value: 'under_review', label: 'Under Review', color: 'bg-blue-100 text-blue-800' },
     { value: 'shortlisted', label: 'Shortlisted', color: 'bg-green-100 text-green-800' },
+    { value: 'interview_scheduled', label: 'Interview Scheduled', color: 'bg-indigo-100 text-indigo-800' },
     { value: 'hired', label: 'Hired', color: 'bg-emerald-100 text-emerald-800' },
-    { value: 'rejected', label: 'Rejected', color: 'bg-red-100 text-red-800' }
+    { value: 'rejected', label: 'Rejected', color: 'bg-red-100 text-red-800' },
+    { value: 'on_hold', label: 'On Hold', color: 'bg-orange-100 text-orange-800' }
   ]
 
   // Fetch resumes data on component mount
@@ -182,6 +193,81 @@ const AdminCvManagement = () => {
     }
   }, [selectedCvForStatus, tempStatus, updateResumeStatus, closeStatusDialog, dispatch, pagination])
 
+  // Expiry functionality
+  const openExpiryDialog = useCallback((resume) => {
+    setSelectedCvForExpiry(resume)
+    setTempExpiryDate(resume.expiryDate ? new Date(resume.expiryDate).toISOString().split('T')[0] : '')
+    setShowExpiryDialog(true)
+  }, [])
+
+  const closeExpiryDialog = useCallback(() => {
+    setShowExpiryDialog(false)
+    setSelectedCvForExpiry(null)
+    setTempExpiryDate('')
+  }, [])
+
+  const updateResumeExpiry = useCallback(async (resumeId, expiryDate) => {
+    try {
+      const response = await api.admin.updateResumeExpiry(resumeId, { expiryDate })
+      if (response.status === 200) {
+        toast.success('CV expiry date updated successfully!')
+        return true
+      }
+    } catch (error) {
+      toast.error('Failed to update CV expiry: ' + error.message)
+      return false
+    }
+  }, [])
+
+  const handleSaveExpiry = useCallback(async () => {
+    if (selectedCvForExpiry) {
+      const success = await updateResumeExpiry(selectedCvForExpiry._id, tempExpiryDate)
+      if (success) {
+        closeExpiryDialog()
+        // Refresh the resumes list
+        dispatch(fetchAllResumes({ page: pagination?.currentPage || 1, limit: pagination?.limit || 10 }))
+      }
+    }
+  }, [selectedCvForExpiry, tempExpiryDate, updateResumeExpiry, closeExpiryDialog, dispatch, pagination])
+
+  // Delete functionality
+  const openDeleteDialog = useCallback((resume) => {
+    setSelectedCvForDelete(resume)
+    setShowDeleteDialog(true)
+  }, [])
+
+  const closeDeleteDialog = useCallback(() => {
+    setShowDeleteDialog(false)
+    setSelectedCvForDelete(null)
+  }, [])
+
+  const handleDeleteResume = useCallback(async () => {
+    if (selectedCvForDelete) {
+      try {
+        await dispatch(deleteResume(selectedCvForDelete._id)).unwrap()
+        toast.success('Resume deleted successfully!')
+        closeDeleteDialog()
+        // Refresh the resumes list
+        dispatch(fetchAllResumes({ page: pagination?.currentPage || 1, limit: pagination?.limit || 10 }))
+      } catch (error) {
+        toast.error('Failed to delete resume: ' + error.message)
+      }
+    }
+  }, [selectedCvForDelete, dispatch, closeDeleteDialog, pagination])
+
+  const checkExpiredResumes = useCallback(async () => {
+    try {
+      const response = await api.admin.checkExpiredResumes()
+      if (response.status === 200) {
+        toast.success(`Checked expired resumes: ${response.data.expiredCount} resumes marked as expired`)
+        // Refresh the resumes list
+        dispatch(fetchAllResumes({ page: pagination?.currentPage || 1, limit: pagination?.limit || 10 }))
+      }
+    } catch (error) {
+      toast.error('Failed to check expired resumes: ' + error.message)
+    }
+  }, [dispatch, pagination])
+
   const filteredCvs = useMemo(() => {
     if (!resumes || !Array.isArray(resumes)) {
       return []
@@ -239,7 +325,10 @@ const AdminCvManagement = () => {
           <p className="text-slate-600 dark:text-slate-400">Manage uploaded resumes and applicant data</p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          {/* Export CSV and Add CV buttons removed as per requirements */}
+          <Button variant="outline" onClick={checkExpiredResumes} className="w-full sm:w-auto">
+            <Clock className="w-4 h-4 mr-2" />
+            Check Expired CVs
+          </Button>
         </div>
       </div>
 
@@ -294,11 +383,7 @@ const AdminCvManagement = () => {
               className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="createdAt-desc">Newest First</option>
-              <option value="createdAt-asc">Oldest First</option>
               <option value="name-asc">Name A-Z</option>
-              <option value="name-desc">Name Z-A</option>
-              <option value="status-asc">Status A-Z</option>
-              <option value="status-desc">Status Z-A</option>
             </select>
           </div>
         </CardContent>
@@ -315,13 +400,14 @@ const AdminCvManagement = () => {
                   <TableHead>Contact</TableHead>
                   <TableHead>Uploaded</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Expiry</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8">
+                    <TableCell colSpan={6} className="text-center py-8">
                       <div className="flex flex-col items-center gap-2">
                         <Spinner />
                         <p className="text-slate-600 dark:text-slate-400">Loading users...</p>
@@ -330,7 +416,7 @@ const AdminCvManagement = () => {
                   </TableRow>
                 ) : error ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8">
+                    <TableCell colSpan={6} className="text-center py-8">
                       <div className="flex flex-col items-center gap-2">
                         <FileText className="w-12 h-12 text-red-400" />
                         <p className="text-red-600 dark:text-red-400">Error loading users: {error}</p>
@@ -339,7 +425,7 @@ const AdminCvManagement = () => {
                   </TableRow>
                 ) : filteredCvs.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8">
+                    <TableCell colSpan={6} className="text-center py-8">
                       <div className="flex flex-col items-center gap-2">
                         <FileText className="w-12 h-12 text-slate-400" />
                         <p className="text-slate-600 dark:text-slate-400">
@@ -404,7 +490,7 @@ const AdminCvManagement = () => {
                       <TableCell>
                         <div className="flex items-center gap-1 text-slate-600 dark:text-slate-400">
                           <Calendar className="w-4 h-4" />
-                          {resume.createdAt ? new Date(resume.createdAt).toLocaleDateString() : 'N/A'}
+                          {resume.createdAt ? new Date(resume.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) : 'N/A'}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -416,6 +502,28 @@ const AdminCvManagement = () => {
                         >
                           {statusOptions.find(s => s.value === resume.status)?.label || 'New'}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1 text-slate-600 dark:text-slate-400">
+                          <Clock className="w-4 h-4" />
+                          <div className="text-sm">
+                            {resume.expiryDate ? (
+                              <div className={`flex items-center gap-1 ${
+                                resume.isExpired 
+                                  ? 'text-red-600 dark:text-red-400' 
+                                  : new Date(resume.expiryDate) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                                    ? 'text-orange-600 dark:text-orange-400'
+                                    : 'text-slate-600 dark:text-slate-400'
+                              }`}>
+                                {resume.isExpired && <AlertTriangle className="w-3 h-3" />}
+                                {new Date(resume.expiryDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}
+                                {resume.isExpired && <span className="text-xs ml-1">(Expired)</span>}
+                              </div>
+                            ) : (
+                              <span className="text-slate-400">No expiry set</span>
+                            )}
+                          </div>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
@@ -452,6 +560,26 @@ const AdminCvManagement = () => {
                             disabled={!resume.email}
                           >
                             <Mail className="w-4 h-4" />
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openExpiryDialog(resume)}
+                            className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                            title="Set Expiry Date"
+                          >
+                            <Clock className="w-4 h-4" />
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openDeleteDialog(resume)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            title="Delete Resume"
+                          >
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
                       </TableCell>
@@ -556,6 +684,149 @@ const AdminCvManagement = () => {
           onClose={closeCvViewer}
           onStatusUpdate={updateCvStatus}
         />
+      )}
+
+      {/* Expiry Date Dialog */}
+      {showExpiryDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div 
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={closeExpiryDialog}
+          />
+          <div className="relative bg-white dark:bg-slate-900 rounded-lg shadow-2xl p-6 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                Set CV Expiry Date
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={closeExpiryDialog}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                ×
+              </Button>
+            </div>
+            
+            {selectedCvForExpiry && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                  <Avatar className="w-10 h-10">
+                    <AvatarFallback className="bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300">
+                      {selectedCvForExpiry.name ? selectedCvForExpiry.name.split(' ').map(n => n[0]).join('') : 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium text-slate-900 dark:text-white">{selectedCvForExpiry.name || 'Unknown User'}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">{selectedCvForExpiry.email || 'N/A'}</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Current Expiry: <span className="font-semibold">
+                      {selectedCvForExpiry.expiryDate ? new Date(selectedCvForExpiry.expiryDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) : 'Not set'}
+                    </span>
+                  </label>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                    Set a new expiry date for this CV:
+                  </p>
+                  
+                  <input
+                    type="date"
+                    value={tempExpiryDate}
+                    onChange={(e) => setTempExpiryDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                    Leave empty to remove expiry date
+                  </p>
+                </div>
+                
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+                  <Button variant="outline" onClick={closeExpiryDialog}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleSaveExpiry}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    Save Changes
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div 
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={closeDeleteDialog}
+          />
+          <div className="relative bg-white dark:bg-slate-900 rounded-lg shadow-2xl p-6 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                Delete Resume
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={closeDeleteDialog}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                ×
+              </Button>
+            </div>
+            
+            {selectedCvForDelete && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                  <div className="p-2 bg-red-100 dark:bg-red-900/40 rounded-full">
+                    <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-red-900 dark:text-red-100">Warning</p>
+                    <p className="text-sm text-red-700 dark:text-red-300">This action cannot be undone</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                  <Avatar className="w-10 h-10">
+                    <AvatarFallback className="bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300">
+                      {selectedCvForDelete.name ? selectedCvForDelete.name.split(' ').map(n => n[0]).join('') : 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium text-slate-900 dark:text-white">{selectedCvForDelete.name || 'Unknown User'}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">{selectedCvForDelete.email || 'N/A'}</p>
+                  </div>
+                </div>
+                
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  Are you sure you want to delete this resume? This will permanently remove the resume file and all associated data.
+                </p>
+                
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+                  <Button variant="outline" onClick={closeDeleteDialog}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleDeleteResume}
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    Delete Resume
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
     </div>

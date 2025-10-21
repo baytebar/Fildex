@@ -25,7 +25,7 @@ export const uploadResume = async (req, res, next) => {
     }
 
     // Extract data from request body
-    const { name, email, contact } = req.body;
+    const { name, email, contact, role } = req.body;
     
     // Validate required fields
     if (!name || !email) {
@@ -46,7 +46,7 @@ export const uploadResume = async (req, res, next) => {
       );
     }
 
-    // Parse contact information
+    // Parse contact information (optional)
     let contactInfo = { number: "", country_code: "" };
     if (contact) {
       try {
@@ -56,14 +56,9 @@ export const uploadResume = async (req, res, next) => {
       }
     }
 
-    // Validate contact number
-    if (!contactInfo.number) {
-      return handleResponse(
-        res,
-        HttpStatusCodes.BAD_REQUEST,
-        rejectResponseMessage.missingContactNumber
-      );
-    }
+    // Ensure contact info has default values
+    if (!contactInfo.number) contactInfo.number = "";
+    if (!contactInfo.country_code) contactInfo.country_code = "";
 
     // Generate unique filename
     const fileExt = path.extname(req.file.originalname);
@@ -84,7 +79,9 @@ export const uploadResume = async (req, res, next) => {
       name,
       email,
       contact: contactInfo,
+      role: role || "",
       "resume-link": uploadResult.Location,
+      expiryDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days from now
     };
 
     const newResume = new Resume(resumeData);
@@ -232,7 +229,7 @@ export const updateResumeStatus = async (req, res, next) => {
     }
 
     // Validate status
-    const validStatuses = ['new', 'reviewed', 'shortlisted', 'rejected', 'hired'];
+    const validStatuses = ['new', 'reviewed', 'under_review', 'shortlisted', 'interview_scheduled', 'hired', 'rejected', 'on_hold'];
     if (!status || !validStatuses.includes(status)) {
       return handleResponse(
         res,
@@ -304,6 +301,81 @@ export const getResumeDownloadUrl = async (req, res, next) => {
       HttpStatusCodes.OK,
       successResponseMessage.resumeFetched,
       { url: signedUrl }
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateResumeExpiry = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { expiryDate } = req.body;
+
+    // Validate MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return handleResponse(
+        res,
+        HttpStatusCodes.BAD_REQUEST,
+        rejectResponseMessage.invalidIdFormat
+      );
+    }
+
+    // Validate expiry date
+    if (expiryDate && new Date(expiryDate) <= new Date()) {
+      return handleResponse(
+        res,
+        HttpStatusCodes.BAD_REQUEST,
+        "Expiry date must be in the future"
+      );
+    }
+
+    const resume = await Resume.findById(id);
+    if (!resume) {
+      return handleResponse(
+        res,
+        HttpStatusCodes.NOT_FOUND,
+        rejectResponseMessage.resumeNotFound
+      );
+    }
+
+    // Update the expiry date and check if expired
+    resume.expiryDate = expiryDate ? new Date(expiryDate) : null;
+    resume.isExpired = expiryDate ? new Date(expiryDate) <= new Date() : false;
+    await resume.save();
+
+    return handleResponse(
+      res,
+      HttpStatusCodes.OK,
+      "Resume expiry updated successfully",
+      resume
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const checkExpiredResumes = async (req, res, next) => {
+  try {
+    // Find all resumes with expiry dates that have passed
+    const expiredResumes = await Resume.find({
+      expiryDate: { $lte: new Date() },
+      isExpired: false
+    });
+
+    // Update expired status
+    if (expiredResumes.length > 0) {
+      await Resume.updateMany(
+        { _id: { $in: expiredResumes.map(r => r._id) } },
+        { isExpired: true }
+      );
+    }
+
+    return handleResponse(
+      res,
+      HttpStatusCodes.OK,
+      "Expired resumes checked successfully",
+      { expiredCount: expiredResumes.length }
     );
   } catch (error) {
     next(error);

@@ -14,9 +14,11 @@ import {
   Briefcase,
   Edit,
   Trash2,
-  Eye
+  Eye,
+  Pause,
+  Play
 } from 'lucide-react'
-import { getAllJobPostings, deleteJobPosting } from '../../features/admin/adminSlice'
+import { getAllJobPostings, deleteJobPosting, pauseJobPosting, resumeJobPosting } from '../../features/admin/adminSlice'
 import { toast } from 'sonner'
 import Spinner from '../../components/Spinner'
 
@@ -80,6 +82,28 @@ const AdminJobPostings = () => {
       })
       .catch((error) => {
         toast.error('Failed to delete job posting: ' + error.message)
+      })
+  }, [dispatch])
+
+  const handlePauseJob = useCallback((jobId) => {
+    dispatch(pauseJobPosting(jobId))
+      .unwrap()
+      .then(() => {
+        toast.success('Job posting paused successfully!')
+      })
+      .catch((error) => {
+        toast.error('Failed to pause job posting: ' + error.message)
+      })
+  }, [dispatch])
+
+  const handleResumeJob = useCallback((jobId) => {
+    dispatch(resumeJobPosting(jobId))
+      .unwrap()
+      .then(() => {
+        toast.success('Job posting resumed successfully!')
+      })
+      .catch((error) => {
+        toast.error('Failed to resume job posting: ' + error.message)
       })
   }, [dispatch])
 
@@ -178,7 +202,7 @@ const AdminJobPostings = () => {
                     </div>
                     <div className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
-                      {job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'Date not specified'}
+                      {job.createdAt ? new Date(job.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) : 'Date not specified'}
                     </div>
                   </div>
                 </div>
@@ -231,6 +255,25 @@ const AdminJobPostings = () => {
                   <Edit className="w-4 h-4 mr-1" />
                   Edit
                 </Button>
+                {job.status === 'active' ? (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                    onClick={() => handlePauseJob(job._id || job.id)}
+                  >
+                    <Pause className="w-4 h-4" />
+                  </Button>
+                ) : job.status === 'paused' ? (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                    onClick={() => handleResumeJob(job._id || job.id)}
+                  >
+                    <Play className="w-4 h-4" />
+                  </Button>
+                ) : null}
                 <Button 
                   variant="outline" 
                   size="sm" 

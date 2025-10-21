@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useCallback } from 'react'
+import React, { useState, useMemo, useCallback, useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import JobPostingForm from './JobPostingForm'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -15,10 +16,43 @@ import {
   Download, Eye, Edit, Filter, MoreHorizontal,
   TrendingUp, Calendar, UserCheck, FileSpreadsheet,
   Building2, MapPin, DollarSign, Clock3, Star,
-  ChevronDown, Settings, Bell, HelpCircle
+  ChevronDown, Bell, HelpCircle
 } from 'lucide-react'
+import { getAllUsers, getAllJobPostings, getAllDepartments } from '../../features/admin/adminSlice'
+import { fetchAllResumes } from '../../features/resume/resumeSlice'
+import { fetchRecentCvs, checkForNewCvs, markAsRead, markAllAsRead, addCvUploadNotification } from '../../features/notifications/notificationSlice'
 
 const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPostings, setJobPostings }) => {
+  const dispatch = useDispatch()
+  
+  // Redux selectors for real data
+  const { data: users, totalUsers, isLoading: usersLoading } = useSelector((state) => state.admin.users)
+  const { data: jobPostingsData, isLoading: jobsLoading } = useSelector((state) => state.admin.jobPostings)
+  const { data: departments, isLoading: deptLoading } = useSelector((state) => state.admin.departments)
+  const { resumes, isLoading: resumesLoading, pagination: resumePagination } = useSelector((state) => state.resume)
+  const { isAuthenticated } = useSelector((state) => state.admin)
+  const { unreadCount } = useSelector((state) => state.notifications)
+  
+  // Debug: Log notification state
+  console.log('Notification state:', { unreadCount })
+  
+  // Initialize notifications when component mounts
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchRecentCvs())
+    }
+  }, [dispatch, isAuthenticated])
+  
+  // Test function to add a notification
+  const addTestNotification = () => {
+    dispatch(addCvUploadNotification({
+      name: 'Test User',
+      role: 'Software Developer',
+      email: 'test@example.com',
+      phone: '1234567890'
+    }))
+  }
+  
   const [adminFilters, setAdminFilters] = useState({ search: '', role: '', status: '', sortBy: 'uploadedDate', sortOrder: 'desc' })
   const [activeTab, setActiveTab] = useState('overview') // 'overview', 'cv', 'jobs', 'analytics'
   const [showJobForm, setShowJobForm] = useState(false)
@@ -26,21 +60,18 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
   const [jobApplications, setJobApplications] = useState([]) // For tracking job applications
   const [selectedCv, setSelectedCv] = useState(null)
   const [showCvDialog, setShowCvDialog] = useState(false)
-  const [showSettingsDialog, setShowSettingsDialog] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [showMobileMenu, setShowMobileMenu] = useState(false)
-  const [settings, setSettings] = useState({
-    notifications: true,
-    emailAlerts: true,
-    autoDeleteExpired: false,
-    retentionDays: 365
-  })
-  const [tempSettings, setTempSettings] = useState({
-    notifications: true,
-    emailAlerts: true,
-    autoDeleteExpired: false,
-    retentionDays: 365
-  })
+
+  // Fetch data on component mount
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(getAllUsers({ page: 1, limit: 10 }))
+      dispatch(getAllJobPostings({ page: 1, limit: 10 }))
+      dispatch(getAllDepartments())
+      dispatch(fetchAllResumes({ page: 1, limit: 10 }))
+    }
+  }, [dispatch, isAuthenticated])
 
   const filteredCvData = useMemo(() => {
     let filtered = cvData.filter(cv => {
@@ -136,31 +167,6 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
   }, [setJobPostings])
 
 
-  const updateSettings = useCallback((newSettings) => {
-    setSettings(prev => ({ ...prev, ...newSettings }))
-    // In a real app, you would save to localStorage or send to server
-    localStorage.setItem('adminSettings', JSON.stringify({ ...settings, ...newSettings }))
-  }, [settings])
-
-  const openSettings = useCallback(() => {
-    setTempSettings({ ...settings })
-    setShowSettingsDialog(true)
-  }, [settings])
-
-  const saveSettings = useCallback(() => {
-    setSettings({ ...tempSettings })
-    localStorage.setItem('adminSettings', JSON.stringify(tempSettings))
-    setShowSettingsDialog(false)
-  }, [tempSettings])
-
-  const discardSettings = useCallback(() => {
-    setTempSettings({ ...settings })
-    setShowSettingsDialog(false)
-  }, [settings])
-
-  const updateTempSettings = useCallback((newSettings) => {
-    setTempSettings(prev => ({ ...prev, ...newSettings }))
-  }, [])
 
   const toggleNotifications = useCallback(() => {
     setShowNotifications(prev => !prev)
@@ -199,35 +205,44 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
                 variant="outline" 
                 size="sm"
                 onClick={toggleNotifications}
-                className="hidden sm:flex"
+                className="hidden sm:flex relative"
               >
                 <Bell className="w-4 h-4 mr-2" />
                 Notifications
+                {unreadCount > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 text-white">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </Badge>
+                )}
               </Button>
               <Button 
                 variant="outline" 
                 size="sm"
                 onClick={toggleNotifications}
-                className="sm:hidden p-2"
+                className="sm:hidden p-2 relative"
               >
                 <Bell className="w-4 h-4" />
+                {unreadCount > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 text-white">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </Badge>
+                )}
               </Button>
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={openSettings}
+                onClick={addTestNotification}
                 className="hidden sm:flex"
               >
-                <Settings className="w-4 h-4 mr-2" />
-                Settings
+                Test Notification
               </Button>
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={openSettings}
+                onClick={addTestNotification}
                 className="sm:hidden p-2"
               >
-                <Settings className="w-4 h-4" />
+                Test
               </Button>
               <Button 
                 variant="ghost" 
@@ -374,14 +389,14 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
                   <CardContent className="p-4 sm:p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-blue-100 text-sm font-medium">Total CVs</p>
-                        <p className="text-3xl font-bold">{cvData.length}</p>
+                        <p className="text-blue-100 text-sm font-medium">Total Resumes</p>
+                        <p className="text-3xl font-bold">{resumesLoading ? '...' : (resumes?.length || 0)}</p>
           </div>
                       <FileText className="w-8 h-8 text-blue-200" />
                     </div>
                     <div className="mt-4 flex items-center text-blue-100 text-sm">
                       <TrendingUp className="w-4 h-4 mr-1" />
-                      +12% from last month
+                      {resumePagination?.totalResumes || 0} total in system
                     </div>
                   </CardContent>
                 </Card>
@@ -391,13 +406,13 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-green-100 text-sm font-medium">Active Jobs</p>
-                        <p className="text-3xl font-bold">{jobPostings.filter(job => job.status === 'active').length}</p>
+                        <p className="text-3xl font-bold">{jobsLoading ? '...' : (jobPostingsData?.filter(job => job.status === 'active').length || 0)}</p>
               </div>
                       <Briefcase className="w-8 h-8 text-green-200" />
                     </div>
                     <div className="mt-4 flex items-center text-green-100 text-sm">
                       <UserCheck className="w-4 h-4 mr-1" />
-                      {jobPostings.reduce((sum, job) => sum + job.applicants, 0)} total applicants
+                      {jobPostingsData?.length || 0} total job postings
                     </div>
                   </CardContent>
                 </Card>
@@ -406,18 +421,14 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
                   <CardContent className="p-4 sm:p-6">
                     <div className="flex items-center justify-between">
                 <div>
-                        <p className="text-purple-100 text-sm font-medium">New This Week</p>
-                        <p className="text-3xl font-bold">{cvData.filter(cv => {
-                          const weekAgo = new Date()
-                          weekAgo.setDate(weekAgo.getDate() - 7)
-                          return new Date(cv.uploadedDate) > weekAgo
-                        }).length}</p>
+                        <p className="text-purple-100 text-sm font-medium">Total Users</p>
+                        <p className="text-3xl font-bold">{usersLoading ? '...' : (totalUsers || 0)}</p>
                 </div>
-                      <Calendar className="w-8 h-8 text-purple-200" />
+                      <Users className="w-8 h-8 text-purple-200" />
                     </div>
                     <div className="mt-4 flex items-center text-purple-100 text-sm">
                       <Clock3 className="w-4 h-4 mr-1" />
-                      Recent uploads
+                      Registered users
                     </div>
                   </CardContent>
                 </Card>
@@ -426,14 +437,14 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
                   <CardContent className="p-4 sm:p-6">
                     <div className="flex items-center justify-between">
                 <div>
-                        <p className="text-orange-100 text-sm font-medium">Success Rate</p>
-                        <p className="text-3xl font-bold">94%</p>
+                        <p className="text-orange-100 text-sm font-medium">Departments</p>
+                        <p className="text-3xl font-bold">{deptLoading ? '...' : (departments?.length || 0)}</p>
                 </div>
-                      <Star className="w-8 h-8 text-orange-200" />
+                      <Building2 className="w-8 h-8 text-orange-200" />
                     </div>
                     <div className="mt-4 flex items-center text-orange-100 text-sm">
                       <TrendingUp className="w-4 h-4 mr-1" />
-                      +5% improvement
+                      Active departments
                     </div>
                   </CardContent>
                 </Card>
@@ -451,25 +462,35 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {cvData.slice(0, 5).map((cv) => (
-                        <div key={cv.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                      {resumesLoading ? (
+                        <div className="text-center py-4">
+                          <p className="text-slate-500">Loading recent resumes...</p>
+                        </div>
+                      ) : resumes?.slice(0, 5).map((resume) => (
+                        <div key={resume._id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                           <Avatar className="w-10 h-10">
                             <AvatarFallback className="bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300">
-                              {cv.name.split(' ').map(n => n[0]).join('')}
+                              {resume.name ? resume.name.split(' ').map(n => n[0]).join('') : 'U'}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-slate-900 dark:text-white truncate">{cv.name}</p>
-                            <p className="text-sm text-slate-600 dark:text-slate-400 truncate">{cv.email}</p>
+                            <p className="font-medium text-slate-900 dark:text-white truncate">{resume.name || 'Unknown'}</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 truncate">{resume.email || 'N/A'}</p>
               </div>
                           <div className="text-right">
-                            <Badge variant={cv.status === 'active' ? 'default' : 'secondary'}>
-                              {cv.status}
+                            <Badge variant={resume.status === 'new' ? 'default' : 'secondary'}>
+                              {resume.status || 'new'}
                             </Badge>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{cv.uploadedDate}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                              {resume.createdAt ? new Date(resume.createdAt).toLocaleDateString() : 'N/A'}
+                            </p>
             </div>
                         </div>
-                      ))}
+                      )) || (
+                        <div className="text-center py-4">
+                          <p className="text-slate-500">No recent resumes</p>
+                        </div>
+                      )}
               </div>
                   </CardContent>
                 </Card>
@@ -484,21 +505,31 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {jobPostings.filter(job => job.status === 'active').slice(0, 5).map((job) => (
-                        <div key={job.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                      {jobsLoading ? (
+                        <div className="text-center py-4">
+                          <p className="text-slate-500">Loading job postings...</p>
+                        </div>
+                      ) : jobPostingsData?.filter(job => job.status === 'active').slice(0, 5).map((job) => (
+                        <div key={job._id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                           <div className="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
                             <Briefcase className="w-5 h-5 text-green-600 dark:text-green-300" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-slate-900 dark:text-white truncate">{job.title}</p>
-                            <p className="text-sm text-slate-600 dark:text-slate-400 truncate">{job.department} • {job.location}</p>
+                            <p className="font-medium text-slate-900 dark:text-white truncate">{job.title || 'Untitled Job'}</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 truncate">{job.department || 'No Department'} • {job.location || 'Remote'}</p>
                           </div>
                           <div className="text-right">
-                            <Badge variant="outline">{job.applicants} applicants</Badge>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{job.postedDate}</p>
+                            <Badge variant="outline">{job.applicants || 0} applicants</Badge>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                              {job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'N/A'}
+                            </p>
                           </div>
                         </div>
-                      ))}
+                      )) || (
+                        <div className="text-center py-4">
+                          <p className="text-slate-500">No active job postings</p>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -880,144 +911,6 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
           </Tabs>
          </main>
 
-         {/* Settings Sidebar */}
-         {showSettingsDialog && (
-           <div className="fixed inset-0 z-50 flex">
-             {/* Backdrop */}
-             <div 
-               className="flex-1 bg-black/50 backdrop-blur-sm"
-               onClick={discardSettings}
-             />
-             
-             {/* Settings Sidebar */}
-             <div className="w-full sm:w-96 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-700 shadow-2xl">
-               <div className="h-full flex flex-col">
-                 {/* Header */}
-                 <div className="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-700">
-                   <div className="flex items-center justify-between">
-                     <div className="flex items-center gap-3">
-                       <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                         <Settings className="w-5 h-5 text-white" />
-                       </div>
-                       <div>
-                         <h2 className="text-xl font-bold text-slate-900 dark:text-white">Settings</h2>
-                         <p className="text-sm text-slate-600 dark:text-slate-400">Configure your preferences</p>
-                       </div>
-                     </div>
-                     <Button
-                       variant="ghost"
-                       size="icon"
-                       onClick={discardSettings}
-                       className="text-slate-400 hover:text-slate-600"
-                     >
-                       <X className="w-5 h-5" />
-                     </Button>
-                   </div>
-                 </div>
-
-                 {/* Content */}
-                 <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-                   <div className="space-y-6">
-                     {/* Notifications Section */}
-                     <div className="space-y-4">
-                       <h4 className="font-medium text-slate-900 dark:text-white">Notifications</h4>
-                       <div className="space-y-3">
-                         <div className="flex items-center justify-between p-4 border border-slate-200 dark:border-slate-700 rounded-lg">
-                           <div>
-                             <p className="font-medium text-slate-900 dark:text-white">Push Notifications</p>
-                             <p className="text-sm text-slate-600 dark:text-slate-400">Receive notifications for new CV uploads</p>
-                           </div>
-                           <label className="relative inline-flex items-center cursor-pointer">
-                             <input
-                               type="checkbox"
-                               checked={tempSettings.notifications}
-                               onChange={(e) => updateTempSettings({ notifications: e.target.checked })}
-                               className="sr-only peer"
-                             />
-                             <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                           </label>
-                         </div>
-                         
-                         <div className="flex items-center justify-between p-4 border border-slate-200 dark:border-slate-700 rounded-lg">
-                           <div>
-                             <p className="font-medium text-slate-900 dark:text-white">Email Alerts</p>
-                             <p className="text-sm text-slate-600 dark:text-slate-400">Get email notifications for important events</p>
-                           </div>
-                           <label className="relative inline-flex items-center cursor-pointer">
-                             <input
-                               type="checkbox"
-                               checked={tempSettings.emailAlerts}
-                               onChange={(e) => updateTempSettings({ emailAlerts: e.target.checked })}
-                               className="sr-only peer"
-                             />
-                             <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                           </label>
-                         </div>
-                       </div>
-                     </div>
-
-                     {/* Data Management Section */}
-                     <div className="space-y-4">
-                       <h4 className="font-medium text-slate-900 dark:text-white">Data Management</h4>
-                       <div className="space-y-3">
-                         <div className="flex items-center justify-between p-4 border border-slate-200 dark:border-slate-700 rounded-lg">
-                           <div>
-                             <p className="font-medium text-slate-900 dark:text-white">Auto-delete Expired CVs</p>
-                             <p className="text-sm text-slate-600 dark:text-slate-400">Automatically remove CVs after retention period</p>
-                           </div>
-                           <label className="relative inline-flex items-center cursor-pointer">
-                             <input
-                               type="checkbox"
-                               checked={tempSettings.autoDeleteExpired}
-                               onChange={(e) => updateTempSettings({ autoDeleteExpired: e.target.checked })}
-                               className="sr-only peer"
-                             />
-                             <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                           </label>
-                         </div>
-                         
-                         <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg">
-                           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                             CV Retention Period (Days)
-                           </label>
-                           <input
-                             type="number"
-                             value={tempSettings.retentionDays}
-                             onChange={(e) => updateTempSettings({ retentionDays: parseInt(e.target.value) })}
-                             className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                             min="30"
-                             max="1095"
-                           />
-                           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">CVs will be retained for this many days (30-1095)</p>
-                         </div>
-                       </div>
-                     </div>
-
-                   </div>
-                 </div>
-
-                 {/* Footer */}
-                 <div className="p-4 sm:p-6 border-t border-slate-200 dark:border-slate-700">
-                   <div className="flex items-center gap-3">
-                     <Button
-                       variant="outline"
-                       onClick={discardSettings}
-                       className="flex-1"
-                     >
-                       Discard
-                     </Button>
-                     <Button
-                       onClick={saveSettings}
-                       className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                     >
-                       Save Changes
-                     </Button>
-                   </div>
-                 </div>
-               </div>
-             </div>
-           </div>
-         )}
 
          {/* Notifications Panel */}
          {showNotifications && (
@@ -1170,4 +1063,6 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
   )
 }
 
+export default AdminDashboard
+export default AdminDashboard
 export default AdminDashboard

@@ -303,3 +303,91 @@ export const deleteJobPosting = async (req, res) => {
     );
   }
 };
+
+// ----------------------------
+// Pause Job Posting
+// ----------------------------
+export const pauseJobPosting = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return handleResponse(
+        res,
+        HttpStatusCodes.BAD_REQUEST,
+        rejectResponseMessage.invalidId
+      );
+    }
+
+    const job = await JobPosting.findOne({ _id: id, isDeleted: false });
+    if (!job) {
+      return handleResponse(
+        res,
+        HttpStatusCodes.NOT_FOUND,
+        rejectResponseMessage.dataNotFound
+      );
+    }
+
+    job.status = 'paused';
+    await job.save();
+
+    return handleResponse(
+      res,
+      HttpStatusCodes.OK,
+      "Job posting paused successfully",
+      { id: job._id, status: 'paused' }
+    );
+  } catch (error) {
+    console.error("Error in pauseJobPosting:", error);
+    return handleResponse(
+      res,
+      HttpStatusCodes.INTERNAL_SERVER_ERROR,
+      rejectResponseMessage.serverError,
+      error.message
+    );
+  }
+};
+
+// ----------------------------
+// Resume Job Posting
+// ----------------------------
+export const resumeJobPosting = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return handleResponse(
+        res,
+        HttpStatusCodes.BAD_REQUEST,
+        rejectResponseMessage.invalidId
+      );
+    }
+
+    const job = await JobPosting.findOne({ _id: id, isDeleted: false });
+    if (!job) {
+      return handleResponse(
+        res,
+        HttpStatusCodes.NOT_FOUND,
+        rejectResponseMessage.dataNotFound
+      );
+    }
+
+    job.status = 'active';
+    await job.save();
+
+    return handleResponse(
+      res,
+      HttpStatusCodes.OK,
+      "Job posting resumed successfully",
+      { id: job._id, status: 'active' }
+    );
+  } catch (error) {
+    console.error("Error in resumeJobPosting:", error);
+    return handleResponse(
+      res,
+      HttpStatusCodes.INTERNAL_SERVER_ERROR,
+      rejectResponseMessage.serverError,
+      error.message
+    );
+  }
+};

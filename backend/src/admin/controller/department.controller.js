@@ -20,8 +20,8 @@ export const getAllDepartments = async (req, res, next) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const totalDepartments = await Department.countDocuments({ isDeleted: false });
-    const departments = await Department.find({ isDeleted: false })
+    const totalDepartments = await Department.countDocuments({ status: 'active', isDeleted: false });
+    const departments = await Department.find({ status: 'active', isDeleted: false })
       .populate("created_by", "user_name email")
       .skip(skip)
       .limit(limit)
@@ -185,9 +185,9 @@ export const updateDepartment = async (req, res, next) => {
 }
 
 // ----------------------------
-// Soft Delete Department
+// Hold Department (instead of delete)
 // ----------------------------
-export const deleteDepartment = async (req, res, next) => {
+export const holdDepartment = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -200,10 +200,35 @@ export const deleteDepartment = async (req, res, next) => {
       return handleResponse(res, HttpStatusCodes.NOT_FOUND, rejectResponseMessage.departmentNotFound);
     }
 
-    department.isDeleted = true;
+    department.status = 'hold';
     await department.save();
 
-    return handleResponse(res, HttpStatusCodes.OK, successResponseMessage.deleted, { id: department._id });
+    return handleResponse(res, HttpStatusCodes.OK, "Department held successfully", { id: department._id, status: 'hold' });
+  } catch (error) {
+    next(error)
+  }
+};
+
+// ----------------------------
+// Reactivate Department
+// ----------------------------
+export const reactivateDepartment = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return handleResponse(res, HttpStatusCodes.BAD_REQUEST, rejectResponseMessage.invalidId);
+    }
+
+    const department = await Department.findOne({ _id: id, isDeleted: false });
+    if (!department) {
+      return handleResponse(res, HttpStatusCodes.NOT_FOUND, rejectResponseMessage.departmentNotFound);
+    }
+
+    department.status = 'active';
+    await department.save();
+
+    return handleResponse(res, HttpStatusCodes.OK, "Department reactivated successfully", { id: department._id, status: 'active' });
   } catch (error) {
     next(error)
   }

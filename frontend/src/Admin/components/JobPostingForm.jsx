@@ -125,7 +125,7 @@ const JobPostingForm = ({ onClose, onSave, jobData = null, isEditing = false }) 
                     onChange={handleInputChange}
                     required
                     className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white"
-                    placeholder="e.g., Dublin, Ireland"
+                    placeholder="e.g., Cork, Ireland"
                   />
                 </div>
                 

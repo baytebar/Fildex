@@ -12,16 +12,10 @@ function Footer() {
                             Complete digital service provider delivering website development, software solutions, and business process support.
                         </p>
                         <div className="flex gap-4">
-                            <a href="#" className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary hover:bg-primary/20 transition-colors">
+                            <a href="https://www.linkedin.com/company/fildex-solutions-limited/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary hover:bg-primary/20 transition-colors">
                                 <span className="sr-only">LinkedIn</span>
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-                                </svg>
-                            </a>
-                            <a href="https://x.com/fildex_solutions" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary hover:bg-primary/20 transition-colors">
-                                <span className="sr-only">X</span>
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                                 </svg>
                             </a>
                             <a href="https://www.instagram.com/fildex_solutions" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary hover:bg-primary/20 transition-colors">
@@ -36,7 +30,7 @@ function Footer() {
                     <div>
                         <h4 className="font-bold text-foreground mb-4 text-lg">Services</h4>
                         <ul className="space-y-3">
-                            <li><Link to="#training" className="text-muted-foreground hover:text-foreground transition-colors text-base">Training Programs</Link></li>
+                            <li><a href="#training" className="text-muted-foreground hover:text-foreground transition-colors text-base">Training Programs</a></li>
                             <li><Link to="/careers" className="text-muted-foreground hover:text-foreground transition-colors text-base">Career Services</Link></li>
                         </ul>
                     </div>
@@ -44,9 +38,9 @@ function Footer() {
                     <div>
                         <h4 className="font-bold text-foreground mb-4 text-lg">Company</h4>
                         <ul className="space-y-3">
-                            <li><Link to="#about" className="text-muted-foreground hover:text-foreground transition-colors text-base">About Us</Link></li>
-                            <li><Link to="#contact" className="text-muted-foreground hover:text-foreground transition-colors text-base">Contact</Link></li>
-                            <li><Link to="#privacy" className="text-muted-foreground hover:text-foreground transition-colors text-base">Privacy Policy</Link></li>
+                            <li><a href="#about" className="text-muted-foreground hover:text-foreground transition-colors text-base">About Us</a></li>
+                            <li><a href="#contact" className="text-muted-foreground hover:text-foreground transition-colors text-base">Contact</a></li>
+                            <li><Link to="/privacy" className="text-muted-foreground hover:text-foreground transition-colors text-base">Privacy Policy</Link></li>
                             <li><Link to="/admin-login" className="text-muted-foreground hover:text-foreground transition-colors text-base">Admin Login</Link></li>
                         </ul>
                     </div>
@@ -54,17 +48,33 @@ function Footer() {
                     <div>
                         <h4 className="font-bold text-foreground mb-4 text-lg">Connect</h4>
                         <ul className="space-y-3">
-                            <li><a href="mailto:careers@fildex.ie" className="text-muted-foreground hover:text-foreground transition-colors text-base">careers@fildex.ie</a></li>
-                            <li><a href="tel:+35312345678" className="text-muted-foreground hover:text-foreground transition-colors text-base">+353 1 234 5678</a></li>
-                            <li><a href="https://wa.me/353123456789" className="text-muted-foreground hover:text-foreground transition-colors text-base">WhatsApp Support</a></li>
-                            <li><Link to="#contact" className="text-muted-foreground hover:text-foreground transition-colors text-base">Contact Form</Link></li>
+                            <li><a href="mailto:admin@fildex.ie" className="text-muted-foreground hover:text-foreground transition-colors text-base">admin@fildex.ie</a></li>
+                            <li><a href="tel:+353894331074" className="text-muted-foreground hover:text-foreground transition-colors text-base">+353 89 433 1074</a></li>
+                            <li><a href="https://wa.me/353894331074" className="text-muted-foreground hover:text-foreground transition-colors text-base">WhatsApp Support</a></li>
+
                         </ul>
                     </div>
                 </div>
 
                 <div className="border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="text-base text-muted-foreground">
-                        © {new Date().getFullYear()} Fildex Solutions. All rights reserved.
+                    <div className="flex items-center gap-4">
+                        <div className="text-base text-muted-foreground">
+                            © {new Date().getFullYear()} Fildex Solutions. All rights reserved.
+                        </div>
+                        <div className="flex items-center gap-2">
+                            {/* Ireland Flag */}
+                            <div className="flex w-8 h-5 rounded-sm overflow-hidden shadow-sm">
+                                <div className="w-1/3 bg-green-600"></div>
+                                <div className="w-1/3 bg-white"></div>
+                                <div className="w-1/3 bg-orange-500"></div>
+                            </div>
+                            {/* European Union Flag */}
+                            <img 
+                                src="/src/images/europion-union.png" 
+                                alt="European Union Flag" 
+                                className="w-8 h-5 rounded-sm shadow-sm object-cover"
+                            />
+                        </div>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span>Hosted on Hetzner</span>

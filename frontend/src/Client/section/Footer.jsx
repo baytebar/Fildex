@@ -40,7 +40,7 @@ function Footer() {
                         <ul className="space-y-3">
                             <li><a href="#about" className="text-muted-foreground hover:text-foreground transition-colors text-base">About Us</a></li>
                             <li><a href="#contact" className="text-muted-foreground hover:text-foreground transition-colors text-base">Contact</a></li>
-                            <li><Link to="/privacy" className="text-muted-foreground hover:text-foreground transition-colors text-base">Privacy Policy</Link></li>
+                            <li><Link to="/privacy-policy" className="text-muted-foreground hover:text-foreground transition-colors text-base">Privacy Policy</Link></li>
                             <li><Link to="/admin-login" className="text-muted-foreground hover:text-foreground transition-colors text-base">Admin Login</Link></li>
                         </ul>
                     </div>

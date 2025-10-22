@@ -334,8 +334,8 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
                   />
                   <label className="text-sm text-muted-foreground">
                     I consent to the processing of my personal data for recruitment purposes.
-                    <a href="#privacy" className="text-primary hover:underline"> Privacy Policy</a>.
-                    Data will be retained for 12 months.
+                    <a href="/privacy-policy" className="text-primary hover:underline"> Privacy Policy</a>.
+                    Data will be retained for 6 months.
                   </label>
                 </div>
 

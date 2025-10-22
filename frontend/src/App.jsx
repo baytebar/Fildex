@@ -39,6 +39,7 @@ import { adminLogout, setAdmin, restoreAdminAuth } from './features/admin/adminS
 import Footer from './Client/section/Footer'
 import AdminDepartmentManagement from './Admin/pages/AdminDepartmentManagement'
 import Loader from './Client/components/Loader'
+import PrivacyPolicy from './Client/pages/PrivacyPolicy'
 
 
 
@@ -227,6 +228,9 @@ const App = () => {
                 } />
                 <Route path="/careers" element={
                   <Careers setCvData={setCvData} jobPostings={jobPostings} />
+                } />
+                <Route path="/privacy-policy" element={
+                  <PrivacyPolicy />
                 } />
                 <Route path="/login" element={
                   <PublicRoute>

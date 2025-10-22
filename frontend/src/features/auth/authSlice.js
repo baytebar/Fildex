@@ -28,7 +28,12 @@ export const registerUser = createAsyncThunk(
       const response = await api.user.register(userData);
       return response;
     } catch (error) {
-      toast.error('Registration failed: ' + (error.message || 'Please try again'));
+      // Handle specific error cases
+      if (error.message && error.message.includes('email already exist')) {
+        toast.error('An account with this email already exists. Please try logging in or use a different email.');
+      } else {
+        toast.error('Registration failed: ' + (error.message || 'Please try again'));
+      }
       return rejectWithValue(error.message);
     }
   }

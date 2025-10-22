@@ -39,11 +39,11 @@ const Signup = () => {
 
     try {
       await dispatch(registerUser({ name, email, password, confirm_password: confirmPassword })).unwrap()
-      // Removed the toast message as requested
+      // Registration successful - navigate to login
       navigate('/login')
     } catch (error) {
-      // Error is handled by Redux state
-      toast.error('Registration failed. Please try again.')
+      // Error is handled by Redux state and specific error messages are shown
+      console.error('Registration error:', error)
     }
   }
 

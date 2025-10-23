@@ -15,12 +15,14 @@ import {
   Plus, LogOut, X, LayoutDashboard, User, 
   Download, Eye, Edit, Filter, MoreHorizontal,
   TrendingUp, Calendar, UserCheck, FileSpreadsheet,
-  Building2, MapPin, DollarSign, Clock3, Star,
+  Building2, MapPin, Clock3, Star,
   ChevronDown, Bell, HelpCircle
 } from 'lucide-react'
 import { getAllUsers, getAllJobPostings, getAllDepartments } from '../../features/admin/adminSlice'
 import { fetchAllResumes } from '../../features/resume/resumeSlice'
 import { fetchRecentCvs, checkForNewCvs, markAsRead, markAllAsRead, addCvUploadNotification } from '../../features/notifications/notificationSlice'
+import { useSocket } from '../../hooks/useSocket'
+import NotificationPopup from '../../components/NotificationPopup'
 
 const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPostings, setJobPostings }) => {
   const dispatch = useDispatch()
@@ -33,13 +35,15 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
   const { isAuthenticated } = useSelector((state) => state.admin)
   const { unreadCount } = useSelector((state) => state.notifications)
   
+  // Initialize Socket.IO connection for real-time notifications
+  const { isConnected } = useSocket()
   
-  // Initialize notifications when component mounts - DISABLED
-  // useEffect(() => {
-  //   if (isAuthenticated) {
-  //     dispatch(fetchRecentCvs())
-  //   }
-  // }, [dispatch, isAuthenticated])
+  // Initialize notifications when component mounts
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchRecentCvs())
+    }
+  }, [dispatch, isAuthenticated])
   
   // Test function to add a notification
   const addTestNotification = () => {
@@ -49,6 +53,16 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
       email: 'test@example.com',
       phone: '1234567890'
     }))
+  }
+
+  // Test Socket.IO connection
+  const testSocketConnection = () => {
+    console.log('Socket.IO connection status:', isConnected);
+    if (isConnected) {
+      toast.success('Socket.IO is connected and ready for real-time notifications!');
+    } else {
+      toast.error('Socket.IO is not connected. Check server connection.');
+    }
   }
   
   const [adminFilters, setAdminFilters] = useState({ search: '', role: '', status: '', sortBy: 'uploadedDate', sortOrder: 'desc' })
@@ -233,6 +247,14 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
                 className="hidden sm:flex"
               >
                 Test Notification
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={testSocketConnection}
+                className="hidden sm:flex"
+              >
+                Test Socket.IO
               </Button>
               <Button 
                 variant="outline" 
@@ -810,7 +832,7 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
                       </div>
                             {job.salary && (
                               <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                                <DollarSign className="w-4 h-4" />
+                                <span className="text-green-600 font-semibold">€</span>
                                 {job.salary}
                     </div>
                             )}
@@ -1008,6 +1030,9 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
              </div>
            </div>
           )}
+
+         {/* Notification Popup */}
+         <NotificationPopup />
         </div>
 
        {/* CV Detail Dialog */}

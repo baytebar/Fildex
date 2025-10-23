@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react'
-import { Rocket, FileText, AlertTriangle, Check, Star, Flame, Briefcase, MapPin, DollarSign, Calendar, ArrowRight } from 'lucide-react'
+import { Rocket, FileText, AlertTriangle, Check, Star, Flame, Briefcase, MapPin, Calendar, ArrowRight } from 'lucide-react'
 import FildexLogo from '../../images/FILDEX_SOLUTIONS.png'
 import { Link } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
@@ -499,7 +499,7 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
                         )}
                         {job.salary_range && (
                           <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <DollarSign className="w-4 h-4" />
+                            <span className="text-green-600 font-semibold">€</span>
                             <span>{job.salary_range}</span>
                           </div>
                         )}

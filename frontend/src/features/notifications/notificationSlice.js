@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { api } from '../../config/api';
+import socketService from '../../services/socketService';
 
 // Async thunk to fetch recent CVs from server
 export const fetchRecentCvs = createAsyncThunk(
@@ -68,6 +69,18 @@ const notificationSlice = createSlice({
       };
       state.newCvNotifications.unshift(notification);
       state.unreadCount += 1;
+    },
+    addSocketNotification: (state, action) => {
+      const notification = action.payload;
+      // Check if notification already exists to prevent duplicates
+      const existingNotification = state.newCvNotifications.find(n => 
+        n.cvData?._id === notification.cvData?._id || n.id === notification.id
+      );
+      
+      if (!existingNotification) {
+        state.newCvNotifications.unshift(notification);
+        state.unreadCount += 1;
+      }
     },
     markAsRead: (state, action) => {
       const notification = state.newCvNotifications.find(n => n.id === action.payload);
@@ -145,6 +158,7 @@ const notificationSlice = createSlice({
 export const { 
   addNotification, 
   addCvUploadNotification,
+  addSocketNotification,
   markAsRead, 
   markAllAsRead, 
   clearNotifications, 

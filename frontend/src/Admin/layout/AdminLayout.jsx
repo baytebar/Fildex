@@ -4,11 +4,13 @@ import { useSelector, useDispatch } from 'react-redux'
 import { getAllUsers, getAllDepartments, getAllAdmins, getAllJobTitles, getAllJobPostings, adminLogout } from '../../features/admin/adminSlice'
 import { fetchAllResumes } from '../../features/resume/resumeSlice'
 import { fetchRecentCvs, checkForNewCvs, markAsRead, markAllAsRead, addCvUploadNotification } from '../../features/notifications/notificationSlice'
+import { useSocket } from '../../hooks/useSocket'
 import { Button } from '../../components/ui/button'
 import { Badge } from '../../components/ui/badge'
 import { Avatar, AvatarFallback } from '../../components/ui/avatar'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../components/ui/dialog'
 import { Toaster } from 'sonner'
+import NotificationPopup from '../../components/NotificationPopup'
 import { 
   LayoutDashboard, 
   Bell, 
@@ -41,6 +43,9 @@ const AdminLayout = () => {
   const { isAuthenticated } = useSelector((state) => state.admin)
   const { newCvNotifications, unreadCount, lastChecked } = useSelector((state) => state.notifications)
   const { uploadStatus } = useSelector((state) => state.resume)
+  
+  // Initialize Socket.IO connection for real-time notifications
+  const { isConnected } = useSocket()
   
   // Check if any critical data is still loading (only show loader on initial load)
   const isInitialLoading = (usersLoading || departmentsLoading || adminsLoading || jobTitlesLoading || jobPostingsLoading || resumesLoading) && isAuthenticated && !hasInitiallyLoaded
@@ -82,16 +87,16 @@ const AdminLayout = () => {
   useEffect(() => {
     if (!isAuthenticated) return
 
-    // Initial fetch of recent CVs - DISABLED
-    // dispatch(fetchRecentCvs())
+    // Initial fetch of recent CVs
+    dispatch(fetchRecentCvs())
 
-    // DISABLED: Polling for new CVs
-    // const pollInterval = setInterval(() => {
-    //   const checkTime = lastChecked || new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // Check last 24 hours if no previous check
-    //   dispatch(checkForNewCvs(checkTime))
-    // }, 10000) // Check every 10 seconds
+    // Polling for new CVs every 30 seconds
+    const pollInterval = setInterval(() => {
+      const checkTime = lastChecked || new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // Check last 24 hours if no previous check
+      dispatch(checkForNewCvs(checkTime))
+    }, 30000) // Check every 30 seconds
 
-    // return () => clearInterval(pollInterval) // Disabled since polling is disabled
+    return () => clearInterval(pollInterval)
   }, [dispatch, isAuthenticated, lastChecked])
   const [showRoleDialog, setShowRoleDialog] = useState(false)
   const [selectedUserForRole, setSelectedUserForRole] = useState(null)
@@ -401,15 +406,17 @@ const AdminLayout = () => {
               <div className="h-full flex flex-col">
                 <div className="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-700">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-linear-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                        <Bell className="w-5 h-5 text-white" />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Notifications</h2>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">Recent activity and alerts</p>
-                      </div>
-                    </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-linear-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                    <Bell className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">Notifications</h2>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                      Recent activity and alerts
+                    </p>
+                  </div>
+                </div>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -502,6 +509,9 @@ const AdminLayout = () => {
             </div>
           </div>
         )}
+
+        {/* Notification Popup */}
+        <NotificationPopup />
       </div>
 
       {/* Role Assignment Dialog */}

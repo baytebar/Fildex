@@ -117,6 +117,31 @@ export const uploadResume = async (req, res, next) => {
       const newResume = new Resume(resumeData);
       const savedResume = await newResume.save();
 
+      // Emit Socket.IO notification to admin room
+      if (global.io) {
+        const notificationData = {
+          id: savedResume._id,
+          type: 'cv_upload',
+          message: `${savedResume.name} uploaded a CV${savedResume.role ? ` for ${savedResume.role}` : ''}`,
+          cvData: {
+            _id: savedResume._id,
+            name: savedResume.name,
+            email: savedResume.email,
+            role: savedResume.role || 'General Position',
+            phone: savedResume.contact?.number || '',
+            createdAt: savedResume.createdAt
+          },
+          timestamp: savedResume.createdAt,
+          read: false
+        };
+        
+        console.log('🔔 Sending CV upload notification to admin room:', notificationData);
+        global.io.to('admin').emit('new-cv-upload', notificationData);
+        console.log('✅ CV upload notification sent to admin room');
+      } else {
+        console.log('❌ Socket.IO not available for notification');
+      }
+
       return handleResponse(
         res,
         HttpStatusCodes.CREATED,
@@ -173,6 +198,31 @@ export const uploadResume = async (req, res, next) => {
 
     const newResume = new Resume(resumeData);
     const savedResume = await newResume.save();
+
+    // Emit Socket.IO notification to admin room
+    if (global.io) {
+      const notificationData = {
+        id: savedResume._id,
+        type: 'cv_upload',
+        message: `${savedResume.name} uploaded a CV${savedResume.role ? ` for ${savedResume.role}` : ''}`,
+        cvData: {
+          _id: savedResume._id,
+          name: savedResume.name,
+          email: savedResume.email,
+          role: savedResume.role || 'General Position',
+          phone: savedResume.contact?.number || '',
+          createdAt: savedResume.createdAt
+        },
+        timestamp: savedResume.createdAt,
+        read: false
+      };
+      
+      console.log('🔔 Sending CV upload notification to admin room:', notificationData);
+      global.io.to('admin').emit('new-cv-upload', notificationData);
+      console.log('✅ CV upload notification sent to admin room');
+    } else {
+      console.log('❌ Socket.IO not available for notification');
+    }
 
     // Respond with success
     return handleResponse(

@@ -97,7 +97,7 @@ const AdminLogin = () => {
                       value={formData.email}
                       onChange={handleChange}
                       className="pl-10"
-                      placeholder="admin@fildex.com"
+                      placeholder="email"
                       autoComplete="email"
                       required
                     />

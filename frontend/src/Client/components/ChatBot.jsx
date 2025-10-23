@@ -78,13 +78,8 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
       
       const result = await dispatch(uploadResume(formData)).unwrap()
       
-      // Create success message with extracted info
-      let successMessage = `Thank you ${userName}! Your resume has been uploaded successfully. Our team will review it and get back to you if there are any matching opportunities.`
-      
-      if (userInfo.phone) {
-        successMessage += `\n\nI found the following additional information in your resume:`
-        successMessage += `\n• Phone: ${formattedPhone}`
-      }
+      // Create short success message
+      const successMessage = `Thank you for submitting your CV. We will contact you shortly.`
       
       setMessages(ms => ([
         ...ms,
@@ -103,10 +98,10 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
       setUserEmail('')
       setUploadedFile(null)
       
-      // Close the chatbot after successful upload
+      // Close the chatbot after 3 seconds
       setTimeout(() => {
         handleCloseChat()
-      }, 2000) // Wait 2 seconds to let user see the success message
+      }, 3000) // Wait 3 seconds to let user see the success message
       
     } catch (error) {
       setMessages(ms => ([

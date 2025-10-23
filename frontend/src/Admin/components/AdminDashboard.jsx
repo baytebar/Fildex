@@ -34,12 +34,12 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
   const { unreadCount } = useSelector((state) => state.notifications)
   
   
-  // Initialize notifications when component mounts
-  useEffect(() => {
-    if (isAuthenticated) {
-      dispatch(fetchRecentCvs())
-    }
-  }, [dispatch, isAuthenticated])
+  // Initialize notifications when component mounts - DISABLED
+  // useEffect(() => {
+  //   if (isAuthenticated) {
+  //     dispatch(fetchRecentCvs())
+  //   }
+  // }, [dispatch, isAuthenticated])
   
   // Test function to add a notification
   const addTestNotification = () => {

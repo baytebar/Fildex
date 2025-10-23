@@ -19,6 +19,7 @@ export const API_ENDPOINTS = {
     RESUMES: '/resume',
     RESUME_DOWNLOAD: (id) => `/resume/${id}/download`,
     ADMINS: '/admin/admins',
+    DELETE_ADMIN: (id) => `/admin/admins/${id}`,
     NOTIFICATIONS: '/admin/notifications',
   },
   PUBLIC: {
@@ -124,6 +125,10 @@ export const api = {
       body: JSON.stringify({ status }),
     }),
 
+    deleteUser: (userId) => apiRequest(`${API_ENDPOINTS.ADMIN.USER_BY_ID}/${userId}`, {
+      method: 'DELETE',
+    }),
+
     getAllResumes: (params = {}) => {
       const queryString = new URLSearchParams(params).toString();
       const url = queryString ? `${API_ENDPOINTS.ADMIN.RESUMES}?${queryString}` : API_ENDPOINTS.ADMIN.RESUMES;
@@ -188,6 +193,9 @@ export const api = {
       body: JSON.stringify(jobData),
     }),
     deleteJobPosting: (id) => apiRequest(`${API_ENDPOINTS.ADMIN.JOB_POSTINGS}/${id}`, {
+      method: 'DELETE',
+    }),
+    deleteAdmin: (id) => apiRequest(API_ENDPOINTS.ADMIN.DELETE_ADMIN(id), {
       method: 'DELETE',
     }),
     pauseJobPosting: (id) => apiRequest(`${API_ENDPOINTS.ADMIN.JOB_POSTINGS}/${id}/pause`, {

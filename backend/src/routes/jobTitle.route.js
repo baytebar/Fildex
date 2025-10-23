@@ -19,18 +19,18 @@ jobTitleRouter.route('/active')
 
 // Admin routes (require authentication)
 jobTitleRouter.route('/')
-  .get(authenticate, authorizeRoles("admin"), getAllJobTitles)
-  .post(authenticate, authorizeRoles("admin"), createJobTitle);
+  .get(authenticate, authorizeRoles("admin", "super_admin"), getAllJobTitles)
+  .post(authenticate, authorizeRoles("admin", "super_admin"), createJobTitle);
 
 jobTitleRouter.route('/:id')
-  .get(authenticate, authorizeRoles("admin"), getJobTitleById)
-  .put(authenticate, authorizeRoles("admin"), updateJobTitle)
-  .delete(authenticate, authorizeRoles("admin"), deleteJobTitle);
+  .get(authenticate, authorizeRoles("admin", "super_admin"), getJobTitleById)
+  .put(authenticate, authorizeRoles("admin", "super_admin"), updateJobTitle)
+  .delete(authenticate, authorizeRoles("admin", "super_admin"), deleteJobTitle);
 
 jobTitleRouter.route('/:id/pause')
-  .put(authenticate, authorizeRoles("admin"), pauseJobTitle);
+  .put(authenticate, authorizeRoles("admin", "super_admin"), pauseJobTitle);
 
 jobTitleRouter.route('/:id/resume')
-  .put(authenticate, authorizeRoles("admin"), resumeJobTitle);
+  .put(authenticate, authorizeRoles("admin", "super_admin"), resumeJobTitle);
 
 export default jobTitleRouter;

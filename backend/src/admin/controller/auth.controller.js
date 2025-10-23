@@ -88,6 +88,7 @@ export const adminLogin = async (req, res, next) => {
       id: admin._id,
       user_name: admin.user_name,
       email: admin.email,
+      role: admin.role,
       token
     };
 

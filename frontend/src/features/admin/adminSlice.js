@@ -139,6 +139,20 @@ export const updateUserStatus = createAsyncThunk(
   }
 );
 
+export const deleteUser = createAsyncThunk(
+  'admin/deleteUser',
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await api.admin.deleteUser(userId);
+      toast.success('User deleted successfully!');
+      return { userId, response };
+    } catch (error) {
+      toast.error('Failed to delete user: ' + (error.message || 'Please try again'));
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 // Job Postings
 export const getAllJobPostings = createAsyncThunk(
   'admin/getAllJobPostings',
@@ -308,6 +322,21 @@ export const getAllAdmins = createAsyncThunk(
     }
   }
 );
+
+export const deleteAdmin = createAsyncThunk(
+  'admin/deleteAdmin',
+  async (adminId, { rejectWithValue }) => {
+    try {
+      const response = await api.admin.deleteAdmin(adminId);
+      toast.success('Admin deleted successfully!');
+      return { adminId, response };
+    } catch (error) {
+      toast.error('Failed to delete admin: ' + (error.message || 'Please try again'));
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 
 // Initial state
 const initialState = {
@@ -599,6 +628,22 @@ const adminSlice = createSlice({
         state.error = action.payload;
       })
       
+      // Delete User
+      .addCase(deleteUser.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(deleteUser.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.users.data = state.users.data.filter(user => user._id !== action.payload.userId);
+        state.users.totalUsers -= 1;
+        state.error = null;
+      })
+      .addCase(deleteUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      
       // Job Postings
       .addCase(getAllJobPostings.pending, (state) => {
         state.jobPostings.isLoading = true;
@@ -791,6 +836,21 @@ const adminSlice = createSlice({
         state.admins.error = null;
       })
       .addCase(getAllAdmins.rejected, (state, action) => {
+        state.admins.isLoading = false;
+        state.admins.error = action.payload;
+      })
+      
+      .addCase(deleteAdmin.pending, (state) => {
+        state.admins.isLoading = true;
+        state.admins.error = null;
+      })
+      .addCase(deleteAdmin.fulfilled, (state, action) => {
+        state.admins.isLoading = false;
+        state.admins.data = state.admins.data.filter(admin => admin._id !== action.payload.adminId);
+        state.admins.totalAdmins -= 1;
+        state.admins.error = null;
+      })
+      .addCase(deleteAdmin.rejected, (state, action) => {
         state.admins.isLoading = false;
         state.admins.error = action.payload;
       });

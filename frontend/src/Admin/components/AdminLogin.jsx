@@ -59,14 +59,15 @@ const AdminLogin = () => {
     }
   };
 
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
       <AuthHeader />
       <div className="flex items-center justify-center p-4 pt-20">
         <div className="w-full max-w-md">
           <Card className="shadow-xl border-0">
             <CardHeader className="text-center pb-8">
-              <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mb-4">
+              <div className="mx-auto w-16 h-16 bg-linear-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mb-4">
                 <Lock className="w-8 h-8 text-white" />
               </div>
               <CardTitle className="text-2xl font-bold text-gray-900">Admin Login</CardTitle>
@@ -77,7 +78,7 @@ const AdminLogin = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
                 <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0" />
+                  <AlertTriangle className="w-5 h-5 text-red-600 shrink-0" />
                   <span className="text-sm text-red-700">{error}</span>
                 </div>
               )}
@@ -134,7 +135,7 @@ const AdminLogin = () => {
               <Button
                 type="submit"
                 disabled={isLoading || !formData.email || !formData.password}
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 rounded-lg transition-all duration-200 transform hover:scale-105"
+                className="w-full bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 rounded-lg transition-all duration-200 transform hover:scale-105"
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center gap-2">
@@ -147,11 +148,12 @@ const AdminLogin = () => {
               </Button>
             </form>
             
+            
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
                 Need help? Contact{' '}
-                <a href="mailto:support@fildex.com" className="text-blue-600 hover:text-blue-700 font-medium">
-                  support@fildex.com
+                <a href="mailto:admin@fildex.ie" className="text-blue-600 hover:text-blue-700 font-medium">
+                  admin@fildex.ie
                 </a>
               </p>
             </div>
@@ -159,6 +161,7 @@ const AdminLogin = () => {
         </Card>
         </div>
       </div>
+
     </div>
   );
 };

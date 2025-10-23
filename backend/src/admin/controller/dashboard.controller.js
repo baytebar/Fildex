@@ -50,3 +50,45 @@ export const getUserById = async (req, res, next) => {
     next(error)
   }
 }
+
+export const deleteUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!id) return handleResponse(res, HttpStatusCodes.BAD_REQUEST, rejectResponseMessage.idRequired)
+
+    // Validate MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) return handleResponse(res, HttpStatusCodes.BAD_REQUEST, rejectResponseMessage.invalidIdFormat);
+
+    const user = await User.findById(id);
+    if (!user) return handleResponse(res, HttpStatusCodes.NOT_FOUND, rejectResponseMessage.noUserFound)
+
+    // Delete user's CV from cloud storage if it exists
+    if (user.cv?.url) {
+      try {
+        // Extract the key from the URL (everything after the last slash)
+        const urlParts = user.cv.url.split('/');
+        const key = urlParts[urlParts.length - 1];
+        
+        const { DeleteObjectCommand } = await import('@aws-sdk/client-s3');
+        const s3Client = (await import('../config/s3.config.js')).default;
+        
+        const params = {
+          Bucket: process.env.HETZNER_BUCKET,
+          Key: `user-cvs/${key}`,
+        };
+        
+        await s3Client.send(new DeleteObjectCommand(params));
+      } catch (s3Error) {
+        // Log error but don't fail the deletion
+        console.error('Error deleting CV from cloud storage:', s3Error);
+      }
+    }
+
+    // Delete the user from database
+    await User.findByIdAndDelete(id);
+
+    return handleResponse(res, HttpStatusCodes.OK, "User deleted successfully");
+  } catch (error) {
+    next(error);
+  }
+}

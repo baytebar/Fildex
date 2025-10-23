@@ -6,6 +6,14 @@ import { Badge } from '../../components/ui/badge'
 import { Avatar, AvatarFallback } from '../../components/ui/avatar'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table'
 import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '../../components/ui/dialog'
+import { 
   Search, 
   Plus, 
   User,
@@ -18,7 +26,9 @@ import {
 } from 'lucide-react'
 import { 
   getAllUsers, 
-  getAllAdmins
+  getAllAdmins,
+  deleteAdmin,
+  deleteUser
 } from '../../features/admin/adminSlice'
 import { toast } from 'sonner'
 import Spinner from '../../components/Spinner'
@@ -29,11 +39,73 @@ const AdminRoleManagement = () => {
   // Get data from Redux
   const { data: reduxUsers, isLoading: usersLoading, error: usersError } = useSelector((state) => state.admin.users)
   const { data: admins = [], isLoading: adminsLoading, error: adminsError } = useSelector((state) => state.admin.admins)
-  const { isAuthenticated } = useSelector((state) => state.admin)
+  const { isAuthenticated, admin: currentAdmin } = useSelector((state) => state.admin)
   
   const [activeTab, setActiveTab] = useState('admins')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedUser, setSelectedUser] = useState(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [userToDelete, setUserToDelete] = useState(null)
+  // Add state for admin deletion confirmation
+  const [deleteAdminDialogOpen, setDeleteAdminDialogOpen] = useState(false)
+  const [adminToDelete, setAdminToDelete] = useState(null)
+
+  // Check if current admin is super admin
+  const isSuperAdmin = currentAdmin?.role === 'super_admin'
+
+  // Handle admin deletion with confirmation
+  const handleDeleteAdmin = async (adminId, adminName) => {
+    if (!isSuperAdmin) {
+      toast.error('Only super admins can delete other admins')
+      return
+    }
+    
+    // Set the admin to delete and open confirmation dialog
+    setAdminToDelete({ id: adminId, name: adminName })
+    setDeleteAdminDialogOpen(true)
+  }
+
+  // Confirm admin deletion
+  const confirmDeleteAdmin = async () => {
+    if (adminToDelete) {
+      try {
+        await dispatch(deleteAdmin(adminToDelete.id)).unwrap()
+        setDeleteAdminDialogOpen(false)
+        setAdminToDelete(null)
+      } catch (error) {
+        // Error is already handled in the thunk
+      }
+    }
+  }
+
+  // Cancel admin deletion
+  const cancelDeleteAdmin = () => {
+    setDeleteAdminDialogOpen(false)
+    setAdminToDelete(null)
+  }
+
+  // Handle user deletion
+  const handleDeleteUser = async (userId, userName) => {
+    setUserToDelete({ id: userId, name: userName })
+    setDeleteDialogOpen(true)
+  }
+
+  const confirmDeleteUser = async () => {
+    if (userToDelete) {
+      try {
+        await dispatch(deleteUser(userToDelete.id)).unwrap()
+        setDeleteDialogOpen(false)
+        setUserToDelete(null)
+      } catch (error) {
+        // Error is already handled in the thunk
+      }
+    }
+  }
+
+  const cancelDeleteUser = () => {
+    setDeleteDialogOpen(false)
+    setUserToDelete(null)
+  }
 
   // Fetch data on component mount
   useEffect(() => {
@@ -67,8 +139,7 @@ const AdminRoleManagement = () => {
   const filteredUsers = useMemo(() => {
     return users.filter(user => 
       user.name && user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.userRole && user.userRole.toLowerCase().includes(searchTerm.toLowerCase())
+      user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase())
     )
   }, [users, searchTerm])
 
@@ -87,8 +158,6 @@ const AdminRoleManagement = () => {
   const roleStats = useMemo(() => {
     const stats = {
       total: users.length,
-      withRoles: users.filter(u => u.userRole).length,
-      withoutRoles: users.filter(u => !u.userRole).length,
       totalAdmins: admins.length,
       createdByOthers: admins.filter(a => a.createdBy).length,
       selfCreated: admins.filter(a => !a.createdBy).length
@@ -193,33 +262,6 @@ const AdminRoleManagement = () => {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardContent className="p-4 sm:p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400">With Roles</p>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{roleStats.withRoles}</p>
-                  </div>
-                  <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-full">
-                    <Settings className="w-6 h-6 text-purple-600 dark:text-purple-300" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4 sm:p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Pending Roles</p>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{roleStats.withoutRoles}</p>
-                  </div>
-                  <div className="p-3 bg-orange-100 dark:bg-orange-900 rounded-full">
-                    <Clock className="w-6 h-6 text-orange-600 dark:text-orange-300" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </>
         )}
       </div>
@@ -260,6 +302,7 @@ const AdminRoleManagement = () => {
                   <TableRow>
                     <TableHead>Admin</TableHead>
                     <TableHead>Email</TableHead>
+                    <TableHead>Role</TableHead>
                     <TableHead>Created By</TableHead>
                     <TableHead>Created At</TableHead>
                     <TableHead>Actions</TableHead>
@@ -268,7 +311,7 @@ const AdminRoleManagement = () => {
                 <TableBody>
                   {adminsLoading ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8">
+                      <TableCell colSpan={6} className="text-center py-8">
                         <div className="flex flex-col items-center gap-2">
                           <Spinner />
                           <p className="text-slate-600 dark:text-slate-400">Loading admins...</p>
@@ -277,7 +320,7 @@ const AdminRoleManagement = () => {
                     </TableRow>
                   ) : adminsError ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8">
+                      <TableCell colSpan={6} className="text-center py-8">
                         <div className="flex flex-col items-center gap-2">
                           <User className="w-12 h-12 text-red-400" />
                           <p className="text-red-600 dark:text-red-400">Error loading admins: {adminsError}</p>
@@ -286,7 +329,7 @@ const AdminRoleManagement = () => {
                     </TableRow>
                   ) : filteredAdmins.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8">
+                      <TableCell colSpan={6} className="text-center py-8">
                         <div className="flex flex-col items-center gap-2">
                           <User className="w-12 h-12 text-slate-400" />
                           <p className="text-slate-600 dark:text-slate-400">No admins found</p>
@@ -305,7 +348,11 @@ const AdminRoleManagement = () => {
                             </Avatar>
                             <div>
                               <p className="font-medium text-slate-900 dark:text-white">{admin.user_name}</p>
-                              <p className="text-sm text-slate-600 dark:text-slate-400">Admin</p>
+                              <div className="flex items-center gap-2">
+                                <Badge variant={admin.role === 'super_admin' ? 'default' : 'outline'}>
+                                  {admin.role === 'super_admin' ? 'Super Admin' : 'Admin'}
+                                </Badge>
+                              </div>
                             </div>
                           </div>
                         </TableCell>
@@ -313,6 +360,11 @@ const AdminRoleManagement = () => {
                           <div>
                             <p className="text-slate-900 dark:text-white">{admin.email}</p>
                           </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={admin.role === 'super_admin' ? 'default' : 'outline'}>
+                            {admin.role === 'super_admin' ? 'Super Admin' : 'Admin'}
+                          </Badge>
                         </TableCell>
                         <TableCell>
                           {admin.createdBy ? (
@@ -347,14 +399,17 @@ const AdminRoleManagement = () => {
                             >
                               <Mail className="w-4 h-4" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                              title="Delete Admin"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                            {isSuperAdmin && admin.role !== 'super_admin' && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteAdmin(admin._id, admin.user_name)}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                title="Delete Admin"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -382,7 +437,6 @@ const AdminRoleManagement = () => {
                 <TableRow>
                   <TableHead>User</TableHead>
                   <TableHead>Contact</TableHead>
-                  <TableHead>Role</TableHead>
                   <TableHead>Last Login</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -417,7 +471,6 @@ const AdminRoleManagement = () => {
                   </TableRow>
                 ) : (
                   filteredUsers.map((user) => {
-                    const currentRole = null
                     return (
                       <TableRow key={user._id || user.id} className="hover:bg-slate-50 dark:hover:bg-slate-800">
                         <TableCell>
@@ -443,9 +496,6 @@ const AdminRoleManagement = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline">User</Badge>
-                        </TableCell>
-                        <TableCell>
                           <div className="flex items-center gap-1 text-slate-600 dark:text-slate-400">
                             <Calendar className="w-4 h-4" />
                             {user.lastLogin}
@@ -465,6 +515,7 @@ const AdminRoleManagement = () => {
                             <Button
                               variant="ghost"
                               size="sm"
+                              onClick={() => handleDeleteUser(user._id, user.name)}
                               className="text-red-600 hover:text-red-700 hover:bg-red-50"
                               title="Delete User"
                             >
@@ -606,6 +657,45 @@ const AdminRoleManagement = () => {
         </div>
       )}
 
+      {/* Delete User Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete User</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete user "{userToDelete?.name}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={cancelDeleteUser}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDeleteUser}>
+              Delete User
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Admin Confirmation Dialog */}
+      <Dialog open={deleteAdminDialogOpen} onOpenChange={setDeleteAdminDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Admin</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete admin "{adminToDelete?.name}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={cancelDeleteAdmin}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDeleteAdmin}>
+              Delete Admin
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

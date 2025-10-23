@@ -18,6 +18,14 @@ import {
   Pause,
   Play
 } from 'lucide-react'
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '../../components/ui/dialog'
 import { getAllJobPostings, deleteJobPosting, pauseJobPosting, resumeJobPosting } from '../../features/admin/adminSlice'
 import { toast } from 'sonner'
 import Spinner from '../../components/Spinner'
@@ -33,6 +41,9 @@ const AdminJobPostings = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [previewJob, setPreviewJob] = useState(null)
+  // Add state for job deletion confirmation
+  const [deleteJobDialogOpen, setDeleteJobDialogOpen] = useState(false)
+  const [jobToDelete, setJobToDelete] = useState(null)
 
   // Fetch job postings on component mount
   useEffect(() => {
@@ -67,16 +78,36 @@ const AdminJobPostings = () => {
     navigate('/admin/job-form', { state: { jobData: job } })
   }, [navigate])
 
-  const handleDeleteJob = useCallback((jobId) => {
-    dispatch(deleteJobPosting(jobId))
-      .unwrap()
-      .then(() => {
-        toast.success('Job posting deleted successfully!')
-      })
-      .catch((error) => {
-        toast.error('Failed to delete job posting: ' + error.message)
-      })
-  }, [dispatch])
+  // Handle job deletion with confirmation
+  const handleDeleteJob = useCallback((jobId, jobTitle) => {
+    // Set the job to delete and open confirmation dialog
+    setJobToDelete({ id: jobId, title: jobTitle })
+    setDeleteJobDialogOpen(true)
+  }, [])
+
+  // Confirm job deletion
+  const confirmDeleteJob = useCallback(() => {
+    if (jobToDelete) {
+      dispatch(deleteJobPosting(jobToDelete.id))
+        .unwrap()
+        .then(() => {
+          toast.success('Job posting deleted successfully!')
+          setDeleteJobDialogOpen(false)
+          setJobToDelete(null)
+        })
+        .catch((error) => {
+          toast.error('Failed to delete job posting: ' + error.message)
+          setDeleteJobDialogOpen(false)
+          setJobToDelete(null)
+        })
+    }
+  }, [dispatch, jobToDelete])
+
+  // Cancel job deletion
+  const cancelDeleteJob = useCallback(() => {
+    setDeleteJobDialogOpen(false)
+    setJobToDelete(null)
+  }, [])
 
   const handlePauseJob = useCallback((jobId) => {
     dispatch(pauseJobPosting(jobId))
@@ -271,7 +302,7 @@ const AdminJobPostings = () => {
                   variant="outline" 
                   size="sm" 
                   className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  onClick={() => handleDeleteJob(job._id || job.id)}
+                  onClick={() => handleDeleteJob(job._id || job.id, job.job_title || job.title || 'Untitled Job')}
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
@@ -289,6 +320,26 @@ const AdminJobPostings = () => {
           onClose={() => setPreviewJob(null)}
         />
       )}
+      
+      {/* Delete Job Confirmation Dialog */}
+      <Dialog open={deleteJobDialogOpen} onOpenChange={setDeleteJobDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Job Posting</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete the job posting "{jobToDelete?.title}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={cancelDeleteJob}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDeleteJob}>
+              Delete Job
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

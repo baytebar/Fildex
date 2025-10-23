@@ -56,7 +56,7 @@ const AdminLayout = () => {
       dispatch(getAllJobTitles())
       dispatch(getAllJobPostings({ page: 1, limit: 10 }))
       dispatch(fetchAllResumes({ page: 1, limit: 10 }))
-      dispatch(fetchRecentCvs())
+      // dispatch(fetchRecentCvs()) // Disabled automatic recent CVs fetching
     }
   }, [dispatch, isAuthenticated])
 
@@ -82,15 +82,16 @@ const AdminLayout = () => {
   useEffect(() => {
     if (!isAuthenticated) return
 
-    // Initial fetch of recent CVs
-    dispatch(fetchRecentCvs())
+    // Initial fetch of recent CVs - DISABLED
+    // dispatch(fetchRecentCvs())
 
-    const pollInterval = setInterval(() => {
-      const checkTime = lastChecked || new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // Check last 24 hours if no previous check
-      dispatch(checkForNewCvs(checkTime))
-    }, 10000) // Check every 10 seconds
+    // DISABLED: Polling for new CVs
+    // const pollInterval = setInterval(() => {
+    //   const checkTime = lastChecked || new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // Check last 24 hours if no previous check
+    //   dispatch(checkForNewCvs(checkTime))
+    // }, 10000) // Check every 10 seconds
 
-    return () => clearInterval(pollInterval)
+    // return () => clearInterval(pollInterval) // Disabled since polling is disabled
   }, [dispatch, isAuthenticated, lastChecked])
   const [showRoleDialog, setShowRoleDialog] = useState(false)
   const [selectedUserForRole, setSelectedUserForRole] = useState(null)

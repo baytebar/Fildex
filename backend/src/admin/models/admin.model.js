@@ -28,7 +28,7 @@ const adminSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Admin',
     default: null
-  }
+  },
 },{timestamps : true})
 
 export default mongoose.model("Admin", adminSchema);

@@ -20,8 +20,8 @@ export const getAllDepartments = async (req, res, next) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const totalDepartments = await Department.countDocuments({ status: 'active', isDeleted: false });
-    const departments = await Department.find({ status: 'active', isDeleted: false })
+    const totalDepartments = await Department.countDocuments({ isDeleted: false });
+    const departments = await Department.find({ isDeleted: false })
       .populate("created_by", "user_name email")
       .skip(skip)
       .limit(limit)

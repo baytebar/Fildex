@@ -128,3 +128,4 @@ debugResumeUpload()
     console.error('\nDebug script failed:', error);
     process.exit(1);
   });
+

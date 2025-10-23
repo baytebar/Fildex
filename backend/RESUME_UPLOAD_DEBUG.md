@@ -106,3 +106,4 @@ With form data:
 4. Check server logs for detailed error information
 
 The enhanced error logging will help you identify exactly where the upload process is failing.
+

@@ -9,6 +9,8 @@ const s3Client = new S3Client({
   endpoint: process.env.HETZNER_ENDPOINT,
   forcePathStyle: true, // Needed for Hetzner
   region: 'hel1', // Hetzner region
+  useAccelerateEndpoint: false,
+  useDualstackEndpoint: false,
 });
 
 export default s3Client;

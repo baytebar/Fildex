@@ -90,11 +90,45 @@ export const uploadResume = async (req, res, next) => {
     const fileExt = path.extname(req.file.originalname);
     const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${fileExt}`;
 
+    // Validate Hetzner credentials
     if (!process.env.HETZNER_BUCKET || !process.env.HETZNER_ENDPOINT || !process.env.HETZNER_ACCESS_KEY || !process.env.HETZNER_SECRET_KEY) {
+      console.log('❌ Missing Hetzner credentials, falling back to local storage');
+      console.log('HETZNER_BUCKET:', process.env.HETZNER_BUCKET ? 'Set' : 'Missing');
+      console.log('HETZNER_ENDPOINT:', process.env.HETZNER_ENDPOINT ? 'Set' : 'Missing');
+      console.log('HETZNER_ACCESS_KEY:', process.env.HETZNER_ACCESS_KEY ? 'Set' : 'Missing');
+      console.log('HETZNER_SECRET_KEY:', process.env.HETZNER_SECRET_KEY ? 'Set' : 'Missing');
+      
+      // Fallback to local storage
+      const localPath = path.join(__dirname, '../../public/uploads', fileName);
+      
+      // Ensure uploads directory exists
+      const uploadsDir = path.dirname(localPath);
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+      
+      // Save file locally
+      fs.writeFileSync(localPath, req.file.buffer);
+      console.log('✅ File saved locally:', localPath);
+      
+      // Create resume document with local URL
+      const resumeData = {
+        name,
+        email,
+        contact: contactInfo,
+        role: role || "",
+        "resume-link": `/public/uploads/${fileName}`,
+        expiryDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days from now
+      };
+
+      const newResume = new Resume(resumeData);
+      const savedResume = await newResume.save();
+
       return handleResponse(
         res,
-        HttpStatusCodes.INTERNAL_SERVER_ERROR,
-        "Server configuration error: Missing cloud storage credentials"
+        HttpStatusCodes.CREATED,
+        successResponseMessage.resumeUploaded,
+        savedResume
       );
     }
 
@@ -109,7 +143,28 @@ export const uploadResume = async (req, res, next) => {
     let resumeData;
     
     try {
+      console.log('=== Hetzner Upload Debug ===');
+      console.log('Bucket:', process.env.HETZNER_BUCKET);
+      console.log('Endpoint:', process.env.HETZNER_ENDPOINT);
+      console.log('Access Key (first 10 chars):', process.env.HETZNER_ACCESS_KEY?.substring(0, 10) + '...');
+      console.log('Secret Key (first 10 chars):', process.env.HETZNER_SECRET_KEY?.substring(0, 10) + '...');
+      console.log('Key:', params.Key);
+      console.log('ContentType:', params.ContentType);
+      console.log('File size:', req.file.buffer.length, 'bytes');
+      
+      // Validate credentials format
+      if (!process.env.HETZNER_ACCESS_KEY || process.env.HETZNER_ACCESS_KEY.length < 10) {
+        throw new Error('Invalid access key format');
+      }
+      if (!process.env.HETZNER_SECRET_KEY || process.env.HETZNER_SECRET_KEY.length < 10) {
+        throw new Error('Invalid secret key format');
+      }
+      if (!process.env.HETZNER_ENDPOINT || !process.env.HETZNER_ENDPOINT.startsWith('https://')) {
+        throw new Error('Invalid endpoint format');
+      }
+      
       const uploadResult = await s3Client.send(new PutObjectCommand(params));
+      console.log('✅ Hetzner upload successful:', uploadResult);
       
       // Create resume document with cloud storage URL
       resumeData = {
@@ -121,6 +176,11 @@ export const uploadResume = async (req, res, next) => {
         expiryDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days from now
       };
     } catch (s3Error) {
+      console.log('❌ Hetzner upload failed, falling back to local storage:');
+      console.log('Error:', s3Error.message);
+      console.log('Error code:', s3Error.code);
+      console.log('Error name:', s3Error.name);
+      
       // Fallback: Save file locally and create resume document with local URL
       const localPath = path.join(__dirname, '../../public/uploads', fileName);
       
@@ -132,6 +192,7 @@ export const uploadResume = async (req, res, next) => {
       
       // Save file locally
       fs.writeFileSync(localPath, req.file.buffer);
+      console.log('✅ File saved locally:', localPath);
       
       // Create resume document with local URL
       resumeData = {
@@ -348,25 +409,48 @@ export const getResumeDownloadUrl = async (req, res, next) => {
       );
     }
 
-    // Derive object key from stored URL
-    const urlParts = resume["resume-link"].split("/");
-    const lastSegment = urlParts[urlParts.length - 1];
-    const key = `resumes/${lastSegment}`;
+    // Check if it's a local file first
+    if (resume["resume-link"].startsWith('/public/uploads/')) {
+      const baseUrl = process.env.API_BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
+      const fullUrl = `${baseUrl}/api/v1${resume["resume-link"]}`;
+      return handleResponse(
+        res,
+        HttpStatusCodes.OK,
+        successResponseMessage.resumeFetched,
+        { url: fullUrl }
+      );
+    }
 
-    const params = {
-      Bucket: process.env.HETZNER_BUCKET,
-      Key: key,
-      Expires: 60, // URL valid for 60 seconds
-    };
+    // Try cloud storage
+    try {
+      // Derive object key from stored URL
+      const urlParts = resume["resume-link"].split("/");
+      const lastSegment = urlParts[urlParts.length - 1];
+      const key = `resumes/${lastSegment}`;
 
-    const signedUrl = await getSignedUrl(s3Client, new GetObjectCommand(params), { expiresIn: 3600 });
+      const params = {
+        Bucket: process.env.HETZNER_BUCKET,
+        Key: key,
+        Expires: 60, // URL valid for 60 seconds
+      };
 
-    return handleResponse(
-      res,
-      HttpStatusCodes.OK,
-      successResponseMessage.resumeFetched,
-      { url: signedUrl }
-    );
+      const signedUrl = await getSignedUrl(s3Client, new GetObjectCommand(params), { expiresIn: 3600 });
+
+      return handleResponse(
+        res,
+        HttpStatusCodes.OK,
+        successResponseMessage.resumeFetched,
+        { url: signedUrl }
+      );
+    } catch (s3Error) {
+      // Fallback to direct URL if cloud storage fails
+      return handleResponse(
+        res,
+        HttpStatusCodes.OK,
+        successResponseMessage.resumeFetched,
+        { url: resume["resume-link"] }
+      );
+    }
   } catch (error) {
     next(error);
   }

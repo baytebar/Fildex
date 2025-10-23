@@ -41,6 +41,9 @@ connectDB().catch((err) => {
   process.exit(1);
 });
 
+// Serve static files from uploads directory
+app.use('/api/v1/public/uploads', express.static(path.join(__dirname, 'src/public/uploads')));
+
 //routes
 app.use("/api/v1", indexRouter);
 

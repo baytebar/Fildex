@@ -24,7 +24,20 @@ const CvViewer = ({ user, onClose, onStatusUpdate }) => {
 
   const openUrlInNewTab = (url) => {
     if (!url) return
-    window.open(url, '_blank')
+    
+    // Check if it's a PDF file - try to open in browser
+    const format = getFileFormat(url)
+    if (format === 'pdf') {
+      // For PDFs, try to open in browser first
+      const newWindow = window.open(url, '_blank')
+      if (!newWindow) {
+        // If popup blocked, fallback to direct navigation
+        window.location.href = url
+      }
+    } else {
+      // For DOC/DOCX files, open in new tab (will trigger download)
+      window.open(url, '_blank')
+    }
   }
 
   const resolveSignedUrl = async () => {
@@ -44,6 +57,26 @@ const CvViewer = ({ user, onClose, onStatusUpdate }) => {
     const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1'
     const legacy = user?.cv?.url ? `${baseUrl}/${user.cv.url}` : null
     return legacy
+  }
+
+  const getFileFormat = (url) => {
+    if (!url) return 'unknown'
+    const extension = url.split('.').pop()?.toLowerCase()
+    switch (extension) {
+      case 'pdf': return 'pdf'
+      case 'doc': return 'doc'
+      case 'docx': return 'docx'
+      default: return 'unknown'
+    }
+  }
+
+  const getFormatIcon = (format) => {
+    switch (format) {
+      case 'pdf': return '📄'
+      case 'doc': 
+      case 'docx': return '📝'
+      default: return '📄'
+    }
   }
 
   const handleDownloadCv = async () => {
@@ -81,12 +114,20 @@ const CvViewer = ({ user, onClose, onStatusUpdate }) => {
       }
       const fallback = getStoredResumeUrl()
       if (fallback) {
-        openUrlInNewTab(fallback)
+        // Check if it's a local file path and construct proper URL
+        if (fallback.startsWith('/public/uploads/')) {
+          const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1'
+          const fullUrl = `${baseUrl}${fallback}`
+          openUrlInNewTab(fullUrl)
+        } else {
+          openUrlInNewTab(fallback)
+        }
         return
       }
       setCvError('CV not available')
     } catch (err) {
-      setCvError('Failed to open CV')
+      console.error('CV viewing error:', err)
+      setCvError(`Failed to open CV: ${err.message || 'Unknown error'}`)
     } finally {
       setIsLoading(false)
     }
@@ -262,6 +303,28 @@ const CvViewer = ({ user, onClose, onStatusUpdate }) => {
                         <p className="text-sm text-green-600 dark:text-green-400 mt-1">
                           CV was uploaded previously
                         </p>
+                        {(() => {
+                          const url = getStoredResumeUrl()
+                          const format = getFileFormat(url)
+                          return format !== 'unknown' && (
+                            <div className="mt-2 space-y-1">
+                              <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
+                                <span>{getFormatIcon(format)}</span>
+                                <span>Format: {format.toUpperCase()}</span>
+                              </div>
+                              {format === 'pdf' && (
+                                <p className="text-xs text-green-500 dark:text-green-400">
+                                  PDF files can be viewed directly in your browser
+                                </p>
+                              )}
+                              {(format === 'doc' || format === 'docx') && (
+                                <p className="text-xs text-green-500 dark:text-green-400">
+                                  Word documents will be downloaded for viewing
+                                </p>
+                              )}
+                            </div>
+                          )
+                        })()}
                       </div>
 
                       <div className="flex flex-col sm:flex-row gap-3">
@@ -271,14 +334,27 @@ const CvViewer = ({ user, onClose, onStatusUpdate }) => {
                           disabled={isLoading}
                         >
                           <Eye className="w-4 h-4 mr-2" />
-                          View CV
+                          {isLoading ? 'Loading...' : 'View CV'}
                         </Button>
-
+                        <Button
+                          onClick={handleDownloadCv}
+                          variant="outline"
+                          className="flex-1"
+                          disabled={isLoading}
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Download CV
+                        </Button>
                       </div>
 
                       {cvError && (
                         <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
                           <p className="text-sm text-red-600 dark:text-red-400">{cvError}</p>
+                          <div className="mt-2 text-xs text-red-500 dark:text-red-400">
+                            <p>• Try downloading the file instead</p>
+                            <p>• Check if the file format is supported (PDF, DOC, DOCX)</p>
+                            <p>• Ensure you have the necessary software to view the file</p>
+                          </div>
                         </div>
                       )}
                     </div>

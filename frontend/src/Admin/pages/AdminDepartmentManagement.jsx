@@ -99,7 +99,7 @@ const AdminDepartmentManagement = () => {
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+            <Button className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
               <Plus className="w-4 h-4 mr-2" />
               Add Department
             </Button>
@@ -182,7 +182,7 @@ const AdminDepartmentManagement = () => {
                       <TableCell>
                         {department.created_by ? (
                           <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
+                            <div className="w-8 h-8 rounded-full bg-linear-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
                               {department.created_by.name?.charAt(0)?.toUpperCase() || 'A'}
                             </div>
                             <div>

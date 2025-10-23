@@ -38,7 +38,7 @@ const CvUploadPopup = ({ isOpen, onClose }) => {
           <div className="space-y-3">
             <button
               onClick={handleUploadCv}
-              className="w-full px-6 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-3 transform hover:scale-105 hover:shadow-lg"
+              className="w-full px-6 py-4 bg-linear-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-3 transform hover:scale-105 hover:shadow-lg"
             >
               <FileText className="w-5 h-5" />
               Upload My CV

@@ -75,7 +75,7 @@ const Header = ({ setShowBot }) => {
               <img
                 src={FildexLogo}
                 alt="Fildex Logo"
-                className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 lg:h-12 lg:w-12 xl:h-14 xl:w-14 2xl:h-12 2xl:w-12 flex-shrink-0"
+                className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 lg:h-12 lg:w-12 xl:h-14 xl:w-14 2xl:h-12 2xl:w-12 shrink-0"
               />
               <div className='flex flex-col'>
                 <h1 className='text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-3xl 2xl:text-2xl font-bold text-blue-950 leading-tight'>FILDEX</h1>

@@ -23,7 +23,7 @@ function Avatar({
 
   const variantClasses = {
     default: "rounded-full",
-    gradient: "rounded-full bg-gradient-to-br from-blue-500 to-purple-600",
+    gradient: "rounded-full bg-linear-to-br from-blue-500 to-purple-600",
     outline: "rounded-full border-2 border-primary",
     solid: "rounded-full bg-primary"
   }
@@ -64,7 +64,7 @@ function AvatarFallback({
 }) {
   const variantClasses = {
     default: "bg-muted text-muted-foreground",
-    gradient: "bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold",
+    gradient: "bg-linear-to-br from-blue-500 to-purple-600 text-white font-semibold",
     outline: "bg-background text-primary border-2 border-primary font-semibold",
     solid: "bg-primary text-primary-foreground font-semibold"
   }

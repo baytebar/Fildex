@@ -247,7 +247,7 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
       {!showBot && (
         <button
           onClick={handleOpenChat}
-          className="fixed bottom-6 right-6 size-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 shadow-2xl grid place-items-center text-2xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 z-50 transform hover:scale-110 active:scale-95 animate-pulse hover:animate-none"
+          className="fixed bottom-6 right-6 size-16 rounded-full bg-linear-to-r from-blue-500 to-purple-600 shadow-2xl grid place-items-center text-2xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 z-50 transform hover:scale-110 active:scale-95 animate-pulse hover:animate-none"
           aria-label="Open chat bot"
         >
           <MessageCircle size={20} className="transition-transform duration-200 hover:rotate-12" />
@@ -268,9 +268,9 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
             ? 'translate-x-full opacity-0 scale-95' 
             : 'translate-x-0 opacity-100 scale-100'
         }`}>
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-blue-50 to-purple-50 rounded-t-3xl">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-linear-to-r from-blue-50 to-purple-50 rounded-t-3xl">
             <div className="flex items-center gap-3">
-              <div className="size-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+              <div className="size-10 rounded-full bg-linear-to-r from-blue-500 to-purple-600 flex items-center justify-center">
                 <Bot size={20} className="text-white" />
               </div>
               <div>
@@ -291,16 +291,16 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
                 }`}
               >
                 {m.role === 'bot' && (
-                  <div className="size-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 mt-1">
+                  <div className="size-8 rounded-full bg-linear-to-r from-blue-500 to-purple-600 flex items-center justify-center shrink-0 mt-1">
                     <Bot size={16} className="text-white" />
                   </div>
                 )}
-                <div className={`rounded-2xl px-4 py-3 max-w-[80%] ${m.role === 'bot' ? 'bg-white border border-gray-200 shadow-sm' : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md'}`}>
+                <div className={`rounded-2xl px-4 py-3 max-w-[80%] ${m.role === 'bot' ? 'bg-white border border-gray-200 shadow-sm' : 'bg-linear-to-r from-blue-500 to-purple-600 text-white shadow-md'}`}>
                   <span className={m.role === 'bot' ? 'text-gray-800' : 'text-white'}>{m.text}</span>
                   {isTyping && m.id === typingMessageId.current && <span className={`inline-block w-2 h-4 ml-1 align-middle animate-pulse ${m.role === 'bot' ? 'bg-gray-400' : 'bg-white/70'}`} />}
                 </div>
                 {m.role === 'user' && (
-                  <div className="size-8 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0 mt-1">
+                  <div className="size-8 rounded-full bg-gray-300 flex items-center justify-center shrink-0 mt-1">
                     <User size={16} className="text-gray-600" />
                   </div>
                 )}
@@ -323,16 +323,16 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
                 <button
                   onClick={handleUserInput}
                   disabled={!inputValue.trim()}
-                  className="px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
+                  className="px-4 py-3 bg-linear-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
                 >
                   <Send size={16} />
                 </button>
               </div>
             ) : currentStep === 'resume' ? (
               <div className="space-y-4">
-                <label className="inline-flex cursor-pointer items-center gap-3 rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-dashed border-blue-200 px-4 py-3 hover:from-blue-100 hover:to-purple-100 hover:border-blue-300 transition-all duration-200 w-full group">
+                <label className="inline-flex cursor-pointer items-center gap-3 rounded-xl bg-linear-to-r from-blue-50 to-purple-50 border-2 border-dashed border-blue-200 px-4 py-3 hover:from-blue-100 hover:to-purple-100 hover:border-blue-300 transition-all duration-200 w-full group">
                   <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={onBrowse} />
-                  <div className="size-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <div className="size-10 rounded-full bg-linear-to-r from-blue-500 to-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
                     <Upload size={20} className="text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -347,13 +347,13 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
                 </label>
                 {isUploading && (
                   <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
-                    <div className="size-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                    <div className="size-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin shrink-0" />
                     <span className="truncate">Uploading resume...</span>
                   </div>
                 )}
                 {uploadedFile && !isUploading && (
                   <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-2 rounded-lg">
-                    <div className="size-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                    <div className="size-5 rounded-full bg-green-500 flex items-center justify-center shrink-0">
                       <Check size={12} className="text-white" />
                     </div>
                     <span className="truncate">Resume uploaded successfully! ({Math.round(uploadedFile.size / 1024)}KB)</span>

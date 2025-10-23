@@ -5,7 +5,7 @@ const Training = () => {
 
   return (
     <>
-      <section id="training" className="min-h-dvh px-4 sm:px-6 lg:px-8 py-16 bg-gradient-to-br from-background to-muted">
+      <section id="training" className="min-h-dvh px-4 sm:px-6 lg:px-8 py-16 bg-linear-to-br from-background to-muted">
         <div className="max-w-7xl mx-auto">
           {/* Section header with improved typography */}
           <div className="text-center mb-16">
@@ -25,7 +25,7 @@ const Training = () => {
             {/* Training Programs Card */}
             <div className="lg:col-span-2 bg-card border border-border rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300">
               <div className="flex items-start gap-4 mb-6">
-                <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                   <GraduationCap className="w-7 h-7 text-primary" />
                 </div>
                 <div>
@@ -90,7 +90,7 @@ const Training = () => {
             </div>
 
             {/* Training Benefits Card */}
-            <div className="bg-gradient-to-br from-primary/5 to-accent/20 border border-primary/10 rounded-2xl p-8">
+            <div className="bg-linear-to-br from-primary/5 to-accent/20 border border-primary/10 rounded-2xl p-8">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                   <Sparkles className="w-6 h-6 text-primary" />
@@ -100,7 +100,7 @@ const Training = () => {
 
               <ul className="space-y-5 mb-8">
                 <li className="flex items-start gap-4">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
                     <Check className="w-4 h-4 text-primary" />
                   </div>
                   <div>
@@ -109,7 +109,7 @@ const Training = () => {
                   </div>
                 </li>
                 <li className="flex items-start gap-4">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
                     <Check className="w-4 h-4 text-primary" />
                   </div>
                   <div>
@@ -118,7 +118,7 @@ const Training = () => {
                   </div>
                 </li>
                 <li className="flex items-start gap-4">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
                     <Check className="w-4 h-4 text-primary" />
                   </div>
                   <div>
@@ -127,7 +127,7 @@ const Training = () => {
                   </div>
                 </li>
                 <li className="flex items-start gap-4">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
                     <Check className="w-4 h-4 text-primary" />
                   </div>
                   <div>

@@ -55,19 +55,19 @@ const JobListing = ({ jobPostings }) => {
                                         <p className="text-muted-foreground mb-4">6-month programs with mentorship and project experience</p>
                                         <ul className="text-sm text-muted-foreground space-y-2">
                                             <li className="flex items-start gap-2">
-                                                <Circle className="w-2 h-2 text-primary mt-1.5 flex-shrink-0" />
+                                                <Circle className="w-2 h-2 text-primary mt-1.5 shrink-0" />
                                                 <span>Hands-on project work</span>
                                             </li>
                                             <li className="flex items-start gap-2">
-                                                <Circle className="w-2 h-2 text-primary mt-1.5 flex-shrink-0" />
+                                                <Circle className="w-2 h-2 text-primary mt-1.5 shrink-0" />
                                                 <span>Expert mentorship</span>
                                             </li>
                                             <li className="flex items-start gap-2">
-                                                <Circle className="w-2 h-2 text-primary mt-1.5 flex-shrink-0" />
+                                                <Circle className="w-2 h-2 text-primary mt-1.5 shrink-0" />
                                                 <span>Industry certifications</span>
                                             </li>
                                             <li className="flex items-start gap-2">
-                                                <Circle className="w-2 h-2 text-primary mt-1.5 flex-shrink-0" />
+                                                <Circle className="w-2 h-2 text-primary mt-1.5 shrink-0" />
                                                 <span>Job placement assistance</span>
                                             </li>
                                         </ul>
@@ -81,19 +81,19 @@ const JobListing = ({ jobPostings }) => {
                                         <p className="text-muted-foreground mb-4">Join our network of skilled professionals for contract opportunities</p>
                                         <ul className="text-sm text-muted-foreground space-y-2">
                                             <li className="flex items-start gap-2">
-                                                <Circle className="w-2 h-2 text-primary mt-1.5 flex-shrink-0" />
+                                                <Circle className="w-2 h-2 text-primary mt-1.5 shrink-0" />
                                                 <span>Flexible engagements</span>
                                             </li>
                                             <li className="flex items-start gap-2">
-                                                <Circle className="w-2 h-2 text-primary mt-1.5 flex-shrink-0" />
+                                                <Circle className="w-2 h-2 text-primary mt-1.5 shrink-0" />
                                                 <span>Competitive rates</span>
                                             </li>
                                             <li className="flex items-start gap-2">
-                                                <Circle className="w-2 h-2 text-primary mt-1.5 flex-shrink-0" />
+                                                <Circle className="w-2 h-2 text-primary mt-1.5 shrink-0" />
                                                 <span>Remote work options</span>
                                             </li>
                                             <li className="flex items-start gap-2">
-                                                <Circle className="w-2 h-2 text-primary mt-1.5 flex-shrink-0" />
+                                                <Circle className="w-2 h-2 text-primary mt-1.5 shrink-0" />
                                                 <span>Skill development</span>
                                             </li>
                                         </ul>
@@ -182,27 +182,27 @@ const JobListing = ({ jobPostings }) => {
                                 </div>
                                 <ul className="space-y-3">
                                     <li className="flex items-start gap-3">
-                                        <Check className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                                        <Check className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                                         <span className="text-muted-foreground">Industry mentorship</span>
                                     </li>
                                     <li className="flex items-start gap-3">
-                                        <Check className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                                        <Check className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                                         <span className="text-muted-foreground">Real project experience</span>
                                     </li>
                                     <li className="flex items-start gap-3">
-                                        <Check className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                                        <Check className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                                         <span className="text-muted-foreground">Professional networking</span>
                                     </li>
                                     <li className="flex items-start gap-3">
-                                        <Check className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                                        <Check className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                                         <span className="text-muted-foreground">Skill certification</span>
                                     </li>
                                     <li className="flex items-start gap-3">
-                                        <Check className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                                        <Check className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                                         <span className="text-muted-foreground">Career guidance</span>
                                     </li>
                                     <li className="flex items-start gap-3">
-                                        <Check className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                                        <Check className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                                         <span className="text-muted-foreground">Job placement support</span>
                                     </li>
                                 </ul>

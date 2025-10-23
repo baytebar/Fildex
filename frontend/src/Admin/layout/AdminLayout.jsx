@@ -161,7 +161,7 @@ const AdminLayout = () => {
   // Show loader while initial data is loading
   if (isInitialLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
         <div className="text-center">
           <Spinner size="lg" />
           <p className="text-slate-600 dark:text-slate-400 mt-4 text-lg">Loading admin dashboard...</p>
@@ -171,7 +171,7 @@ const AdminLayout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       {/* Header */}
       <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shadow-sm">
         <div className="px-4 sm:px-6 py-4">
@@ -189,7 +189,7 @@ const AdminLayout = () => {
                 <img
                   src={FildexLogo}
                   alt="Fildex Logo"
-                  className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 lg:h-12 lg:w-12 xl:h-14 xl:w-14 2xl:h-12 2xl:w-12 flex-shrink-0 cursor-pointer"
+                  className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 lg:h-12 lg:w-12 xl:h-14 xl:w-14 2xl:h-12 2xl:w-12 shrink-0 cursor-pointer"
                   onClick={() => navigate('/admin')}
                 />
                 <div className='flex flex-col'>
@@ -402,7 +402,7 @@ const AdminLayout = () => {
                 <div className="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-700">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                      <div className="w-8 h-8 bg-linear-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                         <Bell className="w-5 h-5 text-white" />
                       </div>
                       <div>

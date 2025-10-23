@@ -3,7 +3,7 @@ import { Target, Handshake, Rocket, Check } from 'lucide-react'
 
 const About = () => {
   return (
-    <section id="about" className="min-h-dvh px-4 sm:px-6 lg:px-8 py-16 bg-gradient-to-br from-background to-muted">
+    <section id="about" className="min-h-dvh px-4 sm:px-6 lg:px-8 py-16 bg-linear-to-br from-background to-muted">
       <div className="max-w-7xl mx-auto">
         {/* Section header with improved typography */}
         <div className="text-center mb-16">
@@ -145,7 +145,7 @@ const About = () => {
         </div>
         
         {/* Updated commitment section with modern styling */}
-        <div className="bg-gradient-to-r from-primary to-primary/80 rounded-3xl p-8 md:p-12 text-white">
+        <div className="bg-linear-to-r from-primary to-primary/80 rounded-3xl p-8 md:p-12 text-white">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
             <div className="lg:col-span-2">
               <h3 className="font-bold text-2xl md:text-3xl mb-4">

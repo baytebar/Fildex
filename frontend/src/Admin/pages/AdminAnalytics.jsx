@@ -52,7 +52,7 @@ const AdminAnalytics = () => {
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+        <Card className="border-0 shadow-lg bg-linear-to-br from-blue-500 to-blue-600 text-white">
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -65,7 +65,7 @@ const AdminAnalytics = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-green-500 to-green-600 text-white">
+        <Card className="border-0 shadow-lg bg-linear-to-br from-green-500 to-green-600 text-white">
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -78,7 +78,7 @@ const AdminAnalytics = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+        <Card className="border-0 shadow-lg bg-linear-to-br from-purple-500 to-purple-600 text-white">
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -91,7 +91,7 @@ const AdminAnalytics = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+        <Card className="border-0 shadow-lg bg-linear-to-br from-orange-500 to-orange-600 text-white">
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>

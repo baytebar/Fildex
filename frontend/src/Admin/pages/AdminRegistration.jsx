@@ -96,7 +96,7 @@ const AdminRegistration = () => {
       <div className="w-full max-w-md">
         <Card className="shadow-xl border-0">
           <CardHeader className="text-center pb-4">
-            <div className="mx-auto w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mb-3">
+            <div className="mx-auto w-12 h-12 bg-linear-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mb-3">
               <User className="w-6 h-6 text-white" />
             </div>
             <CardTitle className="text-xl font-bold text-gray-900">Add New Admin</CardTitle>
@@ -203,7 +203,7 @@ const AdminRegistration = () => {
               <Button
                 type="submit"
                 disabled={isLoading || !formData.user_name || !formData.email || !formData.password || !formData.confirmPassword}
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-2 h-9 rounded-lg transition-all duration-200"
+                className="w-full bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-2 h-9 rounded-lg transition-all duration-200"
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center gap-2">

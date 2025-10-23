@@ -51,7 +51,7 @@ const AdminOverview = () => {
       
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-green-500 to-green-600 text-white">
+        <Card className="border-0 shadow-lg bg-linear-to-br from-green-500 to-green-600 text-white">
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -67,7 +67,7 @@ const AdminOverview = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+        <Card className="border-0 shadow-lg bg-linear-to-br from-purple-500 to-purple-600 text-white">
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -83,7 +83,7 @@ const AdminOverview = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+        <Card className="border-0 shadow-lg bg-linear-to-br from-orange-500 to-orange-600 text-white">
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -99,7 +99,7 @@ const AdminOverview = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-cyan-500 to-cyan-600 text-white">
+        <Card className="border-0 shadow-lg bg-linear-to-br from-cyan-500 to-cyan-600 text-white">
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -118,7 +118,7 @@ const AdminOverview = () => {
 
       {/* Additional Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-indigo-500 to-indigo-600 text-white">
+        <Card className="border-0 shadow-lg bg-linear-to-br from-indigo-500 to-indigo-600 text-white">
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -134,7 +134,7 @@ const AdminOverview = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-teal-500 to-teal-600 text-white">
+        <Card className="border-0 shadow-lg bg-linear-to-br from-teal-500 to-teal-600 text-white">
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -150,7 +150,7 @@ const AdminOverview = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-pink-500 to-pink-600 text-white">
+        <Card className="border-0 shadow-lg bg-linear-to-br from-pink-500 to-pink-600 text-white">
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>

@@ -117,7 +117,7 @@ const Loader = ({ isLoading, onComplete }) => {
           >
             <div className="inline-flex items-center gap-3 mb-4">
               <motion.div
-                className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-2xl"
+                className="w-16 h-16 bg-linear-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-2xl"
                 animate={{ 
                   rotate: [0, 5, -5, 0],
                   scale: [1, 1.05, 1]
@@ -146,7 +146,7 @@ const Loader = ({ isLoading, onComplete }) => {
             className="w-80 h-2 bg-gray-200 rounded-full overflow-hidden mb-8 mx-auto"
           >
             <motion.div
-              className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full"
+              className="h-full bg-linear-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full"
               initial={{ width: "0%" }}
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.1 }}
@@ -163,7 +163,7 @@ const Loader = ({ isLoading, onComplete }) => {
             className="flex items-center justify-center gap-3 mb-4"
           >
             <motion.div
-              className={`w-12 h-12 rounded-full bg-gradient-to-r ${steps[currentStep]?.color} flex items-center justify-center shadow-lg`}
+              className={`w-12 h-12 rounded-full bg-linear-to-r ${steps[currentStep]?.color} flex items-center justify-center shadow-lg`}
               animate={{ 
                 scale: [1, 1.1, 1],
                 rotate: [0, 360]

@@ -173,7 +173,7 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
   if (!showAdmin) return null
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       {/* Header */}
       <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shadow-sm">
         <div className="px-4 sm:px-6 py-4">
@@ -187,7 +187,7 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
               >
             <LayoutDashboard className="w-5 h-5" />
               </Button>
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-linear-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                 <LayoutDashboard className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
         </div>
               <div className="hidden sm:block">
@@ -383,7 +383,7 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
       
               {/* Stats Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                <Card className="border-0 shadow-lg bg-linear-to-br from-blue-500 to-blue-600 text-white">
                   <CardContent className="p-4 sm:p-6">
                     <div className="flex items-center justify-between">
                       <div>
@@ -399,7 +399,7 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
                   </CardContent>
                 </Card>
 
-                <Card className="border-0 shadow-lg bg-gradient-to-br from-green-500 to-green-600 text-white">
+                <Card className="border-0 shadow-lg bg-linear-to-br from-green-500 to-green-600 text-white">
                   <CardContent className="p-4 sm:p-6">
                     <div className="flex items-center justify-between">
                       <div>
@@ -415,7 +415,7 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
                   </CardContent>
                 </Card>
 
-                <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+                <Card className="border-0 shadow-lg bg-linear-to-br from-purple-500 to-purple-600 text-white">
                   <CardContent className="p-4 sm:p-6">
                     <div className="flex items-center justify-between">
                 <div>
@@ -431,7 +431,7 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
                   </CardContent>
                 </Card>
 
-                <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+                <Card className="border-0 shadow-lg bg-linear-to-br from-orange-500 to-orange-600 text-white">
                   <CardContent className="p-4 sm:p-6">
                     <div className="flex items-center justify-between">
                 <div>
@@ -926,7 +926,7 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
                  <div className="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-700">
                    <div className="flex items-center justify-between">
                      <div className="flex items-center gap-3">
-                       <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                       <div className="w-8 h-8 bg-linear-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                          <Bell className="w-5 h-5 text-white" />
                        </div>
                        <div>

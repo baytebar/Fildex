@@ -25,8 +25,6 @@ const Login = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      // Show success toast for user login
-      toast.success('Login successful! Welcome back.')
       // Redirect to intended destination or home page
       navigate(from, { replace: true })
     }

@@ -10,6 +10,7 @@ const JobApplicationForm = ({ job, onApply, onCancel }) => {
   })
   const [applicationStatus, setApplicationStatus] = useState('') // '', 'uploading', 'success', 'error'
   const [dragOver, setDragOver] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState({ name: '', email: '', phone: '' })
 
   const validateFile = (file) => {
     const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
@@ -29,12 +30,86 @@ const JobApplicationForm = ({ job, onApply, onCancel }) => {
     return true
   }
 
+  // Validation functions
+  const validateName = (name) => {
+    const nameRegex = /^[a-zA-Z\s]+$/;
+    return nameRegex.test(name) && name.trim().length >= 2;
+  };
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePhone = (phone) => {
+    const numericPhone = phone.replace(/\D/g, '');
+    return numericPhone.length >= 7 && numericPhone.length <= 15;
+  };
+
+  // Real-time validation handlers
+  const handleNameChange = (e) => {
+    const value = e.target.value;
+    setApplicationData(prev => ({ ...prev, name: value }));
+    
+    if (value && !validateName(value)) {
+      setFieldErrors(prev => ({ ...prev, name: 'Name should contain only alphabetic characters' }));
+    } else {
+      setFieldErrors(prev => ({ ...prev, name: '' }));
+    }
+  };
+
+  const handleEmailChange = (e) => {
+    const value = e.target.value;
+    setApplicationData(prev => ({ ...prev, email: value }));
+    
+    if (value && !validateEmail(value)) {
+      setFieldErrors(prev => ({ ...prev, email: 'Please enter a valid email address' }));
+    } else {
+      setFieldErrors(prev => ({ ...prev, email: '' }));
+    }
+  };
+
+  const handlePhoneChange = (e) => {
+    const value = e.target.value;
+    setApplicationData(prev => ({ ...prev, phone: value }));
+    
+    if (value && !validatePhone(value)) {
+      setFieldErrors(prev => ({ ...prev, phone: 'Phone should contain 7-15 numeric digits' }));
+    } else {
+      setFieldErrors(prev => ({ ...prev, phone: '' }));
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault()
+    
+    // Clear previous status
+    setApplicationStatus('')
+    
+    // Validate required fields presence
     if (!applicationData.name || !applicationData.email || !applicationData.phone || !applicationData.cvFile) {
       setApplicationStatus('Please fill all required fields and upload your CV.')
       return
     }
+    
+    // Validate name format
+    if (!validateName(applicationData.name)) {
+      setApplicationStatus('Full name should contain only alphabetic characters and be at least 2 characters long.')
+      return
+    }
+    
+    // Validate email format
+    if (!validateEmail(applicationData.email)) {
+      setApplicationStatus('Please enter a valid email address.')
+      return
+    }
+    
+    // Validate phone number format
+    if (!validatePhone(applicationData.phone)) {
+      setApplicationStatus('Phone number should contain only numeric digits and be between 7-15 digits long.')
+      return
+    }
+    
     setApplicationStatus('uploading')
     
     setTimeout(() => {
@@ -50,7 +125,7 @@ const JobApplicationForm = ({ job, onApply, onCancel }) => {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl rounded-2xl border border-purple-400/20 bg-gradient-to-br from-purple-900/50 to-purple-800/30 p-6 backdrop-blur-sm">
+      <div className="w-full max-w-2xl rounded-2xl border border-purple-400/20 bg-linear-to-br from-purple-900/50 to-purple-800/30 p-6 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-semibold text-white flex items-center gap-2">
             <span>📄</span>
@@ -92,20 +167,30 @@ const JobApplicationForm = ({ job, onApply, onCancel }) => {
               <label className="block text-xs text-purple-300 mb-2">Full Name *</label>
               <input 
                 value={applicationData.name} 
-                onChange={(e) => setApplicationData(prev => ({ ...prev, name: e.target.value }))}
-                className="w-full rounded-lg bg-purple-500/10 border border-purple-400/20 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-400" 
+                onChange={handleNameChange}
+                className={`w-full rounded-lg bg-purple-500/10 border px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500/40 transition-colors ${
+                  fieldErrors.name ? 'border-red-400/60 focus:border-red-400' : 'border-purple-400/20 focus:border-purple-400'
+                }`}
                 placeholder="Your full name" 
               />
+              {fieldErrors.name && (
+                <p className="text-xs text-red-300 mt-1">{fieldErrors.name}</p>
+              )}
             </div>
             <div>
               <label className="block text-xs text-purple-300 mb-2">Email *</label>
               <input 
                 type="email"
                 value={applicationData.email} 
-                onChange={(e) => setApplicationData(prev => ({ ...prev, email: e.target.value }))}
-                className="w-full rounded-lg bg-purple-500/10 border border-purple-400/20 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-400" 
+                onChange={handleEmailChange}
+                className={`w-full rounded-lg bg-purple-500/10 border px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500/40 transition-colors ${
+                  fieldErrors.email ? 'border-red-400/60 focus:border-red-400' : 'border-purple-400/20 focus:border-purple-400'
+                }`}
                 placeholder="your@email.com" 
               />
+              {fieldErrors.email && (
+                <p className="text-xs text-red-300 mt-1">{fieldErrors.email}</p>
+              )}
             </div>
           </div>
           
@@ -113,10 +198,15 @@ const JobApplicationForm = ({ job, onApply, onCancel }) => {
             <label className="block text-xs text-purple-300 mb-2">Phone *</label>
             <input 
               value={applicationData.phone} 
-              onChange={(e) => setApplicationData(prev => ({ ...prev, phone: e.target.value }))}
-              className="w-full rounded-lg bg-purple-500/10 border border-purple-400/20 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-400" 
+              onChange={handlePhoneChange}
+              className={`w-full rounded-lg bg-purple-500/10 border px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500/40 transition-colors ${
+                fieldErrors.phone ? 'border-red-400/60 focus:border-red-400' : 'border-purple-400/20 focus:border-purple-400'
+              }`}
               placeholder="+353 XX XXX XXXX" 
             />
+            {fieldErrors.phone && (
+              <p className="text-xs text-red-300 mt-1">{fieldErrors.phone}</p>
+            )}
           </div>
           
           <div>
@@ -185,7 +275,7 @@ const JobApplicationForm = ({ job, onApply, onCancel }) => {
             <button
               type="submit"
               disabled={applicationStatus === 'uploading'}
-              className="rounded-lg bg-gradient-to-tr from-purple-500 to-purple-700 px-5 py-2.5 text-sm font-medium hover:brightness-110 disabled:opacity-60 shadow-lg shadow-purple-500/25 transition-all duration-300 transform hover:-translate-y-0.5 disabled:transform-none"
+              className="rounded-lg bg-linear-to-tr from-purple-500 to-purple-700 px-5 py-2.5 text-sm font-medium hover:brightness-110 disabled:opacity-60 shadow-lg shadow-purple-500/25 transition-all duration-300 transform hover:-translate-y-0.5 disabled:transform-none"
             >
               {applicationStatus === 'uploading' ? (
                 <span className="flex items-center justify-center gap-2">

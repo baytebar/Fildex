@@ -245,12 +245,11 @@ const AdminCvManagement = () => {
     if (selectedCvForDelete) {
       try {
         await dispatch(deleteResume(selectedCvForDelete._id)).unwrap()
-        toast.success('Resume deleted successfully!')
         closeDeleteDialog()
         // Refresh the resumes list
         dispatch(fetchAllResumes({ page: pagination?.currentPage || 1, limit: pagination?.limit || 10 }))
       } catch (error) {
-        toast.error('Failed to delete resume: ' + error.message)
+        // Error is already handled in the Redux slice
       }
     }
   }, [selectedCvForDelete, dispatch, closeDeleteDialog, pagination])

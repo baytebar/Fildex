@@ -38,6 +38,16 @@ export const uploadResume = async (req, res, next) => {
       );
     }
 
+    // Validate name format (alphabetic characters only, 2-50 characters)
+    const nameRegex = /^[a-zA-Z\s]{2,50}$/;
+    if (!nameRegex.test(name.trim())) {
+      return handleResponse(
+        res,
+        HttpStatusCodes.BAD_REQUEST,
+        rejectResponseMessage.invalidName
+      );
+    }
+
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -58,6 +68,20 @@ export const uploadResume = async (req, res, next) => {
       }
     }
 
+    // Validate phone number if provided
+    if (contactInfo.number) {
+      // Remove all non-numeric characters for validation
+      const numericPhone = contactInfo.number.replace(/\D/g, '');
+      // Check if it's between 7-15 digits (international standard)
+      if (numericPhone.length < 7 || numericPhone.length > 15) {
+        return handleResponse(
+          res,
+          HttpStatusCodes.BAD_REQUEST,
+          rejectResponseMessage.invalidPhone
+        );
+      }
+    }
+
     // Ensure contact info has default values
     if (!contactInfo.number) contactInfo.number = "";
     if (!contactInfo.country_code) contactInfo.country_code = "";
@@ -65,6 +89,14 @@ export const uploadResume = async (req, res, next) => {
     // Generate unique filename
     const fileExt = path.extname(req.file.originalname);
     const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${fileExt}`;
+
+    if (!process.env.HETZNER_BUCKET || !process.env.HETZNER_ENDPOINT || !process.env.HETZNER_ACCESS_KEY || !process.env.HETZNER_SECRET_KEY) {
+      return handleResponse(
+        res,
+        HttpStatusCodes.INTERNAL_SERVER_ERROR,
+        "Server configuration error: Missing cloud storage credentials"
+      );
+    }
 
     // Upload file to Hetzner Cloud Storage
     const params = {
@@ -74,17 +106,43 @@ export const uploadResume = async (req, res, next) => {
       ContentType: req.file.mimetype,
     };
 
-    const uploadResult = await s3Client.send(new PutObjectCommand(params));
+    let resumeData;
     
-    // Create resume document with cloud storage URL
-    const resumeData = {
-      name,
-      email,
-      contact: contactInfo,
-      role: role || "",
-      "resume-link": `${process.env.HETZNER_ENDPOINT}/${process.env.HETZNER_BUCKET}/${params.Key}`,
-      expiryDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days from now
-    };
+    try {
+      const uploadResult = await s3Client.send(new PutObjectCommand(params));
+      
+      // Create resume document with cloud storage URL
+      resumeData = {
+        name,
+        email,
+        contact: contactInfo,
+        role: role || "",
+        "resume-link": `${process.env.HETZNER_ENDPOINT}/${process.env.HETZNER_BUCKET}/${params.Key}`,
+        expiryDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days from now
+      };
+    } catch (s3Error) {
+      // Fallback: Save file locally and create resume document with local URL
+      const localPath = path.join(__dirname, '../../public/uploads', fileName);
+      
+      // Ensure uploads directory exists
+      const uploadsDir = path.dirname(localPath);
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+      
+      // Save file locally
+      fs.writeFileSync(localPath, req.file.buffer);
+      
+      // Create resume document with local URL
+      resumeData = {
+        name,
+        email,
+        contact: contactInfo,
+        role: role || "",
+        "resume-link": `/public/uploads/${fileName}`,
+        expiryDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days from now
+      };
+    }
 
     const newResume = new Resume(resumeData);
     const savedResume = await newResume.save();
@@ -97,7 +155,13 @@ export const uploadResume = async (req, res, next) => {
       savedResume
     );
   } catch (error) {
-    next(error);
+    // Return a more specific error response
+    return handleResponse(
+      res,
+      HttpStatusCodes.INTERNAL_SERVER_ERROR,
+      `Resume upload failed: ${error.message}`,
+      null
+    );
   }
 };
 

@@ -19,9 +19,9 @@ app.use(helmet());
 app.use(
   cors({
     origin: [
-      "http://localhost:5173",
-      "http://localhost:5174",
-      "http://localhost:5175",
+      // "http://localhost:5173",
+      // "http://localhost:5174",
+      // "http://localhost:5175",
       "http://46.62.206.205", // server IP
       "http://fildex.ie", // domain
       "http://www.fildex.ie",
@@ -49,4 +49,7 @@ app.use(errorHandling);
 
 //server
 const port = process.env.PORT || 5000;
-app.listen(port, () => {});
+app.listen(port, () => {
+  console.log(`🚀 Server is running on port ${port}`);
+  console.log(`📡 API endpoints available at http://localhost:${port}/api/v1`);
+});

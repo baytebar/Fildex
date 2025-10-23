@@ -80,7 +80,6 @@ export const deleteUser = async (req, res, next) => {
         await s3Client.send(new DeleteObjectCommand(params));
       } catch (s3Error) {
         // Log error but don't fail the deletion
-        console.error('Error deleting CV from cloud storage:', s3Error);
       }
     }
 

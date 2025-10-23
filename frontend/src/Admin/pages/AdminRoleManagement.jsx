@@ -107,6 +107,24 @@ const AdminRoleManagement = () => {
     setUserToDelete(null)
   }
 
+  // Handle email click - open Gmail compose
+  const handleEmailClick = (email) => {
+    try {
+      // Try to open Gmail compose window
+      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}`
+      const gmailWindow = window.open(gmailUrl, '_blank')
+      
+      // If Gmail doesn't open (popup blocked), fallback to mailto
+      if (!gmailWindow || gmailWindow.closed || typeof gmailWindow.closed === 'undefined') {
+        // Fallback to default mailto
+        window.location.href = `mailto:${email}`
+      }
+    } catch (error) {
+      // Fallback to default mailto if Gmail fails
+      window.location.href = `mailto:${email}`
+    }
+  }
+
   // Fetch data on component mount
   useEffect(() => {
     if (isAuthenticated) {
@@ -393,9 +411,9 @@ const AdminRoleManagement = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => window.open(`mailto:${admin.email}`, '_blank')}
+                              onClick={() => handleEmailClick(admin.email)}
                               className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                              title="Send Email"
+                              title="Open Gmail"
                             >
                               <Mail className="w-4 h-4" />
                             </Button>
@@ -506,9 +524,9 @@ const AdminRoleManagement = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => window.open(`mailto:${user.email}`, '_blank')}
+                              onClick={() => handleEmailClick(user.email)}
                               className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                              title="Send Email"
+                              title="Open Gmail"
                             >
                               <Mail className="w-4 h-4" />
                             </Button>

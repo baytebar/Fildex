@@ -91,12 +91,10 @@ const AdminJobPostings = () => {
       dispatch(deleteJobPosting(jobToDelete.id))
         .unwrap()
         .then(() => {
-          toast.success('Job posting deleted successfully!')
           setDeleteJobDialogOpen(false)
           setJobToDelete(null)
         })
         .catch((error) => {
-          toast.error('Failed to delete job posting: ' + error.message)
           setDeleteJobDialogOpen(false)
           setJobToDelete(null)
         })
@@ -111,24 +109,10 @@ const AdminJobPostings = () => {
 
   const handlePauseJob = useCallback((jobId) => {
     dispatch(pauseJobPosting(jobId))
-      .unwrap()
-      .then(() => {
-        toast.success('Job posting paused successfully!')
-      })
-      .catch((error) => {
-        toast.error('Failed to pause job posting: ' + error.message)
-      })
   }, [dispatch])
 
   const handleResumeJob = useCallback((jobId) => {
     dispatch(resumeJobPosting(jobId))
-      .unwrap()
-      .then(() => {
-        toast.success('Job posting resumed successfully!')
-      })
-      .catch((error) => {
-        toast.error('Failed to resume job posting: ' + error.message)
-      })
   }, [dispatch])
 
   const handleViewJob = useCallback((job) => {

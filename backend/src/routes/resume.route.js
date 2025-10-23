@@ -5,6 +5,7 @@ import upload from '../config/multer.config.js';
 
 const resumeRouter = express.Router();
 
+
 // Resume upload route (no authentication required for public upload)
 resumeRouter.post(
   "/upload",

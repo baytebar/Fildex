@@ -39,6 +39,8 @@ export const rejectResponseMessage = {
   fileRequired: "Resume file is required",
   missingRequiredFields: "Name and email are required fields",
   invalidEmail: "Please provide a valid email address",
+  invalidName: "Full name should contain only alphabetic characters and be between 2-50 characters long",
+  invalidPhone: "Phone number should contain only numeric digits and be between 7-15 digits long",
   missingContactNumber: "Contact number is required",
   noResumesFound: "No resumes found",
   resumeNotFound: "Resume not found"

@@ -18,6 +18,7 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
   const [jobTitles, setJobTitles] = useState([])
   const [latestJobs, setLatestJobs] = useState([])
   const [isLoadingJobs, setIsLoadingJobs] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState({ name: '', email: '', phone: '' })
   
   const dispatch = useDispatch()
   const { isAuthenticated, user } = useSelector((state) => state.auth)
@@ -97,17 +98,85 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
     return true
   }, [])
 
+  // Validation functions
+  const validateName = (name) => {
+    const nameRegex = /^[a-zA-Z\s]+$/;
+    return nameRegex.test(name) && name.trim().length >= 2;
+  };
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePhone = (phone) => {
+    // Remove all non-numeric characters for validation
+    const numericPhone = phone.replace(/\D/g, '');
+    // Check if it's between 7-15 digits (international standard)
+    return numericPhone.length >= 7 && numericPhone.length <= 15;
+  };
+
+  // Real-time validation handlers
+  const handleNameChange = (e) => {
+    const value = e.target.value;
+    setCareerForm(c => ({ ...c, name: value }));
+    
+    if (value && !validateName(value)) {
+      setFieldErrors(prev => ({ ...prev, name: 'Name should contain only alphabetic characters' }));
+    } else {
+      setFieldErrors(prev => ({ ...prev, name: '' }));
+    }
+  };
+
+  const handleEmailChange = (e) => {
+    const value = e.target.value;
+    setCareerForm(c => ({ ...c, email: value }));
+    
+    if (value && !validateEmail(value)) {
+      setFieldErrors(prev => ({ ...prev, email: 'Please enter a valid email address' }));
+    } else {
+      setFieldErrors(prev => ({ ...prev, email: '' }));
+    }
+  };
+
+  const handlePhoneChange = (e) => {
+    const value = e.target.value;
+    setCareerForm(c => ({ ...c, phone: value }));
+    
+    if (value && !validatePhone(value)) {
+      setFieldErrors(prev => ({ ...prev, phone: 'Phone should contain 7-15 numeric digits' }));
+    } else {
+      setFieldErrors(prev => ({ ...prev, phone: '' }));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Remove authentication check - allow public resume upload
-    // if (!isAuthenticated) {
-    //   setCareerStatus('Please login to submit your application.');
-    //   return;
-    // }
+    // Clear previous status
+    setCareerStatus('');
     
+    // Validate required fields presence
     if (!careerForm.name || !careerForm.email || !careerForm.phone || !careerForm.jobTitle || !careerForm.cvFile || !careerForm.consent) {
       setCareerStatus('Please fill all fields and accept the privacy policy.');
+      return;
+    }
+    
+    // Validate name format (alphabetic characters only)
+    if (!validateName(careerForm.name)) {
+      setCareerStatus('Full name should contain only alphabetic characters and be at least 2 characters long.');
+      return;
+    }
+    
+    // Validate email format
+    if (!validateEmail(careerForm.email)) {
+      setCareerStatus('Please enter a valid email address.');
+      return;
+    }
+    
+    // Validate phone number format
+    if (!validatePhone(careerForm.phone)) {
+      setCareerStatus('Phone number should contain only numeric digits and be between 7-15 digits long.');
       return;
     }
     
@@ -223,20 +292,30 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
                     <label className="block text-sm font-medium text-muted-foreground mb-2">Full Name *</label>
                     <input
                       value={careerForm.name}
-                      onChange={(e) => setCareerForm(c => ({ ...c, name: e.target.value }))}
-                      className="w-full rounded-lg bg-background border border-input px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-colors"
+                      onChange={handleNameChange}
+                      className={`w-full rounded-lg bg-background border px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-ring transition-colors ${
+                        fieldErrors.name ? 'border-destructive focus:border-destructive' : 'border-input focus:border-primary'
+                      }`}
                       placeholder="Your full name"
                     />
+                    {fieldErrors.name && (
+                      <p className="text-sm text-destructive mt-1">{fieldErrors.name}</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-muted-foreground mb-2">Email *</label>
                     <input
                       type="email"
                       value={careerForm.email}
-                      onChange={(e) => setCareerForm(c => ({ ...c, email: e.target.value }))}
-                      className="w-full rounded-lg bg-background border border-input px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-colors"
+                      onChange={handleEmailChange}
+                      className={`w-full rounded-lg bg-background border px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-ring transition-colors ${
+                        fieldErrors.email ? 'border-destructive focus:border-destructive' : 'border-input focus:border-primary'
+                      }`}
                       placeholder="your@email.com"
                     />
+                    {fieldErrors.email && (
+                      <p className="text-sm text-destructive mt-1">{fieldErrors.email}</p>
+                    )}
                   </div>
                 </div>
 
@@ -245,10 +324,15 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
                     <label className="block text-sm font-medium text-muted-foreground mb-2">Phone *</label>
                     <input
                       value={careerForm.phone}
-                      onChange={(e) => setCareerForm(c => ({ ...c, phone: e.target.value }))}
-                      className="w-full rounded-lg bg-background border border-input px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-colors"
+                      onChange={handlePhoneChange}
+                      className={`w-full rounded-lg bg-background border px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-ring transition-colors ${
+                        fieldErrors.phone ? 'border-destructive focus:border-destructive' : 'border-input focus:border-primary'
+                      }`}
                       placeholder="+353 XX XXX XXXX"
                     />
+                    {fieldErrors.phone && (
+                      <p className="text-sm text-destructive mt-1">{fieldErrors.phone}</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-muted-foreground mb-2">Job Title *</label>

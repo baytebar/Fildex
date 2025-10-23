@@ -43,7 +43,6 @@ const Signup = () => {
       navigate('/login')
     } catch (error) {
       // Error is handled by Redux state and specific error messages are shown
-      console.error('Registration error:', error)
     }
   }
 

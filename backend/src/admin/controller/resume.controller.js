@@ -92,12 +92,6 @@ export const uploadResume = async (req, res, next) => {
 
     // Validate Hetzner credentials
     if (!process.env.HETZNER_BUCKET || !process.env.HETZNER_ENDPOINT || !process.env.HETZNER_ACCESS_KEY || !process.env.HETZNER_SECRET_KEY) {
-      console.log('❌ Missing Hetzner credentials, falling back to local storage');
-      console.log('HETZNER_BUCKET:', process.env.HETZNER_BUCKET ? 'Set' : 'Missing');
-      console.log('HETZNER_ENDPOINT:', process.env.HETZNER_ENDPOINT ? 'Set' : 'Missing');
-      console.log('HETZNER_ACCESS_KEY:', process.env.HETZNER_ACCESS_KEY ? 'Set' : 'Missing');
-      console.log('HETZNER_SECRET_KEY:', process.env.HETZNER_SECRET_KEY ? 'Set' : 'Missing');
-      
       // Fallback to local storage
       const localPath = path.join(__dirname, '../../public/uploads', fileName);
       
@@ -109,7 +103,6 @@ export const uploadResume = async (req, res, next) => {
       
       // Save file locally
       fs.writeFileSync(localPath, req.file.buffer);
-      console.log('✅ File saved locally:', localPath);
       
       // Create resume document with local URL
       const resumeData = {
@@ -143,28 +136,7 @@ export const uploadResume = async (req, res, next) => {
     let resumeData;
     
     try {
-      console.log('=== Hetzner Upload Debug ===');
-      console.log('Bucket:', process.env.HETZNER_BUCKET);
-      console.log('Endpoint:', process.env.HETZNER_ENDPOINT);
-      console.log('Access Key (first 10 chars):', process.env.HETZNER_ACCESS_KEY?.substring(0, 10) + '...');
-      console.log('Secret Key (first 10 chars):', process.env.HETZNER_SECRET_KEY?.substring(0, 10) + '...');
-      console.log('Key:', params.Key);
-      console.log('ContentType:', params.ContentType);
-      console.log('File size:', req.file.buffer.length, 'bytes');
-      
-      // Validate credentials format
-      if (!process.env.HETZNER_ACCESS_KEY || process.env.HETZNER_ACCESS_KEY.length < 10) {
-        throw new Error('Invalid access key format');
-      }
-      if (!process.env.HETZNER_SECRET_KEY || process.env.HETZNER_SECRET_KEY.length < 10) {
-        throw new Error('Invalid secret key format');
-      }
-      if (!process.env.HETZNER_ENDPOINT || !process.env.HETZNER_ENDPOINT.startsWith('https://')) {
-        throw new Error('Invalid endpoint format');
-      }
-      
       const uploadResult = await s3Client.send(new PutObjectCommand(params));
-      console.log('✅ Hetzner upload successful:', uploadResult);
       
       // Create resume document with cloud storage URL
       resumeData = {
@@ -176,11 +148,6 @@ export const uploadResume = async (req, res, next) => {
         expiryDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days from now
       };
     } catch (s3Error) {
-      console.log('❌ Hetzner upload failed, falling back to local storage:');
-      console.log('Error:', s3Error.message);
-      console.log('Error code:', s3Error.code);
-      console.log('Error name:', s3Error.name);
-      
       // Fallback: Save file locally and create resume document with local URL
       const localPath = path.join(__dirname, '../../public/uploads', fileName);
       
@@ -192,7 +159,6 @@ export const uploadResume = async (req, res, next) => {
       
       // Save file locally
       fs.writeFileSync(localPath, req.file.buffer);
-      console.log('✅ File saved locally:', localPath);
       
       // Create resume document with local URL
       resumeData = {

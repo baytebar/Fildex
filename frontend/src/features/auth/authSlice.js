@@ -15,7 +15,6 @@ export const loginUser = createAsyncThunk(
       toast.success('Login successful!');
       return response;
     } catch (error) {
-      toast.error('Login failed: ' + (error.message || 'Invalid credentials'));
       return rejectWithValue(error.message);
     }
   }

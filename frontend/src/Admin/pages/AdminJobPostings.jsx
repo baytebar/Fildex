@@ -10,7 +10,6 @@ import {
   Plus, 
   MapPin, 
   Calendar, 
-  Users, 
   Briefcase,
   Edit,
   Trash2,
@@ -230,10 +229,6 @@ const AdminJobPostings = () => {
               
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
-                  <div className="flex items-center gap-1">
-                    <Users className="w-4 h-4" />
-                    {job.applicants || 0} applications
-                  </div>
                   <div className="flex items-center gap-1">
                     <Briefcase className="w-4 h-4" />
                     {job.job_type || job.type || 'Full-time'}

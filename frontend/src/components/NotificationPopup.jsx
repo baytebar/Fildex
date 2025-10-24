@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { markAsRead, markAllAsRead } from '../features/notifications/notificationSlice';
+import { markAsRead, markAllAsRead, fetchNotifications, getUnreadCount, markNotificationAsRead } from '../features/notifications/notificationSlice';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Avatar, AvatarFallback } from './ui/avatar';
@@ -15,40 +15,141 @@ import {
 
 const NotificationPopup = () => {
   const dispatch = useDispatch();
-  const { newCvNotifications, unreadCount } = useSelector((state) => state.notifications);
+  const { notifications, unreadCount, isLoading, newCvNotifications } = useSelector((state) => state.notifications);
   const [isVisible, setIsVisible] = useState(false);
   const [currentNotification, setCurrentNotification] = useState(null);
   const [notificationQueue, setNotificationQueue] = useState([]);
+  const [shownNotifications, setShownNotifications] = useState(() => {
+    // Load shown notifications from localStorage on component mount
+    try {
+      const stored = localStorage.getItem('shownNotifications');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch (error) {
+      console.error('Error loading shown notifications:', error);
+      return new Set();
+    }
+  });
 
-  // Show popup when new notifications arrive
+  // Fetch notifications on component mount
+  useEffect(() => {
+    dispatch(fetchNotifications({ page: 1, limit: 10 }));
+    dispatch(getUnreadCount());
+  }, [dispatch]);
+
+  // Show popup when new Socket.IO notifications arrive (immediate)
   useEffect(() => {
     if (newCvNotifications.length > 0) {
-      const latestNotification = newCvNotifications[0];
+      const latestSocketNotification = newCvNotifications[0];
       
-      // Only show if it's a new notification (not already shown)
-      if (!latestNotification.read && latestNotification !== currentNotification) {
-        setCurrentNotification(latestNotification);
+      if (latestSocketNotification && 
+          latestSocketNotification !== currentNotification && 
+          !shownNotifications.has(latestSocketNotification.id) &&
+          !isVisible) {
+        setCurrentNotification(latestSocketNotification);
         setIsVisible(true);
-        
-        // Auto-hide after 5 seconds
-        const timer = setTimeout(() => {
-          setIsVisible(false);
-          // Mark as read after showing
-          setTimeout(() => {
-            dispatch(markAsRead(latestNotification.id));
-            setCurrentNotification(null);
-          }, 500);
-        }, 5000);
-
-        return () => clearTimeout(timer);
+        // Track that this notification has been shown
+        const newShownNotifications = new Set([...shownNotifications, latestSocketNotification.id]);
+        setShownNotifications(newShownNotifications);
+        // Persist to localStorage
+        try {
+          localStorage.setItem('shownNotifications', JSON.stringify([...newShownNotifications]));
+        } catch (error) {
+          console.error('Error saving shown notifications:', error);
+        }
       }
     }
-  }, [newCvNotifications, currentNotification, dispatch]);
+  }, [newCvNotifications, currentNotification, isVisible, shownNotifications]);
+
+  // Show popup when database notifications arrive (persistent)
+  useEffect(() => {
+    if (notifications.length > 0) {
+      // Find the latest unread notification from database
+      const latestUnreadNotification = notifications.find(notification => 
+        !notification.isReadByAdmin && 
+        notification.type === 'cv_upload'
+      );
+      
+      if (latestUnreadNotification && 
+          latestUnreadNotification !== currentNotification && 
+          !shownNotifications.has(latestUnreadNotification._id) &&
+          !isVisible) {
+        
+        // Convert database notification to Socket.IO format for display
+        const displayNotification = {
+          id: latestUnreadNotification._id,
+          type: latestUnreadNotification.type,
+          message: latestUnreadNotification.message,
+          cvData: latestUnreadNotification.cvData,
+          timestamp: latestUnreadNotification.createdAt,
+          read: false
+        };
+        
+        setCurrentNotification(displayNotification);
+        setIsVisible(true);
+        // Track that this notification has been shown
+        const newShownNotifications = new Set([...shownNotifications, latestUnreadNotification._id]);
+        setShownNotifications(newShownNotifications);
+        // Persist to localStorage
+        try {
+          localStorage.setItem('shownNotifications', JSON.stringify([...newShownNotifications]));
+        } catch (error) {
+          console.error('Error saving shown notifications:', error);
+        }
+      }
+    }
+  }, [notifications, currentNotification, isVisible, shownNotifications]);
+
+  // Auto-hide popup after 4 seconds when visible
+  useEffect(() => {
+    if (isVisible && currentNotification) {
+      const timer = setTimeout(() => {
+        setIsVisible(false);
+        setCurrentNotification(null);
+      }, 4000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, currentNotification]);
+
+  // Clean up shown notifications set periodically to prevent memory issues
+  useEffect(() => {
+    const cleanupTimer = setInterval(() => {
+      setShownNotifications(prev => {
+        const newSet = new Set();
+        // Keep only recent notifications (last 50) from both sources
+        const recentDbNotifications = notifications.slice(0, 50);
+        const recentSocketNotifications = newCvNotifications.slice(0, 50);
+        
+        recentDbNotifications.forEach(notification => {
+          if (prev.has(notification._id)) {
+            newSet.add(notification._id);
+          }
+        });
+        
+        recentSocketNotifications.forEach(notification => {
+          if (prev.has(notification.id)) {
+            newSet.add(notification.id);
+          }
+        });
+        
+        return newSet;
+      });
+      
+      // Persist cleaned up data to localStorage
+      try {
+        localStorage.setItem('shownNotifications', JSON.stringify([...newSet]));
+      } catch (error) {
+        console.error('Error saving cleaned notifications:', error);
+      }
+    }, 60000); // Clean up every minute
+
+    return () => clearInterval(cleanupTimer);
+  }, [notifications, newCvNotifications]);
 
   const handleClose = () => {
     setIsVisible(false);
     if (currentNotification) {
-      dispatch(markAsRead(currentNotification.id));
+      // Don't mark as read when closing, keep it unread to maintain count
       setCurrentNotification(null);
     }
   };
@@ -160,7 +261,16 @@ const NotificationPopup = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={handleClose}
+                  onClick={() => {
+                    if (currentNotification) {
+                      // Handle both Socket.IO and database notification IDs
+                      const notificationId = currentNotification._id || currentNotification.id;
+                      if (notificationId) {
+                        dispatch(markNotificationAsRead(notificationId));
+                      }
+                    }
+                    handleClose();
+                  }}
                   className="flex-1 text-xs"
                 >
                   <Check className="w-3 h-3 mr-1" />

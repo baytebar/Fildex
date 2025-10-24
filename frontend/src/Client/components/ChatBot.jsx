@@ -24,12 +24,19 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
     const file = files?.[0]
     if (!file) return
     
-    // Validate file type
-    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-    if (!allowedTypes.includes(file.type)) {
+    // Validate file type with more comprehensive check
+    const allowedTypes = [
+      'application/pdf', 
+      'application/msword', 
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    const allowedExtensions = ['.pdf', '.doc', '.docx'];
+    const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+    
+    if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
       setMessages(ms => ([
         ...ms,
-        { id: Date.now(), role: 'bot', text: 'Please upload a PDF, DOC, or DOCX file only.' }
+        { id: Date.now(), role: 'bot', text: 'Please upload a PDF, DOC, or DOCX file only. Other file types are not supported.' }
       ]))
       return
     }
@@ -37,9 +44,39 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
     // Validate file size (5MB limit)
     const maxSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSize) {
+      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
       setMessages(ms => ([
         ...ms,
-        { id: Date.now(), role: 'bot', text: 'File size must be less than 5MB.' }
+        { id: Date.now(), role: 'bot', text: `File size (${fileSizeMB}MB) exceeds the 5MB limit. Please upload a smaller file.` }
+      ]))
+      return
+    }
+    
+    // Validate minimum file size (at least 1KB)
+    const minSize = 1024; // 1KB
+    if (file.size < minSize) {
+      setMessages(ms => ([
+        ...ms,
+        { id: Date.now(), role: 'bot', text: 'File appears to be empty or too small. Please upload a valid resume file.' }
+      ]))
+      return
+    }
+    
+    // Validate file name
+    if (file.name.length > 255) {
+      setMessages(ms => ([
+        ...ms,
+        { id: Date.now(), role: 'bot', text: 'File name is too long. Please rename your file and try again.' }
+      ]))
+      return
+    }
+    
+    // Check for suspicious file names
+    const suspiciousPatterns = /[<>:"/\\|?*]/;
+    if (suspiciousPatterns.test(file.name)) {
+      setMessages(ms => ([
+        ...ms,
+        { id: Date.now(), role: 'bot', text: 'File name contains invalid characters. Please rename your file and try again.' }
       ]))
       return
     }
@@ -136,6 +173,42 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
 
     // Handle conversation flow
     if (currentStep === 'name') {
+      // Enhanced name validation
+      if (trimmedInput.length < 2) {
+        setTimeout(() => {
+          setMessages(ms => [...ms, { 
+            id: Date.now() + 1, 
+            role: 'bot', 
+            text: 'Please enter a valid name (at least 2 characters).' 
+          }])
+        }, 500)
+        return
+      }
+      
+      if (trimmedInput.length > 50) {
+        setTimeout(() => {
+          setMessages(ms => [...ms, { 
+            id: Date.now() + 1, 
+            role: 'bot', 
+            text: 'Name is too long. Please enter a name with less than 50 characters.' 
+          }])
+        }, 500)
+        return
+      }
+      
+      // Check for valid characters (letters, spaces, hyphens, apostrophes)
+      const nameRegex = /^[a-zA-Z\s\-']+$/
+      if (!nameRegex.test(trimmedInput)) {
+        setTimeout(() => {
+          setMessages(ms => [...ms, { 
+            id: Date.now() + 1, 
+            role: 'bot', 
+            text: 'Please enter a valid name (only letters, spaces, hyphens, and apostrophes are allowed).' 
+          }])
+        }, 500)
+        return
+      }
+      
       setUserName(trimmedInput)
       setCurrentStep('email')
       setTimeout(() => {
@@ -146,18 +219,31 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
         }])
       }, 500)
     } else if (currentStep === 'email') {
-      // Basic email validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      // Enhanced email validation
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
       if (!emailRegex.test(trimmedInput)) {
         setTimeout(() => {
           setMessages(ms => [...ms, { 
             id: Date.now() + 1, 
             role: 'bot', 
-            text: 'Please enter a valid email address.' 
+            text: 'Please enter a valid email address (e.g., john@example.com).' 
           }])
         }, 500)
         return
       }
+      
+      // Check email length
+      if (trimmedInput.length > 254) {
+        setTimeout(() => {
+          setMessages(ms => [...ms, { 
+            id: Date.now() + 1, 
+            role: 'bot', 
+            text: 'Email address is too long. Please enter a shorter email.' 
+          }])
+        }, 500)
+        return
+      }
+      
       setUserEmail(trimmedInput)
       setCurrentStep('resume')
       setTimeout(() => {
@@ -308,11 +394,16 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
             {currentStep === 'name' || currentStep === 'email' ? (
               <div className="flex gap-2">
                 <input
-                  type="text"
+                  type={currentStep === 'email' ? 'email' : 'text'}
                   value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
+                  onChange={(e) => {
+                    // Sanitize input to prevent XSS
+                    const sanitizedValue = e.target.value.replace(/[<>]/g, '');
+                    setInputValue(sanitizedValue);
+                  }}
                   onKeyPress={handleKeyPress}
                   placeholder={currentStep === 'name' ? 'Enter your name...' : 'Enter your email...'}
+                  maxLength={currentStep === 'name' ? 50 : 254}
                   className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <button
@@ -326,7 +417,13 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
             ) : currentStep === 'resume' ? (
               <div className="space-y-4">
                 <label className="inline-flex cursor-pointer items-center gap-3 rounded-xl bg-linear-to-r from-blue-50 to-purple-50 border-2 border-dashed border-blue-200 px-4 py-3 hover:from-blue-100 hover:to-purple-100 hover:border-blue-300 transition-all duration-200 w-full group">
-                  <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={onBrowse} />
+                  <input 
+                    type="file" 
+                    accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
+                    className="hidden" 
+                    onChange={onBrowse}
+                    multiple={false}
+                  />
                   <div className="size-10 rounded-full bg-linear-to-r from-blue-500 to-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
                     <Upload size={20} className="text-white" />
                   </div>

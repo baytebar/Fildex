@@ -5,7 +5,6 @@ import { Badge } from '../../components/ui/badge'
 import { Avatar, AvatarFallback } from '../../components/ui/avatar'
 import {
   FileText,
-  Download,
   Eye,
   Mail,
   Phone,
@@ -79,29 +78,6 @@ const CvViewer = ({ user, onClose, onStatusUpdate }) => {
     }
   }
 
-  const handleDownloadCv = async () => {
-    setIsLoading(true)
-    setCvError(null)
-    try {
-      const signed = await resolveSignedUrl()
-      if (signed) {
-        openUrlInNewTab(signed)
-        toast.success('Download started')
-        return
-      }
-      const fallback = getStoredResumeUrl()
-      if (fallback) {
-        openUrlInNewTab(fallback)
-        toast.success('Opened stored resume link')
-        return
-      }
-      setCvError('Download link not available')
-    } catch (error) {
-      setCvError('Failed to open CV file')
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const handleViewCv = async () => {
     setIsLoading(true)
@@ -327,23 +303,14 @@ const CvViewer = ({ user, onClose, onStatusUpdate }) => {
                         })()}
                       </div>
 
-                      <div className="flex flex-col sm:flex-row gap-3">
+                      <div className="flex justify-center">
                         <Button
                           onClick={handleViewCv}
-                          className="flex-1"
+                          className="w-full sm:w-auto"
                           disabled={isLoading}
                         >
                           <Eye className="w-4 h-4 mr-2" />
                           {isLoading ? 'Loading...' : 'View CV'}
-                        </Button>
-                        <Button
-                          onClick={handleDownloadCv}
-                          variant="outline"
-                          className="flex-1"
-                          disabled={isLoading}
-                        >
-                          <Download className="w-4 h-4 mr-2" />
-                          Download CV
                         </Button>
                       </div>
 
@@ -351,9 +318,9 @@ const CvViewer = ({ user, onClose, onStatusUpdate }) => {
                         <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
                           <p className="text-sm text-red-600 dark:text-red-400">{cvError}</p>
                           <div className="mt-2 text-xs text-red-500 dark:text-red-400">
-                            <p>• Try downloading the file instead</p>
                             <p>• Check if the file format is supported (PDF, DOC, DOCX)</p>
                             <p>• Ensure you have the necessary software to view the file</p>
+                            <p>• Try refreshing the page and opening the CV again</p>
                           </div>
                         </div>
                       )}

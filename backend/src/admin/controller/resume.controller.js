@@ -6,6 +6,7 @@ import { rejectResponseMessage, successResponseMessage } from "../../constants/r
 import { HttpStatusCodes } from "../../constants/statusCode.constants.js";
 import Resume from "../models/resume.model.js";
 import { handleResponse } from "../../utils/responseHandler.utils.js";
+import { createNotification } from "./notification.controller.js";
 import upload from "../../config/multer.config.js";
 import s3Client from "../../config/s3.config.js";
 import { PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
@@ -117,9 +118,32 @@ export const uploadResume = async (req, res, next) => {
       const newResume = new Resume(resumeData);
       const savedResume = await newResume.save();
 
+      // Create notification in database
+      try {
+        const notificationData = {
+          type: 'cv_upload',
+          title: 'New CV Upload',
+          message: `${savedResume.name} uploaded a CV${savedResume.role ? ` for ${savedResume.role}` : ''}`,
+          cvData: {
+            _id: savedResume._id,
+            name: savedResume.name,
+            email: savedResume.email,
+            role: savedResume.role || 'General Position',
+            phone: savedResume.contact?.number || '',
+            createdAt: savedResume.createdAt
+          },
+          priority: 'medium'
+        };
+        
+        await createNotification(notificationData);
+      } catch (error) {
+        console.error('Error creating notification:', error);
+        // Don't fail the upload if notification creation fails
+      }
+
       // Emit Socket.IO notification to admin room
       if (global.io) {
-        const notificationData = {
+        const socketNotificationData = {
           id: savedResume._id,
           type: 'cv_upload',
           message: `${savedResume.name} uploaded a CV${savedResume.role ? ` for ${savedResume.role}` : ''}`,
@@ -135,7 +159,7 @@ export const uploadResume = async (req, res, next) => {
           read: false
         };
         
-        global.io.to('admin').emit('new-cv-upload', notificationData);
+        global.io.to('admin').emit('new-cv-upload', socketNotificationData);
       }
 
       return handleResponse(
@@ -195,9 +219,32 @@ export const uploadResume = async (req, res, next) => {
     const newResume = new Resume(resumeData);
     const savedResume = await newResume.save();
 
+    // Create notification in database
+    try {
+      const notificationData = {
+        type: 'cv_upload',
+        title: 'New CV Upload',
+        message: `${savedResume.name} uploaded a CV${savedResume.role ? ` for ${savedResume.role}` : ''}`,
+        cvData: {
+          _id: savedResume._id,
+          name: savedResume.name,
+          email: savedResume.email,
+          role: savedResume.role || 'General Position',
+          phone: savedResume.contact?.number || '',
+          createdAt: savedResume.createdAt
+        },
+        priority: 'medium'
+      };
+      
+      await createNotification(notificationData);
+    } catch (error) {
+      console.error('Error creating notification:', error);
+      // Don't fail the upload if notification creation fails
+    }
+
     // Emit Socket.IO notification to admin room
     if (global.io) {
-      const notificationData = {
+      const socketNotificationData = {
         id: savedResume._id,
         type: 'cv_upload',
         message: `${savedResume.name} uploaded a CV${savedResume.role ? ` for ${savedResume.role}` : ''}`,
@@ -213,7 +260,7 @@ export const uploadResume = async (req, res, next) => {
         read: false
       };
       
-      global.io.to('admin').emit('new-cv-upload', notificationData);
+      global.io.to('admin').emit('new-cv-upload', socketNotificationData);
     }
 
     // Respond with success

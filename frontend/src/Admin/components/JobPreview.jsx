@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
-import { X, MapPin, Calendar, Users, Briefcase, Mail, Clock } from 'lucide-react';
+import { X, MapPin, Calendar, Briefcase, Mail, Clock } from 'lucide-react';
 
 const JobPreview = ({ job, onClose }) => {
   if (!job) return null;
@@ -103,7 +103,7 @@ const JobPreview = ({ job, onClose }) => {
                 </Badge>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-slate-400" />
                   <span className="text-slate-600 dark:text-slate-400">Posted:</span>
@@ -116,11 +116,6 @@ const JobPreview = ({ job, onClose }) => {
                     <span className="font-medium">{formatDate(job.applicationDeadline)}</span>
                   </div>
                 )}
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-slate-400" />
-                  <span className="text-slate-600 dark:text-slate-400">Applications:</span>
-                  <span className="font-medium">{job.applicants || 0}</span>
-                </div>
               </div>
             </div>
 

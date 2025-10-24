@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react'
-import { Rocket, FileText, AlertTriangle, Check, Star, Flame, Briefcase, MapPin, Calendar, ArrowRight } from 'lucide-react'
+import { Rocket, FileText, AlertTriangle, Check, Star, Flame, Briefcase, MapPin, Calendar, ArrowRight, Clock } from 'lucide-react'
 import FildexLogo from '/images/FILDEX_SOLUTIONS.png'
 import { Link } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
@@ -82,7 +82,7 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
 
   const validateFile = useCallback((file) => {
     const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
-    const maxSize = 10 * 1024 * 1024 // 10MB
+    const maxSize = 5 * 1024 * 1024 // 5MB
 
     if (!allowedTypes.includes(file.type)) {
       setCareerStatus('Please upload a PDF, DOC, or DOCX file.')
@@ -90,7 +90,7 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
     }
 
     if (file.size > maxSize) {
-      setCareerStatus('File size must be less than 10MB.')
+      setCareerStatus('File size must be less than 5MB.')
       return false
     }
 
@@ -405,7 +405,7 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
                     <p className="text-base text-foreground mb-2">
                       {careerForm.cvFile ? careerForm.cvFile.name : 'Drag & drop your CV here or click to browse'}
                     </p>
-                    <p className="text-sm text-muted-foreground">PDF, DOC, DOCX up to 10MB</p>
+                    <p className="text-sm text-muted-foreground">PDF, DOC, DOCX up to 5MB</p>
                   </div>
                 </div>
 
@@ -509,9 +509,17 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
                         {job.description}
                       </p>
 
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Calendar className="w-4 h-4" />
-                        <span>Posted {job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'Recently'}</span>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <Calendar className="w-4 h-4" />
+                          <span>Posted {job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'Recently'}</span>
+                        </div>
+                        {job.deadline && (
+                          <div className="flex items-center gap-1 text-sm text-orange-600 dark:text-orange-400 font-medium">
+                            <Clock className="w-4 h-4" />
+                            <span>Deadline: {new Date(job.deadline).toLocaleDateString()}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

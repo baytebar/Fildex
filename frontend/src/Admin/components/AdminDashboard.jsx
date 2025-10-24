@@ -539,8 +539,7 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
                             <p className="text-sm text-slate-600 dark:text-slate-400 truncate">{job.department || 'No Department'} • {job.location || 'Remote'}</p>
                           </div>
                           <div className="text-right">
-                            <Badge variant="outline">{job.applicants || 0} applicants</Badge>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
                               {job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'N/A'}
                             </p>
                           </div>

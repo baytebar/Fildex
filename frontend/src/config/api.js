@@ -211,8 +211,29 @@ export const api = {
       const url = queryString ? `${API_ENDPOINTS.ADMIN.NOTIFICATIONS}/recent-cvs?${queryString}` : `${API_ENDPOINTS.ADMIN.NOTIFICATIONS}/recent-cvs`;
       return apiRequest(url);
     },
+
+    getNotifications: (params = {}) => {
+      const queryString = new URLSearchParams(params).toString();
+      const url = queryString ? `${API_ENDPOINTS.ADMIN.NOTIFICATIONS}?${queryString}` : API_ENDPOINTS.ADMIN.NOTIFICATIONS;
+      return apiRequest(url);
+    },
+
+    getUnreadCount: () => apiRequest(`${API_ENDPOINTS.ADMIN.NOTIFICATIONS}/unread-count`),
+
     markNotificationAsRead: (notificationId) => apiRequest(`${API_ENDPOINTS.ADMIN.NOTIFICATIONS}/${notificationId}/read`, {
       method: 'PUT',
+    }),
+
+    markAllNotificationsAsRead: () => apiRequest(`${API_ENDPOINTS.ADMIN.NOTIFICATIONS}/mark-all-read`, {
+      method: 'PUT',
+    }),
+
+    deleteNotification: (notificationId) => apiRequest(`${API_ENDPOINTS.ADMIN.NOTIFICATIONS}/${notificationId}`, {
+      method: 'DELETE',
+    }),
+
+    deleteAllNotifications: () => apiRequest(`${API_ENDPOINTS.ADMIN.NOTIFICATIONS}/delete-all`, {
+      method: 'DELETE',
     }),
 
     // Departments

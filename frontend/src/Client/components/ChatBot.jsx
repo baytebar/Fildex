@@ -242,7 +242,7 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
       {!showBot && (
         <button
           onClick={handleOpenChat}
-          className="fixed bottom-6 right-6 size-16 rounded-full bg-linear-to-r from-blue-500 to-purple-600 shadow-2xl grid place-items-center text-2xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 z-50 transform hover:scale-110 active:scale-95 animate-pulse hover:animate-none"
+          className="fixed bottom-6 right-6 size-16 rounded-full bg-linear-to-r from-blue-500 to-purple-600 shadow-2xl grid place-items-center text-2xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 z-60 transform hover:scale-110 active:scale-95 animate-pulse hover:animate-none"
           aria-label="Open chat bot"
         >
           <MessageCircle size={20} className="transition-transform duration-200 hover:rotate-12" />
@@ -251,14 +251,14 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
 
       {/* Chat window - only visible when showBot is true */}
       {showBot && (
-        <div className="fixed inset-0 z-20 flex items-end md:items-center justify-end mt-15">
+        <div className="fixed inset-0 z-55 flex items-end md:items-center justify-end mt-15">
         <div 
           className={`absolute cursor-pointer inset-0 bg-black/50 transition-opacity duration-300 ${
             isAnimating ? 'opacity-0' : 'opacity-100'
           }`} 
           onClick={handleCloseChat} 
         />
-        <div className={`relative z-30 w-full max-w-xs sm:max-w-lg m-1 sm:m-4 rounded-3xl border border-gray-200 bg-white backdrop-blur-xl h-[85vh] flex flex-col shadow-2xl transition-all duration-300 transform ${
+        <div className={`relative z-60 w-full max-w-xs sm:max-w-lg m-1 sm:m-4 rounded-3xl border border-gray-200 bg-white backdrop-blur-xl h-[85vh] flex flex-col shadow-2xl transition-all duration-300 transform ${
           isAnimating 
             ? 'translate-x-full opacity-0 scale-95' 
             : 'translate-x-0 opacity-100 scale-100'

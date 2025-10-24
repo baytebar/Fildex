@@ -22,7 +22,7 @@ import {
   Building,
   X
 } from 'lucide-react'
-import FildexLogo from '../../images/FILDEX_SOLUTIONS.png'
+import FildexLogo from '/images/FILDEX_SOLUTIONS.png'
 import Spinner from '../../components/Spinner'
 
 const AdminLayout = () => {

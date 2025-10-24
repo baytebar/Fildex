@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import FildexLogo from '../../images/FILDEX_SOLUTIONS.png'
+import FildexLogo from '/images/FILDEX_SOLUTIONS.png'
 
 const AuthHeader = () => {
   const navigate = useNavigate();

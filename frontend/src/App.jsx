@@ -163,7 +163,7 @@ const App = () => {
   }, [isAdminPage, location.pathname])
 
   useEffect(() => {
-    if (hasClosedCvPopup || isAdminPage || location.pathname !== '/') {
+    if (hasClosedCvPopup || isAdminPage || location.pathname !== '/' || showBot) {
       return
     }
 
@@ -183,7 +183,7 @@ const App = () => {
     return () => {
       window.removeEventListener('scroll', handleScroll)
     }
-  }, [showCvPopup, hasClosedCvPopup, isAdminPage, location.pathname])
+  }, [showCvPopup, hasClosedCvPopup, isAdminPage, location.pathname, showBot])
 
   const handleCloseCvPopup = () => {
     setShowCvPopup(false)
@@ -207,7 +207,7 @@ const App = () => {
           <>
             <Toaster position="top-right" richColors style={{ zIndex: 99999 }} />
             <ScrollToTop />
-            {!isAdminPage && location.pathname === '/' && <CvUploadPopup isOpen={showCvPopup} onClose={handleCloseCvPopup} />}
+            {!isAdminPage && location.pathname === '/' && !showBot && <CvUploadPopup isOpen={showCvPopup} onClose={handleCloseCvPopup} />}
             <AuthChecker>
               <Routes>
                 <Route path="/" element={

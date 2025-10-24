@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { Rocket, FileText, AlertTriangle, Check, Star, Flame, Briefcase, MapPin, Calendar, ArrowRight } from 'lucide-react'
-import FildexLogo from '../../images/FILDEX_SOLUTIONS.png'
+import FildexLogo from '/images/FILDEX_SOLUTIONS.png'
 import { Link } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { uploadResume } from '../../features/resume/resumeSlice'

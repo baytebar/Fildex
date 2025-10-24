@@ -28,7 +28,7 @@ const io = new Server(server, {
       // "http://46.62.206.205", // server IP
       // "http://fildex.ie", // domain
       // "http://www.fildex.ie",
-    ],
+  ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   },

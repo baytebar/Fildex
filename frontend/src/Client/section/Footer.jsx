@@ -70,7 +70,7 @@ function Footer() {
                             </div>
                             {/* European Union Flag */}
                             <img 
-                                src="/europion-union.png" 
+                                src="/images/europion-union.png" 
                                 alt="European Union Flag" 
                                 className="w-8 h-5 rounded-sm shadow-sm object-cover"
                             />

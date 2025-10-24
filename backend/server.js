@@ -22,12 +22,12 @@ const server = createServer(app);
 const io = new Server(server, {
   cors: {
     origin: [
-      "http://localhost:5173",
-      "http://localhost:5174", 
-      "http://localhost:5175",
-      // "http://46.62.206.205", // server IP
-      // "http://fildex.ie", // domain
-      // "http://www.fildex.ie",
+//      "http://localhost:5173",
+//      "http://localhost:5174", 
+//      "http://localhost:5175",
+      "http://46.62.206.205", 
+      "http://fildex.ie",
+      "http://www.fildex.ie",
   ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
@@ -42,9 +42,9 @@ app.use(helmet());
 app.use(
   cors({
     origin: [
-      "http://localhost:5173",
-      "http://localhost:5174",
-      "http://localhost:5175",
+//      "http://localhost:5173",
+//      "http://localhost:5174",
+//      "http://localhost:5175",
       "http://46.62.206.205", // server IP
       "http://fildex.ie", // domain
       "http://www.fildex.ie",

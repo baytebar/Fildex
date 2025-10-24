@@ -2,17 +2,18 @@ import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Code, Database, Cloud, Cpu, Zap, CheckCircle } from 'lucide-react'
 
-const Loader = ({ isLoading, onComplete }) => {
+const Loader = ({ isLoading, onComplete, imageProgress = 0, imagesLoaded = false }) => {
   const [currentStep, setCurrentStep] = useState(0)
   const [progress, setProgress] = useState(0)
   const [minTimeElapsed, setMinTimeElapsed] = useState(false)
+  const [startTime] = useState(Date.now())
 
   const steps = [
     { icon: Code, text: 'Initializing Development Environment', color: 'from-blue-500 to-purple-600' },
     { icon: Database, text: 'Connecting to Database', color: 'from-purple-500 to-pink-600' },
     { icon: Cloud, text: 'Loading Cloud Services', color: 'from-pink-500 to-red-600' },
     { icon: Cpu, text: 'Optimizing Performance', color: 'from-red-500 to-orange-600' },
-    { icon: Zap, text: 'Finalizing Setup', color: 'from-orange-500 to-yellow-600' },
+    { icon: Zap, text: 'Loading Images & Assets', color: 'from-orange-500 to-yellow-600' },
     { icon: CheckCircle, text: 'Ready to Launch!', color: 'from-green-500 to-emerald-600' }
   ]
 
@@ -24,16 +25,20 @@ const Loader = ({ isLoading, onComplete }) => {
       setMinTimeElapsed(true)
     }, 3000)
 
+    // Update progress based on image loading
     const interval = setInterval(() => {
       setProgress(prev => {
-        // Continue progressing even after 100% to keep the animation going
-        if (prev >= 100) {
-          return 100
+        // Use image progress if available, otherwise use simulated progress
+        const targetProgress = imagesLoaded ? 100 : Math.min(imageProgress, 90)
+        
+        if (prev >= targetProgress) {
+          return targetProgress
         }
         return prev + 2
       })
     }, 50)
 
+    // Update steps based on progress
     const stepInterval = setInterval(() => {
       setCurrentStep(prev => {
         if (prev >= steps.length - 1) {
@@ -41,25 +46,29 @@ const Loader = ({ isLoading, onComplete }) => {
         }
         return prev + 1
       })
-    }, 800)
+    }, 600)
 
     return () => {
       clearInterval(interval)
       clearInterval(stepInterval)
       clearTimeout(minTimeTimer)
     }
-  }, [isLoading, steps.length])
+  }, [isLoading, steps.length, imageProgress, imagesLoaded])
 
   // Check if both progress is complete and minimum time has elapsed
   useEffect(() => {
-    if (progress >= 100 && minTimeElapsed && isLoading) {
+    // Only complete if:
+    // 1. Progress is 100% AND
+    // 2. Minimum 3 seconds have elapsed AND
+    // 3. All images are loaded
+    if (progress >= 100 && minTimeElapsed && isLoading && imagesLoaded) {
       const completionTimer = setTimeout(() => {
         onComplete?.()
       }, 500)
       
       return () => clearTimeout(completionTimer)
     }
-  }, [progress, minTimeElapsed, isLoading, onComplete])
+  }, [progress, minTimeElapsed, isLoading, imagesLoaded, onComplete])
 
   if (!isLoading) return null
 
@@ -69,7 +78,7 @@ const Loader = ({ isLoading, onComplete }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed top-0 left-0 right-0 bottom-0 w-full h-full z-[9999] flex items-center justify-center"
+        className="fixed top-0 left-0 right-0 bottom-0 w-full h-full z-9999 flex items-center justify-center"
         style={{
           background: "radial-gradient(125% 125% at 50% 90%, #fff 40%, #7c3aed 100%)",
           backgroundImage: `
@@ -184,7 +193,12 @@ const Loader = ({ isLoading, onComplete }) => {
                 {steps[currentStep]?.text}
               </p>
               <p className="text-gray-600 text-sm">
-                {Math.round(progress)}% Complete
+                {imagesLoaded ? '100% Complete' : `${Math.round(progress)}% Complete`}
+                {!imagesLoaded && imageProgress > 0 && (
+                  <span className="ml-2 text-blue-600">
+                    (Images: {Math.round(imageProgress)}%)
+                  </span>
+                )}
               </p>
             </div>
           </motion.div>
@@ -225,7 +239,12 @@ const Loader = ({ isLoading, onComplete }) => {
               animate={{ opacity: [0.5, 1, 0.5] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
-              Preparing your digital experience...
+              {imagesLoaded && minTimeElapsed 
+                ? 'Ready to launch!' 
+                : imagesLoaded 
+                  ? 'Waiting for minimum time...' 
+                  : 'Loading images and assets...'
+              }
             </motion.p>
           </motion.div>
         </div>

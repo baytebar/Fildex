@@ -40,6 +40,7 @@ import Footer from './Client/section/Footer'
 import AdminDepartmentManagement from './Admin/pages/AdminDepartmentManagement'
 import Loader from './Client/components/Loader'
 import PrivacyPolicy from './Client/pages/PrivacyPolicy'
+import useImageLoader from './hooks/useImageLoader'
 
 
 
@@ -141,7 +142,18 @@ const App = () => {
 
   const isAdminPage = location.pathname.startsWith('/admin')
 
-  // Initial loader effect - show loader for 3 seconds only on home page
+  // Define the images that need to be loaded
+  const imagePaths = [
+    '/images/FILDEX_SOLUTIONS.png',
+    '/images/Hero.png',
+    '/images/europion-union.png',
+    '/images/favicon.png'
+  ]
+
+  // Use the image loader hook
+  const { imagesLoaded, progress } = useImageLoader(imagePaths)
+
+  // Initial loader effect - show loader until images are loaded
   useEffect(() => {
     // Only show loader on home page, not on admin pages
     if (isAdminPage) {
@@ -152,15 +164,14 @@ const App = () => {
     // Reset loader when navigating to home page
     if (location.pathname === '/') {
       setIsInitialLoading(true)
-      const timer = setTimeout(() => {
-        setIsInitialLoading(false)
-      }, 3000) // 3 seconds
-
-      return () => clearTimeout(timer)
     } else {
       setIsInitialLoading(false)
     }
   }, [isAdminPage, location.pathname])
+
+  // The loader component will handle the timing and completion
+  // No need for additional logic here as the loader handles both
+  // minimum time (3 seconds) and image loading completion
 
   useEffect(() => {
     if (hasClosedCvPopup || isAdminPage || location.pathname !== '/' || showBot) {
@@ -200,7 +211,9 @@ const App = () => {
         {isInitialLoading && !isAdminPage && (
           <Loader 
             isLoading={isInitialLoading} 
-            onComplete={() => setIsInitialLoading(false)} 
+            onComplete={() => setIsInitialLoading(false)}
+            imageProgress={progress}
+            imagesLoaded={imagesLoaded}
           />
         )}
         {!isInitialLoading && (

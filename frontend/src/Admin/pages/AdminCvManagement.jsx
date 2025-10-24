@@ -33,6 +33,7 @@ const AdminCvManagement = () => {
   const dispatch = useDispatch()
   const { resumes, isLoading, error, pagination } = useSelector((state) => state.resume)
   const { isAuthenticated } = useSelector((state) => state.admin)
+  const { newCvNotifications } = useSelector((state) => state.notifications)
   const [adminFilters, setAdminFilters] = useState({
     search: '',
     status: '',
@@ -72,6 +73,22 @@ const AdminCvManagement = () => {
         })
     }
   }, [dispatch, isAuthenticated])
+
+  // Refresh CV list when new CV notifications are received
+  useEffect(() => {
+    if (isAuthenticated && newCvNotifications.length > 0) {
+      // Check if there are any unread notifications
+      const hasUnreadNotifications = newCvNotifications.some(notification => !notification.read);
+      if (hasUnreadNotifications) {
+        // Refresh the CV list to show new CVs
+        dispatch(fetchAllResumes({ page: 1, limit: 10 }))
+          .unwrap()
+          .catch((error) => {
+            console.error('Failed to refresh CV list:', error);
+          });
+      }
+    }
+  }, [dispatch, isAuthenticated, newCvNotifications])
 
   // Function to handle page changes
   const handlePageChange = (newPage) => {

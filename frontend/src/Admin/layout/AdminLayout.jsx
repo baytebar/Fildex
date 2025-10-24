@@ -98,6 +98,22 @@ const AdminLayout = () => {
 
     return () => clearInterval(pollInterval)
   }, [dispatch, isAuthenticated, lastChecked])
+
+  // Refresh CV list when new CV notifications are received
+  useEffect(() => {
+    if (newCvNotifications.length > 0 && isAuthenticated) {
+      // Check if there are any unread notifications
+      const hasUnreadNotifications = newCvNotifications.some(notification => !notification.read);
+      if (hasUnreadNotifications) {
+        // Refresh the CV list to show new CVs
+        dispatch(fetchAllResumes({ page: 1, limit: 10 }))
+          .unwrap()
+          .catch((error) => {
+            console.error('Failed to refresh CV list:', error);
+          });
+      }
+    }
+  }, [dispatch, isAuthenticated, newCvNotifications])
   const [showRoleDialog, setShowRoleDialog] = useState(false)
   const [selectedUserForRole, setSelectedUserForRole] = useState(null)
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)

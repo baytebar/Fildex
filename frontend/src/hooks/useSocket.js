@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { addSocketNotification } from '../features/notifications/notificationSlice';
+import { fetchAllResumes } from '../features/resume/resumeSlice';
 import socketService from '../services/socketService';
 
 export const useSocket = () => {
@@ -27,6 +28,13 @@ export const useSocket = () => {
     const handleNewCvUpload = (notification) => {
       console.log('🔔 Received new CV upload notification:', notification);
       dispatch(addSocketNotification(notification));
+      
+      // Refresh the CV list to show the new CV
+      dispatch(fetchAllResumes({ page: 1, limit: 10 }))
+        .unwrap()
+        .catch((error) => {
+          console.error('Failed to refresh CV list:', error);
+        });
       
       // Toast notification removed - using popup notifications instead
     };

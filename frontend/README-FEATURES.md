@@ -72,7 +72,6 @@ src/
 ### Future Enhancements
 1. Backend Integration:
    - Database storage for CVs and job postings
-   - User authentication system
    - Email notifications for applications
 2. Advanced Features:
    - Application review system
@@ -87,12 +86,11 @@ src/
 ## Usage Instructions
 
 ### For Admins
-1. Access the admin dashboard through the admin button in the header
-2. Log in with credentials (demo: admin / fildex2024)
+1. Access the admin dashboard through the admin login link
+2. Log in with credentials 
 3. Use the CV Management tab to:
    - View uploaded resumes
    - Filter and sort CVs
-   - Export data to CSV
    - Delete CVs or contact applicants
 4. Use the Job Postings tab to:
    - View existing job postings
@@ -103,8 +101,7 @@ src/
 ### For Applicants
 1. Visit the Careers section to submit a CV to the talent pool
 2. Visit the Opportunities section to view open positions
-3. Click "Apply Now" on any job to submit an application
-4. Fill out the application form with personal details and upload a CV
+3. Fill out the application form with personal details and upload a CV
 
 ## Design Principles
 - **Modern Aesthetics**: Following current web design trends with glassmorphism and gradients

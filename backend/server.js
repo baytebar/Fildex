@@ -75,21 +75,18 @@ app.use(errorHandling);
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {
-  console.log('🔌 Client connected:', socket.id);
-  
   // Join admin room for notifications
   socket.on('join-admin', () => {
     socket.join('admin');
-    console.log('✅ Admin joined room:', socket.id);
   });
   
   socket.on('disconnect', (reason) => {
-    console.log('❌ Client disconnected:', socket.id, 'Reason:', reason);
+    // Client disconnected
   });
 
   // Handle errors
   socket.on('error', (error) => {
-    console.error('❌ Socket error:', error);
+    // Socket error occurred
   });
 });
 

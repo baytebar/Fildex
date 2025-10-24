@@ -135,11 +135,7 @@ export const uploadResume = async (req, res, next) => {
           read: false
         };
         
-        console.log('🔔 Sending CV upload notification to admin room:', notificationData);
         global.io.to('admin').emit('new-cv-upload', notificationData);
-        console.log('✅ CV upload notification sent to admin room');
-      } else {
-        console.log('❌ Socket.IO not available for notification');
       }
 
       return handleResponse(
@@ -217,11 +213,7 @@ export const uploadResume = async (req, res, next) => {
         read: false
       };
       
-      console.log('🔔 Sending CV upload notification to admin room:', notificationData);
       global.io.to('admin').emit('new-cv-upload', notificationData);
-      console.log('✅ CV upload notification sent to admin room');
-    } else {
-      console.log('❌ Socket.IO not available for notification');
     }
 
     // Respond with success

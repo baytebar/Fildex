@@ -194,11 +194,6 @@ const Loader = ({ isLoading, onComplete, imageProgress = 0, imagesLoaded = false
               </p>
               <p className="text-gray-600 text-sm">
                 {imagesLoaded ? '100% Complete' : `${Math.round(progress)}% Complete`}
-                {!imagesLoaded && imageProgress > 0 && (
-                  <span className="ml-2 text-blue-600">
-                    (Images: {Math.round(imageProgress)}%)
-                  </span>
-                )}
               </p>
             </div>
           </motion.div>

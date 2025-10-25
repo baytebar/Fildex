@@ -8,8 +8,10 @@ import { getAllJobPostings } from '../../features/admin/adminSlice'
 import { addCvUploadNotification } from '../../features/notifications/notificationSlice'
 import { api } from '../../config/api'
 import { toast } from 'sonner'
-import CareersHeader from './CareersHeader'
+import CareersHeader from '../section/CareersHeader'
 import PhoneInput from '../../components/ui/phone-input'
+import SEO from '../../components/SEO'
+import { OrganizationSchema } from '../../components/StructuredData'
 
 const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
   const [careerForm, setCareerForm] = useState({ name: '', email: '', phone: '', jobTitle: '', cvFile: null, consent: false })
@@ -273,8 +275,16 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
   }
 
   return (
-    <div className="min-h-dvh bg-background">
-      <CareersHeader />
+    <>
+      <SEO
+        title="Careers at Fildex Solutions - Join Our Team"
+        description="Join Fildex Solutions and be part of our innovative team. We offer exciting career opportunities in cloud engineering, DevOps, AI/ML, software development, and business analysis in Cork, Ireland."
+        keywords="careers, jobs, employment, cloud engineer, DevOps, AI/ML developer, software developer, business analyst, Cork, Ireland, IT jobs, tech careers, recruitment"
+        url="https://fildex.ie/careers"
+        structuredData={OrganizationSchema}
+      />
+      <div className="min-h-dvh bg-background">
+        <CareersHeader />
       <section id="careers" className="space-y-8 px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-7xl mx-auto">
 
@@ -583,6 +593,7 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
       </div>
       </section>
     </div>
+    </>
   )
 }
 

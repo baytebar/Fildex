@@ -579,11 +579,20 @@ const AdminLayout = () => {
 
                 <div className="p-4 sm:p-6 border-t border-slate-200 dark:border-slate-700">
                   <div className="flex gap-2">
-                    {newCvNotifications.length > 0 && (
+                    {(newCvNotifications.length > 0 || notifications.length > 0) && (
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => dispatch(markAllAsRead())}
+                        onClick={() => {
+                          // Mark Socket.IO notifications as read
+                          if (newCvNotifications.length > 0) {
+                            dispatch(markAllAsRead());
+                          }
+                          // Mark database notifications as read
+                          if (notifications.length > 0) {
+                            dispatch(markAllNotificationsAsReadAsync());
+                          }
+                        }}
                         className="flex-1"
                       >
                         Mark All as Read

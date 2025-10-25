@@ -1,4 +1,23 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
+// Smart API URL detection based on environment
+const getApiBaseUrl = () => {
+  // If explicitly set via environment variable, use that
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  
+  // Auto-detect based on current hostname
+  const hostname = window.location.hostname;
+  
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    // Development environment
+    return 'http://localhost:5000/api/v1';
+  } else {
+    // Production environment
+    return 'https://fildex.ie/api/v1';
+  }
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export const API_ENDPOINTS = {
   USER: {

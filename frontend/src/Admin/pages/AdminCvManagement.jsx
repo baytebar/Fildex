@@ -20,7 +20,8 @@ import {
   XCircle,
   Clock,
   AlertTriangle,
-  Trash2
+  Trash2,
+  Briefcase
 } from 'lucide-react'
 import { updateUserStatus } from '../../features/admin/adminSlice'
 import { fetchAllResumes, deleteResume } from '../../features/resume/resumeSlice'
@@ -414,6 +415,7 @@ const AdminCvManagement = () => {
                 <TableRow>
                   <TableHead>Applicant</TableHead>
                   <TableHead>Contact</TableHead>
+                  <TableHead>Job Title</TableHead>
                   <TableHead>Uploaded</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Expiry</TableHead>
@@ -423,7 +425,7 @@ const AdminCvManagement = () => {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
+                    <TableCell colSpan={7} className="text-center py-8">
                       <div className="flex flex-col items-center gap-2">
                         <Spinner />
                         <p className="text-slate-600 dark:text-slate-400">Loading users...</p>
@@ -432,7 +434,7 @@ const AdminCvManagement = () => {
                   </TableRow>
                 ) : error ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
+                    <TableCell colSpan={7} className="text-center py-8">
                       <div className="flex flex-col items-center gap-2">
                         <FileText className="w-12 h-12 text-red-400" />
                         <p className="text-red-600 dark:text-red-400">Error loading users: {error}</p>
@@ -441,7 +443,7 @@ const AdminCvManagement = () => {
                   </TableRow>
                 ) : filteredCvs.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
+                    <TableCell colSpan={7} className="text-center py-8">
                       <div className="flex flex-col items-center gap-2">
                         <FileText className="w-12 h-12 text-slate-400" />
                         <p className="text-slate-600 dark:text-slate-400">
@@ -502,6 +504,18 @@ const AdminCvManagement = () => {
                             <span className="text-sm">{resume.contact?.number || 'N/A'}</span>
                           </div>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        {resume.role ? (
+                          <div className="flex items-center gap-2">
+                            <Briefcase className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                            <span className="text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-md">
+                              {resume.role}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-slate-400 italic">Not specified</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1 text-slate-600 dark:text-slate-400">

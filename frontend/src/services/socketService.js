@@ -12,7 +12,10 @@ class SocketService {
     }
 
     // Extract base URL from API_BASE_URL (remove /api/v1)
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 
+      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+        ? 'http://localhost:5000/api/v1' 
+        : 'http://46.62.206.205:5000/api/v1');
     const serverUrl = apiBaseUrl.replace('/api/v1', '');
     
     console.log('🔌 Connecting to Socket.IO server:', serverUrl);

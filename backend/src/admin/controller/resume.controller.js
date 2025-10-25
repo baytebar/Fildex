@@ -18,6 +18,7 @@ const __dirname = path.dirname(__filename);
 
 export const uploadResume = async (req, res, next) => {
   try {
+    
     // Check if file is provided
     if (!req.file) {
       return handleResponse(
@@ -29,6 +30,7 @@ export const uploadResume = async (req, res, next) => {
 
     // Extract data from request body
     const { name, email, contact, role } = req.body;
+    
     
     // Validate required fields
     if (!name || !email) {

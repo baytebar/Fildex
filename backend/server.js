@@ -5,6 +5,8 @@ import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import helmet from "helmet";
 import { createServer } from "http";
+import { createServer as createHttpsServer } from "https";
+import fs from "fs";
 import { Server } from "socket.io";
 import connectDB from "./src/config/mongoose.config.js";
 import indexRouter from "./src/routes/index.route.js";
@@ -16,7 +18,25 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 const app = express();
-const server = createServer(app);
+
+// Create server (HTTP for development, HTTPS for production)
+let server;
+if (process.env.NODE_ENV === 'production') {
+  try {
+    // SSL Configuration for production
+    const sslOptions = {
+      key: fs.readFileSync('/etc/ssl/private/fildex.ie.key'),
+      cert: fs.readFileSync('/etc/ssl/certs/fildex.ie.crt')
+    };
+    server = createHttpsServer(sslOptions, app);
+  } catch (error) {
+    console.log('SSL certificates not found, falling back to HTTP');
+    server = createServer(app);
+  }
+} else {
+  // Development - use HTTP
+  server = createServer(app);
+}
 
 // Initialize Socket.IO
 const io = new Server(server, {
@@ -25,9 +45,12 @@ const io = new Server(server, {
       "http://localhost:5173",
       "http://localhost:5174", 
       "http://localhost:5175",
-      "http://46.62.206.205", 
+      "http://46.62.206.205",
+      "https://46.62.206.205", 
       "http://fildex.ie",
+      "https://fildex.ie",
       "http://www.fildex.ie",
+      "https://www.fildex.ie",
   ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
@@ -45,10 +68,13 @@ app.use(
      "http://localhost:5173",
      "http://localhost:5174",
      "http://localhost:5175",
-      // "http://46.62.206.205", // server IP
-      // "http://fildex.ie", // domain
-      // "http://www.fildex.ie",
-    ], // Vite default ports
+      "http://46.62.206.205",
+      "https://46.62.206.205",
+      "http://fildex.ie", 
+      "https://fildex.ie",
+      "http://www.fildex.ie",
+      "https://www.fildex.ie",
+    ], 
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -94,6 +120,9 @@ io.on('connection', (socket) => {
 const port = process.env.PORT || 5000;
 server.listen(port, () => {
   console.log(`🚀 Server is running on port ${port}`);
-  console.log(`📡 API endpoints available at http://localhost:${port}/api/v1`);
+  const apiUrl = process.env.NODE_ENV === 'production' 
+    ? 'https://fildex.ie/api/v1' 
+    : `http://localhost:${port}/api/v1`;
+  console.log(`📡 API endpoints available at ${apiUrl}`);
   console.log(`🔌 Socket.IO server ready for connections`);
 });

@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import JobApplicationForm from './JobApplicationForm'
 import { Target, GraduationCap, Users, Sparkles, Megaphone, Mailbox, Check, Circle } from 'lucide-react'
 import Header from '../../Client/section/Header.jsx'
+import SEO from '../../components/SEO'
+import { OrganizationSchema, JobPostingSchema } from '../../components/StructuredData'
 
 
 const JobListing = ({ jobPostings }) => {
@@ -15,8 +17,19 @@ const JobListing = ({ jobPostings }) => {
         setSelectedJob(null)
     }
 
+    // Create structured data for job postings
+    const jobStructuredData = activeJobs.map(job => JobPostingSchema(job))
+    const structuredData = [OrganizationSchema, ...jobStructuredData]
+
     return (
         <>
+            <SEO
+                title="Job Opportunities at Fildex Solutions - Current Openings"
+                description="Explore current job opportunities at Fildex Solutions. We're hiring cloud engineers, DevOps specialists, AI/ML developers, software developers, and business analysts in Cork, Ireland."
+                keywords="job opportunities, current openings, cloud engineer jobs, DevOps jobs, AI/ML developer jobs, software developer jobs, business analyst jobs, Cork, Ireland, IT careers, tech jobs"
+                url="https://fildex.ie/jobs"
+                structuredData={structuredData}
+            />
             <Header />
             <section id="opportunities" className="min-h-dvh space-y-8 px-4 sm:px-6 lg:px-8 py-12 bg-background">
                 <div className="max-w-7xl mx-auto">

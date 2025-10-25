@@ -53,7 +53,10 @@ const CvViewer = ({ user, onClose, onStatusUpdate }) => {
     const directUrl = user && user['resume-link'] ? user['resume-link'] : null
     if (directUrl) return directUrl
     // Legacy shape support (if ever present)
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1'
+          const baseUrl = import.meta.env.VITE_API_BASE_URL || 
+      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+        ? 'http://localhost:5000/api/v1' 
+        : 'http://46.62.206.205:5000/api/v1')
     const legacy = user?.cv?.url ? `${baseUrl}/${user.cv.url}` : null
     return legacy
   }
@@ -92,7 +95,10 @@ const CvViewer = ({ user, onClose, onStatusUpdate }) => {
       if (fallback) {
         // Check if it's a local file path and construct proper URL
         if (fallback.startsWith('/public/uploads/')) {
-          const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1'
+          const baseUrl = import.meta.env.VITE_API_BASE_URL || 
+      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+        ? 'http://localhost:5000/api/v1' 
+        : 'http://46.62.206.205:5000/api/v1')
           const fullUrl = `${baseUrl}${fallback}`
           openUrlInNewTab(fullUrl)
         } else {

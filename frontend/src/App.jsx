@@ -2,11 +2,9 @@ import React, { useState, useEffect } from 'react'
 import { Provider, useDispatch, useSelector } from 'react-redux'
 import { store } from './app/store'
 import { Toaster } from 'sonner'
-import Hero from './Client/section/Hero'
-import About from './Client/section/About'
-import Careers from './Client/section/Careers'
-import Training from './Client/section/Trainning'
-import Contact from './Client/section/Contact'
+import { HelmetProvider } from 'react-helmet-async'
+import HomePage from './Client/pages/HomePage'
+import Careers from './Client/pages/Careers'
 
 import AdminLayout from './Admin/layout/AdminLayout'
 import ChatBot from './Client/components/ChatBot'
@@ -206,8 +204,9 @@ const App = () => {
   const [jobPostings, setJobPostings] = useState([])
 
   return (
-    <Provider store={store}>
-      <AuthInitializer>
+    <HelmetProvider>
+      <Provider store={store}>
+        <AuthInitializer>
         {isInitialLoading && !isAdminPage && (
           <Loader 
             isLoading={isInitialLoading} 
@@ -224,17 +223,12 @@ const App = () => {
             <AuthChecker>
               <Routes>
                 <Route path="/" element={
-                  <div className="min-h-dvh bg-background text-foreground">
-                    <Header setShowBot={setShowBot} />
-                    <main>
-                      <Hero />
-                      <About />
-                      <Training />
-                      <Contact />
-                    </main>
-                    <Footer />
-                    <ChatBot showBot={showBot} setShowBot={setShowBot} cvData={cvData} setCvData={setCvData} />
-                  </div>
+                  <HomePage 
+                    showBot={showBot} 
+                    setShowBot={setShowBot} 
+                    cvData={cvData} 
+                    setCvData={setCvData} 
+                  />
                 } />
                 <Route path="/jobs" element={
                   <JobListing />
@@ -283,6 +277,7 @@ const App = () => {
         )}
       </AuthInitializer>
     </Provider>
+    </HelmetProvider>
   )
 }
 

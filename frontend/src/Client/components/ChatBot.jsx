@@ -3,7 +3,7 @@ import { MessageCircle, X, Bot, User, Upload, Check, Send } from 'lucide-react'
 import { useDispatch } from 'react-redux'
 import { toast } from 'sonner'
 import { uploadResume } from '../../features/resume/resumeSlice'
-import { extractUserInfo, formatPhoneNumber } from '../../utils/cvTextExtractor'
+import { extractUserInfo } from '../../utils/cvTextExtractor'
 
 const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
   const dispatch = useDispatch()
@@ -15,10 +15,51 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
   const [isUploading, setIsUploading] = useState(false)
   const [userName, setUserName] = useState('')
   const [userEmail, setUserEmail] = useState('')
-  const [currentStep, setCurrentStep] = useState('greeting') // greeting, name, email, resume
+  const [selectedJobTitle, setSelectedJobTitle] = useState('')
+  const [currentStep, setCurrentStep] = useState('greeting') // greeting, name, email, jobTitle, resume
   const [inputValue, setInputValue] = useState('')
+  const [jobTitles, setJobTitles] = useState([])
   const typingMessageId = useRef(null)
   const chatEndRef = useRef(null)
+
+  // Fetch job titles on component mount
+  useEffect(() => {
+    const fetchJobTitles = async () => {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
+          (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? 'http://localhost:5000/api/v1' 
+            : 'http://46.62.206.205:5000/api/v1')
+        const response = await fetch(`${API_BASE_URL}/public/job-titles`)
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        
+        const text = await response.text()
+        if (!text) {
+          setJobTitles([])
+          return
+        }
+        
+        const data = JSON.parse(text)
+        if (data.data && Array.isArray(data.data)) {
+          const activeJobTitles = data.data.filter(jobTitle => jobTitle.isDeleted !== true)
+          setJobTitles(activeJobTitles)
+        } else if (Array.isArray(data)) {
+          const activeJobTitles = data.filter(jobTitle => jobTitle.isDeleted !== true)
+          setJobTitles(activeJobTitles)
+        } else {
+          setJobTitles([])
+        }
+      } catch (error) {
+        console.error('Error fetching job titles:', error)
+        setJobTitles([])
+      }
+    }
+
+    fetchJobTitles()
+  }, [])
 
   const handleFiles = useCallback(async (files) => {
     const file = files?.[0]
@@ -84,6 +125,7 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
     setUploadedFile(file)
     setIsUploading(true)
     
+    
     try {
       // Extract text from file for analysis
       let extractedText = ''
@@ -95,23 +137,17 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
 
       // Extract user information from CV text
       const userInfo = extractUserInfo(extractedText)
-      const formattedPhone = formatPhoneNumber(userInfo.phone)
       
-      // Upload to backend with user information using the new resume API
+      // Upload to backend with user information using the same structure as careers page
       const formData = new FormData()
       formData.append('resume', file)
       formData.append('name', userName || userInfo.name || '')
       formData.append('email', userEmail || userInfo.email || '')
       
-      // Add contact information if available
-      if (userInfo.phone) {
-        formData.append('contact', JSON.stringify({
-          number: userInfo.phone.replace(/\D/g, ''), // Remove non-digits
-          country_code: formattedPhone.startsWith('+353') ? '+353' : 
-                       formattedPhone.startsWith('+1') ? '+1' : 
-                       formattedPhone.startsWith('+44') ? '+44' : '+353'
-        }))
-      }
+      // Use selectedJobTitle as the role
+      const roleValue = selectedJobTitle || userInfo.role || ''
+      formData.append('role', roleValue)
+      
       
       const result = await dispatch(uploadResume(formData)).unwrap()
       
@@ -133,6 +169,7 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
       setCurrentStep('greeting')
       setUserName('')
       setUserEmail('')
+      setSelectedJobTitle('')
       setUploadedFile(null)
       
       // Close the chatbot after 3 seconds
@@ -154,7 +191,7 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
     } finally {
       setIsUploading(false)
     }
-  }, [dispatch, userName, userEmail])
+  }, [dispatch, userName, userEmail, selectedJobTitle])
 
   const onBrowse = useCallback((e) => {
     const files = e.target.files
@@ -245,12 +282,12 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
       }
       
       setUserEmail(trimmedInput)
-      setCurrentStep('resume')
+      setCurrentStep('jobTitle')
       setTimeout(() => {
         setMessages(ms => [...ms, { 
           id: Date.now() + 1, 
           role: 'bot', 
-          text: 'Perfect! Now please upload your resume so I can help you with job opportunities.' 
+          text: 'Great! What job title are you interested in? Please select from the available positions.' 
         }])
       }, 500)
     }
@@ -261,6 +298,7 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
       handleUserInput()
     }
   }, [handleUserInput])
+
 
   const keywordStats = React.useMemo(() => {
     if (!resumeText) return []
@@ -300,6 +338,7 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
     setCurrentStep('greeting')
     setUserName('')
     setUserEmail('')
+    setSelectedJobTitle('')
     setUploadedFile(null)
     setInputValue('')
     
@@ -328,7 +367,7 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
       {!showBot && (
         <button
           onClick={handleOpenChat}
-          className="fixed bottom-6 right-6 size-16 rounded-full bg-linear-to-r from-blue-500 to-purple-600 shadow-2xl grid place-items-center text-2xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 z-60 transform hover:scale-110 active:scale-95 animate-pulse hover:animate-none"
+          className="fixed bottom-6 right-6 size-16 rounded-full bg-linear-to-r from-blue-500 to-purple-600 shadow-2xl grid place-items-center text-2xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 z-40 transform hover:scale-110 active:scale-95 animate-pulse hover:animate-none"
           aria-label="Open chat bot"
         >
           <MessageCircle size={20} className="transition-transform duration-200 hover:rotate-12" />
@@ -337,7 +376,7 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
 
       {/* Chat window - only visible when showBot is true */}
       {showBot && (
-        <div className="fixed inset-0 z-55 flex items-end md:items-center justify-end mt-15">
+        <div className="fixed inset-0 z-40 flex items-end md:items-center justify-end mt-15">
         <div 
           className={`absolute cursor-pointer inset-0 bg-black/50 transition-opacity duration-300 ${
             isAnimating ? 'opacity-0' : 'opacity-100'
@@ -413,6 +452,50 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
                 >
                   <Send size={16} />
                 </button>
+              </div>
+            ) : currentStep === 'jobTitle' ? (
+              <div className="space-y-3">
+                <select
+                  value={selectedJobTitle}
+                  onChange={(e) => {
+                    const selectedValue = e.target.value
+                    setSelectedJobTitle(selectedValue)
+                    
+                    // Auto-proceed when job title is selected
+                    if (selectedValue) {
+                      setTimeout(() => {
+                        setCurrentStep('resume')
+                        setMessages(ms => [...ms, { 
+                          id: Date.now() + 1, 
+                          role: 'bot', 
+                          text: `Perfect! You've selected "${selectedValue}". Now please upload your resume so I can help you with job opportunities.` 
+                        }])
+                      }, 500)
+                    }
+                  }}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Select a job title...</option>
+                  {jobTitles.length > 0 ? (
+                    jobTitles.map((jobTitle) => (
+                      <option key={jobTitle._id} value={jobTitle.name}>
+                        {jobTitle.name}
+                      </option>
+                    ))
+                  ) : (
+                    // Fallback options if API fails
+                    <>
+                      <option value="Cloud Engineer">Cloud Engineer</option>
+                      <option value="DevOps Engineer">DevOps Engineer</option>
+                      <option value="AI/ML Developer">AI/ML Developer</option>
+                      <option value="Network Engineer">Network Engineer</option>
+                      <option value="Business Analyst">Business Analyst</option>
+                      <option value="Project Manager">Project Manager</option>
+                      <option value="Software Developer">Software Developer</option>
+                      <option value="Internship Program">Internship Program</option>
+                    </>
+                  )}
+                </select>
               </div>
             ) : currentStep === 'resume' ? (
               <div className="space-y-4">

@@ -23,7 +23,9 @@ const upload = multer({
   limits: { 
     fileSize: 5 * 1024 * 1024,
     files: 1,
-    fields: 10
+    fields: 20, // Increased to allow more form fields
+    fieldNameSize: 100, // Allow longer field names
+    fieldSize: 1000 // Allow larger field values
   }, 
   fileFilter 
 })

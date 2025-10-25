@@ -1,13 +1,13 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Shield, Eye, Lock, Database, Users, Mail, Phone, MapPin } from 'lucide-react'
-import Header from '../section/Header'
+import PrivacyHeader from '../section/PrivacyHeader'
 import Footer from '../section/Footer'
 
 const PrivacyPolicy = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Header />
+      <PrivacyHeader />
       
       <div className="pt-20 pb-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -131,7 +131,7 @@ const PrivacyPolicy = () => {
               </h2>
               <div className="bg-primary/5 border border-primary/20 rounded-lg p-6">
                 <p className="text-muted-foreground leading-relaxed">
-                  <strong>Retention Period:</strong> We retain your personal data for <strong>6 months</strong> from the date of collection 
+                  <strong>Retention Period:</strong> We retain your personal data for <strong>90 days</strong> from the date of collection 
                   or your last interaction with our services, whichever is later. After this period, we will securely delete or 
                   anonymize your personal information unless we are required by law to retain it for a longer period.
                 </p>

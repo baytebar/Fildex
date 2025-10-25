@@ -298,3 +298,20 @@ html {
     @apply bg-background text-foreground;
   }
 }
+
+/* Mobile responsive improvements for phone input */
+@media (max-width: 400px) {
+  .phone-input-container {
+    min-width: 0;
+    overflow: hidden;
+  }
+  
+  .phone-input-container .flex {
+    min-width: 0;
+  }
+  
+  .phone-input-container input {
+    min-width: 0;
+    font-size: 14px;
+  }
+}

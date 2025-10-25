@@ -318,7 +318,7 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
               )} */}
 
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <div>
                     <label className="block text-sm font-medium text-muted-foreground mb-2">Full Name *</label>
                     <input
@@ -350,7 +350,7 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <div>
                     <label className="block text-sm font-medium text-muted-foreground mb-2">Phone *</label>
                     <PhoneInput
@@ -449,7 +449,7 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
                   <label className="text-sm text-muted-foreground">
                     I consent to the processing of my personal data for recruitment purposes.
                     <a href="/privacy-policy" className="text-primary hover:underline"> Privacy Policy</a>.
-                    Data will be retained for 6 months.
+                    Data will be retained for 90 days.
                   </label>
                 </div>
 

@@ -199,7 +199,7 @@ const PhoneInput = ({
   }, [isOpen])
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative phone-input-container ${className}`}>
       <div className="flex">
         {/* Country Selector */}
         <div className="relative" ref={dropdownRef}>
@@ -210,49 +210,50 @@ const PhoneInput = ({
               setIsOpen(!isOpen)
             }}
             disabled={disabled}
-            className="flex items-center gap-2 px-3 py-3 border border-r-0 border-gray-300 rounded-l-lg bg-white text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-3 border border-r-0 border-input rounded-l-lg bg-background text-foreground hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-w-0"
           >
-            <span className="text-lg">{selectedCountry.flag}</span>
-            <span className="text-sm font-medium">{selectedCountry.dialCode}</span>
-            <ChevronDown className="w-4 h-4" />
+            <span className="text-base sm:text-lg shrink-0">{selectedCountry.flag}</span>
+            <span className="text-xs sm:text-sm font-medium truncate">{selectedCountry.dialCode}</span>
+            <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 shrink-0" />
           </button>
 
           {/* Dropdown Portal */}
           {isOpen && createPortal(
             <div 
               data-country-dropdown
-              className="fixed z-50 bg-white border border-gray-300 shadow-lg rounded-b-lg"
+              className="fixed z-50 bg-background border border-input shadow-lg rounded-b-lg"
               style={{
                 top: `${buttonPosition.top}px`,
                 left: `${buttonPosition.left}px`,
-                width: `${Math.max(buttonPosition.width, 320)}px`,
-                minWidth: '320px'
+                width: `${Math.max(buttonPosition.width, 280)}px`,
+                minWidth: '280px',
+                maxWidth: 'calc(100vw - 16px)'
               }}
             >
               {/* Arrow indicator */}
               <div 
-                className="absolute bottom-0 left-4 w-0 h-0 border-l-4 border-r-4 border-l-transparent border-r-transparent border-t-4 border-t-white"
+                className="absolute bottom-0 left-4 w-0 h-0 border-l-4 border-r-4 border-l-transparent border-r-transparent border-t-4 border-t-background"
                 style={{
                   transform: 'translateY(-1px)'
                 }}
               />
               {/* Search */}
-              <div className="p-3 border-b border-gray-200">
+              <div className="p-2 sm:p-3 border-b border-border">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+                  <Search className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
                   <input
                     type="text"
                     placeholder="Search countries..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary text-sm sm:text-base"
                     autoFocus
                   />
                   {searchTerm && (
                     <button
                       type="button"
                       onClick={() => setSearchTerm('')}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -264,8 +265,8 @@ const PhoneInput = ({
               <div className="max-h-60 overflow-y-auto">
                 {isLoading ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-6 h-6 animate-spin text-gray-500" />
-                    <span className="ml-2 text-sm text-gray-500">Loading countries...</span>
+                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                    <span className="ml-2 text-sm text-muted-foreground">Loading countries...</span>
                   </div>
                 ) : filteredCountries.length > 0 ? (
                   filteredCountries.map((country) => (
@@ -273,18 +274,18 @@ const PhoneInput = ({
                       key={country.code}
                       type="button"
                       onClick={() => handleCountrySelect(country)}
-                      className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+                      className="w-full flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 text-left hover:bg-accent focus:bg-accent focus:outline-none"
                     >
-                      <span className="text-lg">{country.flag}</span>
+                      <span className="text-base sm:text-lg shrink-0">{country.flag}</span>
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-gray-900">{country.name}</div>
-                        <div className="text-sm text-gray-500">{country.dialCode}</div>
+                        <div className="font-medium text-foreground text-sm sm:text-base truncate">{country.name}</div>
+                        <div className="text-xs sm:text-sm text-muted-foreground">{country.dialCode}</div>
                       </div>
                     </button>
                   ))
                 ) : (
                   <div className="flex items-center justify-center py-8">
-                    <span className="text-sm text-gray-500">No countries found</span>
+                    <span className="text-sm text-muted-foreground">No countries found</span>
                   </div>
                 )}
               </div>
@@ -301,7 +302,7 @@ const PhoneInput = ({
           onChange={handlePhoneChange}
           placeholder="Enter phone number"
           disabled={disabled}
-          className="flex-1 px-4 py-3 border border-gray-300 rounded-r-lg bg-white text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 px-2 sm:px-4 py-3 border border-input rounded-r-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base min-w-0"
         />
       </div>
     </div>

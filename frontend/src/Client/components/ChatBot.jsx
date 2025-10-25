@@ -159,8 +159,8 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
       
       const result = await dispatch(uploadResume(formData)).unwrap()
       
-      // Create short success message
-      const successMessage = `Thank you for submitting your CV. We will contact you shortly.`
+      // Create success message with retention information
+      const successMessage = `Thank you for submitting your CV. We will contact you shortly. Your CV will be retained for 90 days as per our data retention policy.`
       
       setMessages(ms => ([
         ...ms,
@@ -169,7 +169,7 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
       
       // Show success toast notification
       toast.success('Resume uploaded successfully!', {
-        description: 'Our team will review your resume and get back to you soon.',
+        description: 'Our team will review your resume and get back to you soon. Your CV will be retained for 90 days.',
         duration: 5000,
       })
       

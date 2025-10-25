@@ -42,7 +42,7 @@ const PhoneInput = ({
     fallbackCountries.find(country => country.code === defaultCountry) || fallbackCountries[0]
   )
   const [phoneNumber, setPhoneNumber] = useState('')
-  const [buttonPosition, setButtonPosition] = useState({ top: 0, left: 0, width: 0 })
+  const [buttonPosition, setButtonPosition] = useState({ top: 0, left: 0, width: 0, showAbove: false })
   const dropdownRef = useRef(null)
   const inputRef = useRef(null)
   const buttonRef = useRef(null)
@@ -74,7 +74,6 @@ const PhoneInput = ({
           setSelectedCountry(newSelectedCountry)
         }
       } catch (error) {
-        console.warn('Failed to fetch countries from API, using fallback:', error)
         // Keep using fallback countries
       } finally {
         setIsLoading(false)
@@ -104,10 +103,14 @@ const PhoneInput = ({
   const updateButtonPosition = () => {
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect()
+      const dropdownHeight = 300 // Approximate height of dropdown
+      
+      // Always show above the input
       setButtonPosition({
-        top: rect.bottom + window.scrollY,
+        top: rect.top + window.scrollY - dropdownHeight,
         left: rect.left + window.scrollX,
-        width: rect.width
+        width: rect.width,
+        showAbove: true
       })
     }
   }
@@ -155,6 +158,8 @@ const PhoneInput = ({
 
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside)
+      // Update position when dropdown opens
+      updateButtonPosition()
     }
     
     return () => {
@@ -170,7 +175,7 @@ const PhoneInput = ({
     }
   }, [value, selectedCountry.dialCode])
 
-  // Update position on window resize
+  // Update position on window resize and scroll
   useEffect(() => {
     const handleResize = () => {
       if (isOpen) {
@@ -178,12 +183,18 @@ const PhoneInput = ({
       }
     }
 
+    const handleScroll = () => {
+      if (isOpen) {
+        updateButtonPosition()
+      }
+    }
+
     window.addEventListener('resize', handleResize)
-    window.addEventListener('scroll', handleResize)
+    window.addEventListener('scroll', handleScroll, true) // Use capture phase for better performance
     
     return () => {
       window.removeEventListener('resize', handleResize)
-      window.removeEventListener('scroll', handleResize)
+      window.removeEventListener('scroll', handleScroll, true)
     }
   }, [isOpen])
 
@@ -196,9 +207,6 @@ const PhoneInput = ({
             ref={buttonRef}
             type="button"
             onClick={() => {
-              if (!isOpen) {
-                updateButtonPosition()
-              }
               setIsOpen(!isOpen)
             }}
             disabled={disabled}
@@ -213,13 +221,21 @@ const PhoneInput = ({
           {isOpen && createPortal(
             <div 
               data-country-dropdown
-              className="fixed z-50 w-80 bg-white border border-gray-300 rounded-lg shadow-lg"
+              className="fixed z-50 bg-white border border-gray-300 shadow-lg rounded-b-lg"
               style={{
                 top: `${buttonPosition.top}px`,
                 left: `${buttonPosition.left}px`,
-                width: `${buttonPosition.width}px`
+                width: `${Math.max(buttonPosition.width, 320)}px`,
+                minWidth: '320px'
               }}
             >
+              {/* Arrow indicator */}
+              <div 
+                className="absolute bottom-0 left-4 w-0 h-0 border-l-4 border-r-4 border-l-transparent border-r-transparent border-t-4 border-t-white"
+                style={{
+                  transform: 'translateY(-1px)'
+                }}
+              />
               {/* Search */}
               <div className="p-3 border-b border-gray-200">
                 <div className="relative">

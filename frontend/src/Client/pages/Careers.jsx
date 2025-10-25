@@ -217,29 +217,7 @@ const Careers = ({ setCvData, jobPostings, isLoggedIn, setIsLoggedIn }) => {
       }));
       
       // Debug: Log all data being sent to backend
-      console.log('=== CAREERS PAGE DEBUG ===')
-      console.log('Form data being sent to backend:')
-      console.log('name:', careerForm.name)
-      console.log('email:', careerForm.email)
-      console.log('role (jobTitle):', careerForm.jobTitle)
-      console.log('phone (original):', careerForm.phone)
-      console.log('phone (cleaned):', cleanPhone)
-      console.log('phone (without country code):', phoneWithoutCountryCode)
-      console.log('selectedCountryCode:', selectedCountryCode)
-      console.log('contact object:', {
-        number: phoneWithoutCountryCode,
-        country_code: selectedCountryCode
-      })
-      console.log('cvFile:', careerForm.cvFile)
-      console.log('cvFile name:', careerForm.cvFile?.name)
-      console.log('cvFile size:', careerForm.cvFile?.size)
-      console.log('cvFile type:', careerForm.cvFile?.type)
       
-      // Log FormData contents
-      console.log('FormData contents:')
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, value)
-      }
       
       // Upload to backend using the new dedicated resume API
       const result = await dispatch(uploadResume(formData)).unwrap();

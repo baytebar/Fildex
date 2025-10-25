@@ -53,7 +53,6 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
           setJobTitles([])
         }
       } catch (error) {
-        console.error('Error fetching job titles:', error)
         setJobTitles([])
       }
     }
@@ -125,6 +124,7 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
     setUploadedFile(file)
     setIsUploading(true)
     
+    // Debug: Check selectedJobTitle right before form submission
     
     try {
       // Extract text from file for analysis
@@ -146,7 +146,15 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
       
       // Use selectedJobTitle as the role
       const roleValue = selectedJobTitle || userInfo.role || ''
+      
+      // Ensure role is not empty
+      if (!roleValue || roleValue.trim() === '') {
+      }
+      
       formData.append('role', roleValue)
+      
+      
+      // Debug: Log all data being sent to backend (same as careers page)
       
       
       const result = await dispatch(uploadResume(formData)).unwrap()
@@ -463,6 +471,7 @@ const ChatBot = ({ showBot, setShowBot, cvData, setCvData }) => {
                     
                     // Auto-proceed when job title is selected
                     if (selectedValue) {
+                      
                       setTimeout(() => {
                         setCurrentStep('resume')
                         setMessages(ms => [...ms, { 

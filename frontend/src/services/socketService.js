@@ -18,34 +18,28 @@ class SocketService {
         : 'http://46.62.206.205:5000/api/v1');
     const serverUrl = apiBaseUrl.replace('/api/v1', '');
     
-    console.log('🔌 Connecting to Socket.IO server:', serverUrl);
     this.socket = io(serverUrl, {
       transports: ['websocket', 'polling'],
       autoConnect: true,
     });
 
     this.socket.on('connect', () => {
-      console.log('✅ Socket.IO connected to server:', this.socket.id);
       this.isConnected = true;
     });
 
     this.socket.on('disconnect', (reason) => {
-      console.log('❌ Socket.IO disconnected from server:', reason);
       this.isConnected = false;
     });
 
     this.socket.on('connect_error', (error) => {
-      console.error('❌ Socket.IO connection error:', error);
       this.isConnected = false;
     });
 
     this.socket.on('reconnect', (attemptNumber) => {
-      console.log('🔄 Socket.IO reconnected after', attemptNumber, 'attempts');
       this.isConnected = true;
     });
 
     this.socket.on('reconnect_error', (error) => {
-      console.error('❌ Socket.IO reconnection error:', error);
     });
 
     return this.socket;
@@ -62,9 +56,7 @@ class SocketService {
   joinAdminRoom() {
     if (this.socket && this.isConnected) {
       this.socket.emit('join-admin');
-      console.log('✅ Joined admin room');
     } else {
-      console.log('❌ Cannot join admin room - socket not connected');
     }
   }
 

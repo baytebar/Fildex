@@ -29,7 +29,6 @@ const useImageLoader = (imagePaths) => {
         img.onerror = () => {
           loadedImages++
           setLoadedCount(loadedImages)
-          console.warn(`Failed to load image: ${imagePath}`)
           resolve(imagePath) // Still resolve to continue loading
         }
         

@@ -18,6 +18,7 @@ const __dirname = path.dirname(__filename);
 
 export const uploadResume = async (req, res, next) => {
   try {
+    // Debug raw request
     
     // Check if file is provided
     if (!req.file) {
@@ -30,6 +31,7 @@ export const uploadResume = async (req, res, next) => {
 
     // Extract data from request body
     const { name, email, contact, role } = req.body;
+    
     
     
     // Validate required fields
@@ -139,7 +141,6 @@ export const uploadResume = async (req, res, next) => {
         
         await createNotification(notificationData);
       } catch (error) {
-        console.error('Error creating notification:', error);
         // Don't fail the upload if notification creation fails
       }
 

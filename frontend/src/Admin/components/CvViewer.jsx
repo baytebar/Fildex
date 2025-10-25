@@ -108,7 +108,6 @@ const CvViewer = ({ user, onClose, onStatusUpdate }) => {
       }
       setCvError('CV not available')
     } catch (err) {
-      console.error('CV viewing error:', err)
       setCvError(`Failed to open CV: ${err.message || 'Unknown error'}`)
     } finally {
       setIsLoading(false)

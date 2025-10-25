@@ -57,7 +57,6 @@ const AdminDashboard = ({ showAdmin, setShowAdmin, cvData, setCvData, jobPosting
 
   // Test Socket.IO connection
   const testSocketConnection = () => {
-    console.log('Socket.IO connection status:', isConnected);
     if (isConnected) {
       toast.success('Socket.IO is connected and ready for real-time notifications!');
     } else {

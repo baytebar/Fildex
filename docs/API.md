@@ -601,7 +601,6 @@ socket.emit('join-admin');
 **New CV Upload Notification**
 ```javascript
 socket.on('new-cv-upload', (data) => {
-  console.log('New CV uploaded:', data);
   // data contains: name, email, role, phone, timestamp
 });
 ```
@@ -609,7 +608,6 @@ socket.on('new-cv-upload', (data) => {
 **New Job Application**
 ```javascript
 socket.on('new-job-application', (data) => {
-  console.log('New job application:', data);
   // data contains: jobTitle, applicantName, email, timestamp
 });
 ```

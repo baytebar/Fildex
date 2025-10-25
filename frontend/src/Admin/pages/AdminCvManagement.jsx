@@ -85,7 +85,6 @@ const AdminCvManagement = () => {
         dispatch(fetchAllResumes({ page: 1, limit: 10 }))
           .unwrap()
           .catch((error) => {
-            console.error('Failed to refresh CV list:', error);
           });
       }
     }

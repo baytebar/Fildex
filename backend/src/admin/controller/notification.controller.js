@@ -10,7 +10,6 @@ export const createNotification = async (notificationData) => {
     const savedNotification = await notification.save();
     return savedNotification;
   } catch (error) {
-    console.error('Error creating notification:', error);
     throw error;
   }
 };

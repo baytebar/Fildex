@@ -13,7 +13,7 @@ const getApiBaseUrl = () => {
     return 'http://localhost:5000/api/v1';
   } else {
     // Production environment
-    return 'https://fildex.ie/api/v1';
+    return 'https://46.62.206.205:5000/api/v1';
   }
 };
 

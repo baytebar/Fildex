@@ -233,7 +233,6 @@ const registerResponse = await fetch('http://localhost:5000/api/v1/admin/auth/re
 });
 
 const registerData = await registerResponse.json();
-console.log(registerData);
 ```
 
 ## Testing

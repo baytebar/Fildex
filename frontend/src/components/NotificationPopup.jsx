@@ -25,7 +25,6 @@ const NotificationPopup = () => {
       const stored = localStorage.getItem('shownNotifications');
       return stored ? new Set(JSON.parse(stored)) : new Set();
     } catch (error) {
-      console.error('Error loading shown notifications:', error);
       return new Set();
     }
   });
@@ -54,7 +53,6 @@ const NotificationPopup = () => {
         try {
           localStorage.setItem('shownNotifications', JSON.stringify([...newShownNotifications]));
         } catch (error) {
-          console.error('Error saving shown notifications:', error);
         }
       }
     }
@@ -93,7 +91,6 @@ const NotificationPopup = () => {
         try {
           localStorage.setItem('shownNotifications', JSON.stringify([...newShownNotifications]));
         } catch (error) {
-          console.error('Error saving shown notifications:', error);
         }
       }
     }
@@ -139,7 +136,6 @@ const NotificationPopup = () => {
       try {
         localStorage.setItem('shownNotifications', JSON.stringify([...newSet]));
       } catch (error) {
-        console.error('Error saving cleaned notifications:', error);
       }
     }, 60000); // Clean up every minute
 
@@ -157,7 +153,6 @@ const NotificationPopup = () => {
   const handleViewAll = () => {
     setIsVisible(false);
     // You can navigate to a notifications page or show a full list
-    console.log('View all notifications');
   };
 
   const formatTimeAgo = (timestamp) => {

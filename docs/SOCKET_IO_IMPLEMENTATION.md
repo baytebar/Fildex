@@ -125,4 +125,3 @@ Socket.IO CORS is configured to allow connections from:
 - Notification categories and filtering
 - Real-time chat between admins
 - File upload progress notifications
-

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Provider, useDispatch, useSelector } from 'react-redux'
 import { store } from './app/store'
 import { Toaster } from 'sonner'
-import { HelmetProvider } from 'react-helmet-async'
+import { HelmetProvider } from '@dr.pogodin/react-helmet'
 import HomePage from './Client/pages/HomePage'
 import Careers from './Client/pages/Careers'
 

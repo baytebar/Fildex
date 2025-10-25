@@ -90,8 +90,7 @@ connectDB().catch((err) => {
   process.exit(1);
 });
 
-// Serve static files from uploads directory
-app.use('/api/v1/public/uploads', express.static(path.join(__dirname, 'src/public/uploads')));
+// Files are served from Hetzner S3 storage, no local static files needed
 
 //routes
 app.use("/api/v1", indexRouter);

@@ -1,4 +1,4 @@
-import { Helmet } from 'react-helmet-async'
+import { Helmet } from '@dr.pogodin/react-helmet'
 
 const SEO = ({ 
   title = "Fildex Solutions - Complete Digital Service Provider",
